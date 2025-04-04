@@ -1,0 +1,118 @@
+CREATE DATABASE IF NOT EXISTS restaurant_db;
+USE restaurant_db;
+
+-- Customers Table
+CREATE TABLE Customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address TEXT
+);
+
+-- Menu Items Table
+CREATE TABLE MenuItems (
+    item_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    availability BOOLEAN DEFAULT TRUE
+);
+
+-- Orders Table
+CREATE TABLE Orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('Pending', 'Preparing', 'Completed', 'Cancelled') DEFAULT 'Pending',
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE
+);
+
+-- Order Items Table (Many-to-Many Relationship)
+CREATE TABLE OrderItems (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    item_id INT,
+    quantity INT NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE
+);
+
+-- Employees Table
+CREATE TABLE Employees (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    role ENUM('Admin', 'Staff', 'Cashier', 'Chef') NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL
+);
+
+-- Payments Table
+CREATE TABLE Payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    method ENUM('Cash', 'Card', 'Online') NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE
+);
+
+-- Inventory Table
+CREATE TABLE Inventory (
+    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_name VARCHAR(100) NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    threshold INT NOT NULL
+);
+
+-- Menu Item Ingredients (Many-to-Many Relationship between Menu Items and Inventory)
+CREATE TABLE MenuItemIngredients (
+    menu_item_ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT,
+    inventory_id INT,
+    quantity_required INT NOT NULL,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE,
+    FOREIGN KEY (inventory_id) REFERENCES Inventory(inventory_id) ON customersDELETE CASCADE
+);
+
+ALTER TABLE Customers 
+ADD COLUMN password VARCHAR(255) NOT NULL;
+
+CREATE TABLE contacts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  subject VARCHAR(200),
+  message TEXT NOT NULL,
+  created_at DATETIME NOT NULL
+);
+
+-- changes
+
+ALTER TABLE MenuItems
+ADD COLUMN category ENUM('Main-Dishes', 'Sea-Food', 'Desserts', 'Beverage') NOT NULL;
+
+ALTER TABLE MenuItems
+ADD COLUMN image_url VARCHAR(255);
+
+CREATE TABLE Cart (
+    cart_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE CartItems (
+    cart_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    cart_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (cart_id) REFERENCES Cart(cart_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE
+);
+
+ALTER TABLE Orders
+ADD COLUMN delivery_address TEXT;

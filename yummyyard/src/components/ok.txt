@@ -1,0 +1,44 @@
+<Grid item xs={12} md={7} sx={{ mt: 4, position: 'relative', right: {md: '-170px'} }}>
+              <Slider {...sliderSettings}>
+                <div>
+                  <img
+                    src={yummyYard1}
+                    alt="Restaurant 1"
+                    style={{ maxWidth: '100%', borderRadius: '8px' }}
+                  />
+                </div>
+                <div>
+
+                  <img
+                    src={yummyYard2}
+                    alt="Restaurant 2"
+                    style={{ maxWidth: '100%', borderRadius: '8px' }}
+                  />
+                </div>
+                <div>
+                  <img
+                    src={yummyYard3}
+                    alt="Restaurant 3"
+                    style={{ maxWidth: '100%', borderRadius: '8px' }}
+                  />
+                </div>
+              </Slider>
+            </Grid>
+
+
+
+
+            import yummyYard1 from '../assets/sliderimage1.jpg';
+import yummyYard2 from '../assets/sliderimage2.jpg';
+import yummyYard3 from '../assets/sliderimage3.jpg';
+
+
+ const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+  };
