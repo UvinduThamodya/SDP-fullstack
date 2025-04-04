@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -78,8 +78,15 @@ const LogoContainer = styled(Box)(({ open }) => ({
 }));
 
 const Sidebar = ({ children }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => {
+    const savedState = localStorage.getItem('sidebarOpen');
+    return savedState !== null ? JSON.parse(savedState) : true;
+  });
   const location = useLocation();
+
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(open));
+  }, [open]);
 
   const toggleSidebar = () => {
     setOpen(!open);
