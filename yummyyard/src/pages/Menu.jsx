@@ -1,5 +1,6 @@
-import Sidebar from '../components/Sidebar'; 
+import Sidebar from '../components/Sidebar';
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MenuService from '../services/menuService';
 import {
   Container,
@@ -11,21 +12,12 @@ import {
   Button,
   Tabs,
   Tab,
-  Rating,
   Grid,
-  Divider,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   return new Intl.NumberFormat(locale, {
@@ -36,16 +28,26 @@ const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
 
 const Menu = () => {
   const [menuItems, setMenuItems] = useState([]);
-  const [newMenuItem, setNewMenuItem] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: '',
-    image: null,
-  });
   const [selectedCategory, setSelectedCategory] = useState('Main-Dishes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Check for authentication on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    if (!token || !storedUser) {
+      // If no token or user, redirect to login page
+      navigate('/login');
+      return;
+    }
+    
+    setUser(JSON.parse(storedUser));
+  }, [navigate]);
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -63,51 +65,59 @@ const Menu = () => {
     fetchMenuItems();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewMenuItem((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    setNewMenuItem((prev) => ({
-      ...prev,
-      image: e.target.files[0],
-    }));
-  };
-
   const handleCategoryChange = (event, newCategory) => {
     setSelectedCategory(newCategory);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append('name', newMenuItem.name);
-    formData.append('description', newMenuItem.description);
-    formData.append('price', newMenuItem.price);
-    formData.append('category', newMenuItem.category);
-
-    if (newMenuItem.image) {
-      formData.append('image', newMenuItem.image);
+  const handleAddToCart = async (itemId) => {
+    console.log("Adding to cart, itemId:", itemId);
+    
+    if (!user) {
+      alert("Please login to add items to your cart");
+      navigate('/login');
+      return;
     }
-
+    
+    if (!itemId) {
+      alert("Cannot add to cart: Item ID is missing");
+      return;
+    }
+    
     try {
-      const createdItem = await MenuService.createMenuItem(formData);
-      setMenuItems((prev) => [...prev, createdItem]);
-      setNewMenuItem({
-        name: '',
-        description: '',
-        price: '',
-        category: '',
-        image: null,
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('http://localhost:5000/api/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          itemId,
+          quantity: 1,
+          // customerId is no longer needed here as it will be extracted from the token on the server
+        }),
       });
-      alert('Menu item created successfully!');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add to cart');
+      }
+      
+      const data = await response.json();
+      setCart(data.cartItems);
+      alert('Item added to cart successfully!');
     } catch (error) {
-      alert('Failed to create menu item');
+      console.error('Error adding to cart:', error);
+      
+      if (error.message === 'Not authorized' || error.message === 'Token is invalid') {
+        // Handle auth errors
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+      } else {
+        alert(`Failed to add item to cart: ${error.message}`);
+      }
     }
   };
 
@@ -118,9 +128,30 @@ const Menu = () => {
     return <Typography color="error">Error: {error}</Typography>;
   }
 
+  const CartSummary = () => (
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h6">Cart ({cart.length} items)</Typography>
+      <List>
+        {cart.map((cartItem) => (
+          <ListItem key={cartItem.cart_item_id}>
+            <ListItemText
+              primary={cartItem.name}
+              secondary={`${formatCurrency(cartItem.price)} x ${cartItem.quantity}`}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
+  // If user isn't loaded yet, don't render the full component
+  if (!user) {
+    return <Typography>Loading user data...</Typography>;
+  }
+
   return (
-    <Box sx={{ display: 'flex', backgroundColor: 'white' }}> {/* Set background color to white */}
-      <Sidebar /> {/* Include the Sidebar component */}
+    <Box sx={{ display: 'flex', backgroundColor: 'white' }}>
+      <Sidebar />
       <Container maxWidth="lg" sx={{ pt: 5, pb: 8 }}>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="subtitle1" component="div" sx={{ mb: 1, color: '#8a6d3b' }}>
@@ -128,6 +159,9 @@ const Menu = () => {
           </Typography>
           <Typography variant="h2" component="h1" sx={{ fontWeight: 'bold', color: '#333' }}>
             Our Specials Menu
+          </Typography>
+          <Typography variant="subtitle1" color="primary">
+            Welcome, {user.name}!
           </Typography>
         </Box>
 
@@ -142,20 +176,29 @@ const Menu = () => {
 
         <Grid container spacing={3}>
           {displayItems.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Grid item xs={12} sm={6} md={4} key={item.item_id}>
               <Card sx={{ display: 'flex', flexDirection: 'column' }}>
-                <CardMedia component="img" height="200" image={item.image_url} alt={item.name} />
+              <CardMedia 
+              component="img" 
+               height="200" 
+              image={item.image_url.startsWith('/') ? `http://localhost:5000${item.image_url}` : `/assets/${item.image_url}`} 
+               alt={item.name}
+              onError={(e) => {
+                 e.target.onerror = null;
+                e.target.src = "../public/Background.jpg"; // Fallback image if loading fails
+                }}
+                />
                 <CardContent sx={{ flexGrow: 1, pt: 2 }}>
                   <Typography variant="h5">{item.name}</Typography>
                   <Typography variant="body2">{item.description}</Typography>
                   <Typography variant="h6" sx={{ mt: 2 }}>
-                    {formatCurrency(item.price, 'LKR', 'en-LK')} {/* Updated to LKR */}
+                    {formatCurrency(item.price, 'LKR', 'en-LK')}
                   </Typography>
                   <Button
                     variant="outlined"
                     fullWidth
                     startIcon={<ShoppingCartIcon />}
-                    onClick={() => console.log(`Added item ${item.id} to cart`)}
+                    onClick={() => handleAddToCart(item.item_id)}
                   >
                     Add to cart
                   </Button>
@@ -165,64 +208,7 @@ const Menu = () => {
           ))}
         </Grid>
 
-        <Box sx={{ mt: 5 }}>
-          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            Add a New Menu Item
-          </Typography>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              value={newMenuItem.name}
-              onChange={handleInputChange}
-              sx={{ mb: 2 }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="Description"
-              name="description"
-              value={newMenuItem.description}
-              onChange={handleInputChange}
-              sx={{ mb: 2 }}
-              required
-            />
-            <TextField
-              fullWidth
-              label="Price"
-              name="price"
-              value={newMenuItem.price}
-              onChange={handleInputChange}
-              type="number"
-              sx={{ mb: 2 }}
-              required
-            />
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Category</InputLabel>
-              <Select
-                name="category"
-                value={newMenuItem.category}
-                onChange={handleInputChange}
-                required
-              >
-                <MenuItem value="Main-Dishes">Main Dishes</MenuItem>
-                <MenuItem value="Sea-Food">Sea Food</MenuItem>
-                <MenuItem value="Desserts">Desserts</MenuItem>
-                <MenuItem value="Beverage">Beverage</MenuItem>
-              </Select>
-            </FormControl>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              style={{ marginBottom: '20px' }}
-            />
-            <Button type="submit" variant="contained">
-              Create Menu Item
-            </Button>
-          </form>
-        </Box>
+        <CartSummary />
       </Container>
     </Box>
   );

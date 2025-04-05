@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -83,6 +83,8 @@ const Sidebar = ({ children }) => {
     return savedState !== null ? JSON.parse(savedState) : true;
   });
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
   useEffect(() => {
     localStorage.setItem('sidebarOpen', JSON.stringify(open));
@@ -92,17 +94,27 @@ const Sidebar = ({ children }) => {
     setOpen(!open);
   };
 
+  // Function to handle home navigation based on authentication status
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (token) {
+      // If user is logged in, go to user homepage
+      navigate('/HomepageUser');
+    } else {
+      // If user is not logged in, go to public homepage
+      navigate('/');
+    }
+  };
+
   return (
     <Box display="flex">
       <SidebarContainer open={open}>
         {/* User Profile Section */}
         <Box display="flex" alignItems="center" p={2} mb={2}>
-          {/* <Avatar sx={{ bgcolor: '#FFFFFF', color: '#000000', mr: 1.5 }}>
-            <AccountCircleIcon />
-          </Avatar> */}
           {open && (
             <Typography variant="h6" fontWeight="medium" sx={{ fontFamily: 'Poppins, sans-serif' }}>
-              Username
+              {user ? user.name : 'Guest'}
             </Typography>
           )}
           <IconButton onClick={toggleSidebar} sx={{ ml: 'auto', color: '#FFFFFF' }}>
@@ -115,9 +127,8 @@ const Sidebar = ({ children }) => {
           <List disablePadding>
             <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton
-                active={location.pathname === '/Homepage'}
-                component={Link}
-                to="/"
+                active={location.pathname === '/' || location.pathname === '/HomepageUser'}
+                onClick={handleHomeClick}
                 open={open}
               >
                 {open ? (
@@ -183,9 +194,9 @@ const Sidebar = ({ children }) => {
             {/* Replaced Settings with About Us */}
             <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton
-                active={location.pathname === '/aboutcontact'} // Updated to match AboutContact.jsx path
+                active={location.pathname === '/aboutcontact'} 
                 component={Link}
-                to="/aboutcontact" // Updated path to match AboutContact.jsx
+                to="/aboutcontact"
                 open={open}
               >
                 {open ? (
@@ -199,7 +210,7 @@ const Sidebar = ({ children }) => {
             </ListItem>
           </List>
         </Box>
-
+        
         {/* Logo at Bottom */}
         <Box display="flex" justifyContent="center" p={2} mb={4}>
           <LogoContainer open={open}>

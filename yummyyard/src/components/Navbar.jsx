@@ -1,5 +1,5 @@
-import React from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Box, Tooltip } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { AppBar, Toolbar, IconButton, Typography, Box, Tooltip, Button } from '@mui/material';
 import yummyYard from '../assets/YummyYard_logo.png'; // Import the Yummy Yard logo
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
@@ -8,12 +8,42 @@ import dashboardLogo from '../assets/dashboard (1).png';
 import menuLogo from '../assets/menu (1).png';
 import ordersLogo from '../assets/Order.png';
 import aboutLogo from '../assets/aboutus.png';
+import homeLogo from '../assets/home.png'; // Add home logo import
 
 const Navbar = () => {
   const navigate = useNavigate(); // Initialize useNavigate
+  const [user, setUser] = useState(null);
+  
+  // Check if user is logged in
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const handleNavigation = (route) => {
     navigate(route);
+  };
+  
+  // Handle home navigation based on authentication status
+  const handleHomeClick = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // If user is logged in, go to user homepage
+      navigate('/HomepageUser');
+    } else {
+      // If user is not logged in, go to public homepage
+      navigate('/');
+    }
+  };
+  
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/');
   };
 
   return (
@@ -28,9 +58,9 @@ const Navbar = () => {
             sx={{ mr: 4 }}
           >
             <img
-              src={yummyYard} // Replace with your restaurant logo
+              src={yummyYard}
               alt="Yummy Yard Logo"
-              style={{ height: '60px', marginRight: '9px', borderRadius: '5px' }} // Increased logo height
+              style={{ height: '60px', marginRight: '9px', borderRadius: '5px' }}
             />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', fontSize: '30px', fontFamily: 'Poppins, sans-serif' }}>
@@ -40,7 +70,19 @@ const Navbar = () => {
             +94 76 718 1695
           </Typography>
         </Box>
+        
+        {user && (
+          <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '16px' }}>
+            Welcome, {user.name}!
+          </Typography>
+        )}
+        
         <Box sx={{ display: 'flex', gap: 3 }}>
+          <Tooltip title="Home" placement="bottom" sx={{ fontSize: '20px' }}>
+            <IconButton color="inherit" onClick={handleHomeClick}>
+              <img src={homeLogo} alt="Home" style={{ height: '40px' }} />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Dashboard" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/dashboard')}>
               <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
@@ -61,6 +103,24 @@ const Navbar = () => {
               <img src={aboutLogo} alt="About Us" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
+          
+          {user ? (
+            <Button 
+              color="inherit" 
+              onClick={handleLogout}
+              sx={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Logout
+            </Button>
+          ) : (
+            <Button 
+              color="inherit" 
+              onClick={() => navigate('/login')}
+              sx={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              Login
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

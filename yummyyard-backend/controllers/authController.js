@@ -1,5 +1,9 @@
 const CustomerModel = require("../models/customerModel");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken"); // Added JWT library
+
+// This secret key should be in an environment variable in production
+const JWT_SECRET = "your-super-secret-key-change-this"; 
 
 const AuthController = {
   async register(req, res) {
@@ -16,10 +20,22 @@ const AuthController = {
       }
 
       const userId = await CustomerModel.create({ name, email, phone, address, password });
+      
+      // Generate token for the newly registered user
+      const token = jwt.sign(
+        { 
+          id: userId,
+          email: email,
+          name: name 
+        },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
 
       res.status(201).json({
         message: "User registered successfully",
         userId,
+        token
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -45,8 +61,20 @@ const AuthController = {
         return res.status(401).json({ error: "Invalid email or password" });
       }
 
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          id: user.customer_id,
+          email: user.email,
+          name: user.name 
+        },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
       res.json({
         message: "Login successful",
+        token, // Return the token
         user: {
           customer_id: user.customer_id,
           name: user.name,
