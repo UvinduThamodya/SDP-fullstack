@@ -14,7 +14,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/assets', express.static(path.join(__dirname, '../src/assets')));
+
 
 // MySQL Connection Pool
 const pool = mysql.createPool({
@@ -30,6 +31,7 @@ const pool = mysql.createPool({
 // Contact routes
 const contactRoutes = require("./routes/contactRoutes");
 app.use("/api/contact", contactRoutes);
+const customerRoutes = require('./routes/customerRoutes');
 
 // Check database connection at startup
 app.listen(PORT, async () => {
@@ -55,3 +57,4 @@ app.listen(PORT, async () => {
 app.use("/api/auth", authRoutes);
 const menuItemRoutes = require("./routes/menuItemRoutes");
 app.use("/api/menu-items", menuItemRoutes);
+app.use('/api/customers', customerRoutes);

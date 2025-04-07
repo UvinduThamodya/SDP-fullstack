@@ -8,7 +8,7 @@ import dashboardLogo from '../assets/dashboard (1).png';
 import menuLogo from '../assets/menu (1).png';
 import ordersLogo from '../assets/Order.png';
 import aboutLogo from '../assets/aboutus.png';
-import homeLogo from '../assets/home.png'; // Add home logo import
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const Navbar = () => {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -78,19 +78,9 @@ const Navbar = () => {
         )}
         
         <Box sx={{ display: 'flex', gap: 3 }}>
-          <Tooltip title="Home" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={handleHomeClick}>
-              <img src={homeLogo} alt="Home" style={{ height: '40px' }} />
-            </IconButton>
-          </Tooltip>
           <Tooltip title="Dashboard" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/dashboard')}>
               <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Menu" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
-              <img src={menuLogo} alt="Menu" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
@@ -98,12 +88,23 @@ const Navbar = () => {
               <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
+          <Tooltip title="Menu" placement="bottom" sx={{ fontSize: '20px' }}>
+            <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
+              <img src={menuLogo} alt="Menu" style={{ height: '40px' }} />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="About Us" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/aboutcontact')}>
               <img src={aboutLogo} alt="About Us" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
-          
+          {user && (
+            <Tooltip title="My Profile" placement="bottom" sx={{ fontSize: '20px' }}>
+              <IconButton color="inherit" onClick={() => handleNavigation('/profile')}>
+                <AccountCircleIcon sx={{ fontSize: 40 }} />
+              </IconButton>
+            </Tooltip>
+          )}
           {user ? (
             <Button 
               color="inherit" 

@@ -8,7 +8,9 @@ import "./App.css";
 import PlaceOrder from "./pages/PlaceOrder";
 import AboutContact from './pages/AboutContact';
 import HomepageUser from './pages/HomePageUser';
-import { AuthProvider, useAuth } from './context/Authcontext'; // Import AuthContext
+import { AuthProvider, useAuth } from './context/Authcontext'; 
+import CustomerProfile from '../src/pages/CustomerProfile';
+
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -38,6 +40,7 @@ function App() {
         <Route path="/" element={<Homepage />} />
         <Route path="/aboutcontact" element={<AboutContact />} />
         
+
         {/* Protected routes */}
         <Route 
           path="/menu" 
@@ -47,6 +50,15 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+  path="/profile" 
+  element={
+    <ProtectedRoute>
+      <CustomerProfile />
+    </ProtectedRoute>
+  } 
+/>
+
         <Route 
           path="/placeorder" 
           element={

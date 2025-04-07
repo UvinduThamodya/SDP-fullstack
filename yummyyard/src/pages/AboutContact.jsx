@@ -69,14 +69,19 @@ const HeroSection = styled(Box)(({ theme }) => ({
   backgroundColor: '#3dcd83',
   color: theme.palette.primary.contrastText,
   padding: theme.spacing(8, 0),
-  borderRadius: theme.spacing(0, 0, 4, 4),
+  borderRadius: 0, // Remove rounded corners
   marginBottom: theme.spacing(6),
   textAlign: 'center',
-  width: '1500vw',
-  position: 'relative',
-  left: '0',
-  marginLeft: 'calc(-50vw + 50%)',
+  width: '100vw', // 100% of viewport width
+  maxWidth: '100vw',
+  position: 'center',
+  left: '90%',
+  right: '50%',
+  marginLeft: '-50vw',
+  marginRight: '-50vw',
+  boxSizing: 'border-box'
 }));
+
 
 const AboutUsImage = styled('img')(({ theme }) => ({
   width: '100%',

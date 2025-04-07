@@ -140,6 +140,7 @@ const Sidebar = ({ children }) => {
                 )}
               </NavButton>
             </ListItem>
+
             <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton
                 active={location.pathname === '/dashboard'}
@@ -191,10 +192,10 @@ const Sidebar = ({ children }) => {
               </NavButton>
             </ListItem>
 
-            {/* Replaced Settings with About Us */}
+            {/* About Us */}
             <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton
-                active={location.pathname === '/aboutcontact'} 
+                active={location.pathname === '/aboutcontact'}
                 component={Link}
                 to="/aboutcontact"
                 open={open}
@@ -208,9 +209,26 @@ const Sidebar = ({ children }) => {
                 )}
               </NavButton>
             </ListItem>
+
+            {/* My Profile - Moved near About Us */}
+            <ListItem disablePadding sx={{ mb: 1.5 }}>
+              <NavButton
+                active={location.pathname === '/profile'}
+                component={Link}
+                to="/profile"
+                open={open}
+              >
+                {open ? (
+                  <ListItemText primary="My Profile" sx={{ textAlign: 'center', fontFamily: 'Poppins, sans-serif' }} />
+                ) : (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', width: 32, height: 32 }}>
+                    <AccountCircleIcon sx={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </Box>
+                )}
+              </NavButton>
+            </ListItem>
           </List>
         </Box>
-        
         {/* Logo at Bottom */}
         <Box display="flex" justifyContent="center" p={2} mb={4}>
           <LogoContainer open={open}>
