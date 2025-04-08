@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
-  Avatar,
+  // Avatar,
   List,
   ListItem,
   ListItemButton,
@@ -18,7 +18,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 // Import icons from assets folder
 import HomeIcon from '../assets/home.png';
 import DashboardIcon from '../assets/dashboard.png';
-import OrderIcon from '../assets/purchase-order.png';
+// import OrderIcon from '../assets/purchase-order.png';
 import MenuIconAsset from '../assets/menu.png'; // Corrected path
 import InfoIcon from '@mui/icons-material/Info'; // Using Material UI Icon
 
@@ -158,7 +158,7 @@ const Sidebar = ({ children }) => {
               </NavButton>
             </ListItem>
 
-            <ListItem disablePadding sx={{ mb: 1.5 }}>
+            {/* <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton
                 active={location.pathname === '/placeorder'}
                 component={Link}
@@ -173,7 +173,7 @@ const Sidebar = ({ children }) => {
                   </Box>
                 )}
               </NavButton>
-            </ListItem>
+            </ListItem> */}
 
             <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton

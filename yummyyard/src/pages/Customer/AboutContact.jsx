@@ -21,10 +21,10 @@ import {
   Menu as MenuIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import Sidebar from '../components/Sidebar'; // Import the Sidebar component
+import Sidebar from '../../components/Sidebar'; // Import the Sidebar component
 
 // Placeholder image for the About Us section (replace with your actual image)
-import aboutUsImage from '../assets/about-us-image.jpg'; // Adjust the path to your image
+import aboutUsImage from '../../assets/about-us-image.jpg'; // Adjust the path to your image
 
 // Styled components
 const StyledPaper = styled(Paper)(({ theme }) => ({

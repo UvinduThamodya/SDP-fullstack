@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import apiService from '../services/api';
-import Logo from '../assets/YummyYard_logo.png';
+import apiService from '../../services/api';
+import Logo from '../../assets/YummyYard_logo.png';
 
 // Material UI imports
 import {

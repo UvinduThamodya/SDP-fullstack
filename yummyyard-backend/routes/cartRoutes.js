@@ -17,5 +17,6 @@ const { authenticateUser } = require('../middleware/authMiddleware');
 // Protected routes
 router.post('/add', authenticateUser, cartController.addToCart);
 router.get('/:customerId', authenticateUser, cartController.getCart);
+router.get('/', authenticateUser, cartController.getCartItems);
 
 module.exports = router;

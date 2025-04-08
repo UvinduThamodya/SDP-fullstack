@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 // Import logos for the pages
 import dashboardLogo from '../assets/dashboard (1).png';
 import menuLogo from '../assets/menu (1).png';
-import ordersLogo from '../assets/Order.png';
+// import ordersLogo from '../assets/Order.png';
 import aboutLogo from '../assets/aboutus.png';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
@@ -83,11 +83,11 @@ const Navbar = () => {
               <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
+          {/* <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/placeorder')}>
               <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Menu" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
               <img src={menuLogo} alt="Menu" style={{ height: '40px' }} />

@@ -32,6 +32,9 @@ const pool = mysql.createPool({
 const contactRoutes = require("./routes/contactRoutes");
 app.use("/api/contact", contactRoutes);
 const customerRoutes = require('./routes/customerRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 // Check database connection at startup
 app.listen(PORT, async () => {
@@ -58,3 +61,6 @@ app.use("/api/auth", authRoutes);
 const menuItemRoutes = require("./routes/menuItemRoutes");
 app.use("/api/menu-items", menuItemRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/orders', orderRoutes);

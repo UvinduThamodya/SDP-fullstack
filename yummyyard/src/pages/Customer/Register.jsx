@@ -9,7 +9,7 @@ import {
   Grid,
   Alert,
 } from "@mui/material";
-import apiService from '../services/api';
+import apiService from '../../services/api';
 import { useNavigate } from "react-router-dom"; // Add this line
 
 const Register = () => {

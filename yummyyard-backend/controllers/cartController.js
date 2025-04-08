@@ -31,4 +31,16 @@ const getCart = async (req, res) => {
   }
 };
 
-module.exports = { addToCart, getCart };
+const getCartItems = async (req, res) => {
+  try {
+    console.log("Getting cart items for customer:", req.user.id);
+    // Your existing code
+    console.log("Cart items retrieved successfully");
+    res.status(200).json({ cartItems: [] });  // Return empty array to test
+  } catch (error) {
+    console.error("ERROR in getCartItems:", error);
+    res.status(500).json({ error: 'Failed to get cart items', details: error.message });
+  }
+};
+
+module.exports = { addToCart, getCart, getCartItems };

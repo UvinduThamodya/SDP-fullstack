@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Homepage from "./pages/HomePage";
-import Menu from './pages/Menu';
+import Register from "./pages/Customer/Register";
+import Login from "./pages/Customer/Login";
+import Homepage from "./pages/Customer/HomePage";
+import Menu from './pages/Customer/Menu';
 import "./App.css";
-import PlaceOrder from "./pages/PlaceOrder";
-import AboutContact from './pages/AboutContact';
-import HomepageUser from './pages/HomePageUser';
+// import PlaceOrder from "./pages/PlaceOrder";
+import AboutContact from './pages/Customer/AboutContact';
+import HomepageUser from './pages/Customer/HomePageUser';
 import { AuthProvider, useAuth } from './context/Authcontext'; 
-import CustomerProfile from '../src/pages/CustomerProfile';
+import CustomerProfile from '../src/pages/Customer/CustomerProfile';
 
 
 // Protected Route component that checks for authentication
@@ -59,14 +59,14 @@ function App() {
   } 
 />
 
-        <Route 
+        {/* <Route 
           path="/placeorder" 
           element={
             <ProtectedRoute>
               <PlaceOrder />
             </ProtectedRoute>
           } 
-        />
+        /> */}
         <Route 
           path="/HomepageUser" 
           element={

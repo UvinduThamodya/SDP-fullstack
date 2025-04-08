@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Box, Container, Grid, Typography, Button, Card, CardMedia, CardContent, Link, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -14,17 +13,17 @@ import {
 import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 
 // Import images for the slider
-import bgImage1 from '../assets/sliderimage1.jpg';
-import bgImage2 from '../assets/sliderimage2.jpg';
-import bgImage3 from '../assets/sliderimage3.jpg';
+import bgImage1 from '../../assets/sliderimage1.jpg';
+import bgImage2 from '../../assets/sliderimage2.jpg';
+import bgImage3 from '../../assets/sliderimage3.jpg';
 
 // Import restaurant logo for dishes (placeholder)
-import restaurantLogo from '../assets/YummyYard_logo.png'; // Replace with your actual logo path
+import restaurantLogo from '../../assets/YummyYard_logo.png'; // Replace with your actual logo path
 
 // Import social media images
-import foodieJenny from '../assets/foodie-jenny.jpg';
-import eatsWithSam from '../assets/eats-with-sam.jpg';
-import Navbar from '../components/Navbar'; // Import the Navbar component
+import foodieJenny from '../../assets/foodie-jenny.jpg';
+import eatsWithSam from '../../assets/eats-with-sam.jpg';
+import Navbar from '../../components/Navbar'; // Import the Navbar component
 
 // Styled Components for Reusability
 const StyledButton = styled(Button)({
@@ -214,22 +213,6 @@ const Homepage = () => {
                 <RunaltoTypography variant="h6" paragraph sx={{ fontSize: '1.5rem' }}> {/* Increased font size */}
                   Enjoy delicious meals and a great dining experience.
                 </RunaltoTypography>
-                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}> {/* Increased gap */}
-                  <StyledButton 
-                    variant="contained" 
-                    sx={{ fontSize: '1.25rem', padding: '1rem 2rem' }}
-                    onClick={handleLoginClick} // Add onClick handler
-                  > 
-                    Login
-                  </StyledButton>
-                  <StyledButton 
-                    variant="contained" 
-                    sx={{ fontSize: '1.25rem', padding: '1rem 2rem' }}
-                    onClick={handleSignupClick} // Add onClick handler
-                  > 
-                    Sign Up
-                  </StyledButton>
-                </Box>
               </Grid>
             </Grid>
           </Container>
