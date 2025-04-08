@@ -36,6 +36,8 @@ const cartRoutes = require('./routes/cartRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
+const staffRoutes = require('./routes/staffRoutes');
+
 // Check database connection at startup
 app.listen(PORT, async () => {
   try {
@@ -64,3 +66,5 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/orders', orderRoutes);
+
+app.use('/api/staff', staffRoutes);

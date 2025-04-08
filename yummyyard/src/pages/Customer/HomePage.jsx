@@ -82,7 +82,7 @@ const Homepage = () => {
   // Function to handle login button click
   const handleLoginClick = () => {
     console.log("Login button clicked");
-    navigate('/login'); // Navigate to the login page
+    navigate('/SelectRole'); // Navigate to the login page
   };
 
   // Function to handle signup button click
