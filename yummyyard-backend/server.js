@@ -37,6 +37,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
 const staffRoutes = require('./routes/staffRoutes');
+const inventoryRoutes = require('./routes/inventoryRoutes');
 
 // Check database connection at startup
 app.listen(PORT, async () => {
@@ -68,3 +69,4 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/orders', orderRoutes);
 
 app.use('/api/staff', staffRoutes);
+app.use('/api/inventory', inventoryRoutes);
