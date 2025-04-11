@@ -42,17 +42,17 @@ const StaffRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
-      // Make API request to register staff
-      await apiService.post('/staff/register', formData);
-
+      // Use apiService.register() for staff registration
+      await apiService.register(formData);
+  
       setAlert({
         open: true,
         message: 'Registration successful! Redirecting to login...',
         severity: 'success',
       });
-
+  
       // Redirect to login after success
       setTimeout(() => navigate('/staff-login'), 3000);
     } catch (error) {
@@ -66,7 +66,7 @@ const StaffRegister = () => {
       setIsLoading(false);
     }
   };
-
+  
   const handleCloseAlert = () => {
     setAlert({ ...alert, open: false });
   };

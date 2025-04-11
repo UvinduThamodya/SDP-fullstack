@@ -81,6 +81,20 @@ const staffLogin = async (req, res) => {
   }
 };
 
+const registerStaff = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Add logic to register staff (e.g., save to database)
+    // Example:
+    const newStaff = await Staff.create({ name, email, password });
+
+    res.status(201).json({ message: 'Staff registered successfully', staff: newStaff });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to register staff' });
+  }
+};
+
 // Add other staff controller functions as needed
 
-module.exports = { staffLogin };
+module.exports = { staffLogin, registerStaff };

@@ -145,7 +145,7 @@ const Sidebar = ({ children }) => {
               <NavButton
                 active={location.pathname === '/dashboard'}
                 component={Link}
-                to="/dashboard"
+                to="/dashboardcustomer"
                 open={open}
               >
                 {open ? (
