@@ -40,6 +40,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/stafflogin" element={<StaffLogin />} />
         <Route path="/staffregister" element={<StaffRegister />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Homepage />} />
         <Route path="/aboutcontact" element={<AboutContact />} />
@@ -72,14 +73,14 @@ function App() {
         />
 
         {/* Staff routes */}
-        <Route 
+        {/* <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } 
-        />
+        /> */}
       </Routes>
     </AuthProvider>
   );

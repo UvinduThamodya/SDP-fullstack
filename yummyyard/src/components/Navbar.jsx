@@ -79,7 +79,7 @@ const Navbar = () => {
         
         <Box sx={{ display: 'flex', gap: 3 }}>
           <Tooltip title="Dashboard" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/dashboard')}>
+            <IconButton color="inherit" onClick={() => handleNavigation('/dashboardcustomer')}>
               <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
