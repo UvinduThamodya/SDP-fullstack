@@ -21,6 +21,9 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
+import WarningIcon from '@mui/icons-material/Warning';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const Inventory = () => {
   const [ingredients, setIngredients] = useState([]); // To store inventory data
@@ -34,6 +37,10 @@ const Inventory = () => {
     threshold: ''
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: '' });
+  const [editIngredient, setEditIngredient] = useState(null);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [deleteIngredient, setDeleteIngredient] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const fetchInventory = async () => {
     try {
@@ -107,6 +114,104 @@ const Inventory = () => {
   // Close snackbar notification
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+  // Edit functions
+  const handleEditIngredient = (ingredient) => {
+    setEditIngredient(ingredient);
+    setOpenEditDialog(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setEditIngredient(null);
+  };
+
+  const handleUpdateIngredient = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/inventory/${editIngredient.inventory_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editIngredient)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSnackbar({
+          open: true,
+          message: 'Ingredient updated successfully!',
+          severity: 'success'
+        });
+        fetchInventory(); // Refresh the list
+        handleCloseEditDialog();
+      } else {
+        setSnackbar({
+          open: true,
+          message: data.error || 'Failed to update ingredient',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating ingredient:', error);
+      setSnackbar({
+        open: true,
+        message: 'Server error. Please try again.',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditIngredient({
+      ...editIngredient,
+      [name]: value
+    });
+  };
+
+  // Delete functions
+  const handleOpenDeleteDialog = (ingredient) => {
+    setDeleteIngredient(ingredient);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+    setDeleteIngredient(null);
+  };
+
+  const handleDeleteIngredient = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/inventory/${deleteIngredient.inventory_id}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setSnackbar({
+          open: true,
+          message: 'Ingredient deleted successfully!',
+          severity: 'success'
+        });
+        fetchInventory(); // Refresh the list
+        handleCloseDeleteDialog();
+      } else {
+        setSnackbar({
+          open: true,
+          message: data.error || 'Failed to delete ingredient',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting ingredient:', error);
+      setSnackbar({
+        open: true,
+        message: 'Server error. Please try again.',
+        severity: 'error'
+      });
+    }
+  };
+
   // Fetch inventory on component mount
   useEffect(() => {
     fetchInventory();
@@ -149,16 +254,54 @@ const Inventory = () => {
               <TableCell>Unit</TableCell>
               <TableCell>Unit Price</TableCell>
               <TableCell>Threshold</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell> {/* New column */}
             </TableRow>
           </TableHead>
           <TableBody>
             {ingredients.map((ingredient) => (
-              <TableRow key={ingredient.inventory_id}>
+              <TableRow
+                key={ingredient.inventory_id}
+                sx={{
+                  backgroundColor: ingredient.quantity < ingredient.threshold ? '#fff8e1' : 'inherit', // Highlight if below threshold
+                  '&:hover': { backgroundColor: '#f5f5f5' }, // Add hover effect
+                }}
+              >
                 <TableCell>{ingredient.item_name}</TableCell>
                 <TableCell>{ingredient.quantity}</TableCell>
                 <TableCell>{ingredient.unit}</TableCell>
                 <TableCell>${ingredient.unit_price}</TableCell>
                 <TableCell>{ingredient.threshold}</TableCell>
+                <TableCell>
+                  {ingredient.quantity < ingredient.threshold ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'warning.main' }}>
+                      <WarningIcon fontSize="small" sx={{ mr: 1 }} />
+                      <Typography variant="body2">Low Stock</Typography>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="success.main">
+                      In Stock
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    size="small"
+                    startIcon={<EditIcon />}
+                    onClick={() => handleEditIngredient(ingredient)}
+                    sx={{ mr: 1 }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={() => handleOpenDeleteDialog(ingredient)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -217,6 +360,84 @@ const Inventory = () => {
           <Button onClick={handleCloseAddDialog}>Cancel</Button>
           <Button variant="contained" color="primary" onClick={handleAddIngredient}>
             Add Ingredient
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Ingredient Dialog */}
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+        <DialogTitle>Edit Ingredient</DialogTitle>
+        <DialogContent>
+          {editIngredient && (
+            <>
+              <TextField
+                name="item_name"
+                label="Ingredient Name"
+                fullWidth
+                margin="dense"
+                value={editIngredient.item_name}
+                onChange={handleEditInputChange}
+              />
+              <TextField
+                name="quantity"
+                label="Quantity"
+                type="number"
+                fullWidth
+                margin="dense"
+                value={editIngredient.quantity}
+                onChange={handleEditInputChange}
+              />
+              <TextField
+                name="unit"
+                label="Unit"
+                fullWidth
+                margin="dense"
+                value={editIngredient.unit}
+                onChange={handleEditInputChange}
+              />
+              <TextField
+                name="unit_price"
+                label="Unit Price"
+                type="number"
+                fullWidth
+                margin="dense"
+                value={editIngredient.unit_price}
+                onChange={handleEditInputChange}
+              />
+              <TextField
+                name="threshold"
+                label="Threshold"
+                type="number"
+                fullWidth
+                margin="dense"
+                value={editIngredient.threshold}
+                onChange={handleEditInputChange}
+              />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog}>Cancel</Button>
+          <Button variant="contained" color="primary" onClick={handleUpdateIngredient}>
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Ingredient Dialog */}
+      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          {deleteIngredient && (
+            <Typography>
+              Are you sure you want to delete "{deleteIngredient.item_name}"? This action cannot be undone.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteIngredient}>
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
