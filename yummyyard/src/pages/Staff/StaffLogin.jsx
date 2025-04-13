@@ -15,32 +15,57 @@ import Logo from '../../assets/YummyYard_logo.png';
 
 const StaffLogin = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [alert, setAlert] = useState({ open: false, message: '', severity: 'error' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      const response = await apiService.post('/staff/login', credentials);
+      const response = await apiService.loginStaff(credentials); // Ensure this calls the correct API endpoint
       
+      // Store staff ID and other data in localStorage
+      localStorage.setItem('staffId', response.user.id); // Ensure response.user.id exists
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
-      // Redirect based on role
-      if(response.user.role === 'Admin') {
-        navigate('/admin-dashboard');
-      } else {
-        navigate('/staff-dashboard');
-      }
+      setAlert({
+        open: true,
+        message: 'Login successful! Redirecting...',
+        severity: 'success'
+      });
       
-    } catch (err) {
-      setError('Invalid staff credentials');
+      // Redirect based on role
+      setTimeout(() => {
+        if (response.user.role === 'Admin') {
+          navigate('/admin-dashboard');
+        } else {
+          navigate('/dashboard');
+        }
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      setAlert({
+        open: true,
+        message: error.response?.data?.error || 'Invalid staff credentials. Please try again.',
+        severity: 'error'
+      });
     } finally {
       setLoading(false);
     }
+  };
+  
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
   };
 
   return (
@@ -51,7 +76,7 @@ const StaffLogin = () => {
       justifyContent: 'center',
       backgroundColor: '#f5f5f5'
     }}>
-      <Paper elevation={3} sx={{ width: '90%', maxWidth: 1000, borderRadius: 3 }}>
+      <Paper elevation={3} sx={{ width: '90%', maxWidth: 1000, borderRadius: 3, overflow: 'hidden' }}>
         <Grid container>
           {/* Left Side - Form */}
           <Grid item xs={12} md={6} sx={{ p: 4 }}>
@@ -64,8 +89,10 @@ const StaffLogin = () => {
                 fullWidth
                 label="Email"
                 name="email"
+                type="email"
                 value={credentials.email}
-                onChange={(e) => setCredentials({...credentials, email: e.target.value})}
+                onChange={handleChange}
+                required
                 sx={{ mb: 3 }}
               />
               
@@ -75,7 +102,8 @@ const StaffLogin = () => {
                 type="password"
                 name="password"
                 value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                onChange={handleChange}
+                required
                 sx={{ mb: 3 }}
               />
               
@@ -93,19 +121,21 @@ const StaffLogin = () => {
           
           {/* Right Side - Logo */}
           <Grid item xs={12} md={6} sx={{ 
-            backgroundColor: '#00E676',
+            backgroundColor: '#10b981', // Updated to match your other components
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             p: 4
           }}>
-            <img src={Logo} alt="Logo" style={{ maxWidth: '100%' }} />
+            <img src={Logo} alt="Yummy Yard Logo" style={{ maxWidth: '100%' }} />
           </Grid>
         </Grid>
       </Paper>
       
-      <Snackbar open={!!error} onClose={() => setError('')}>
-        <Alert severity="error">{error}</Alert>
+      <Snackbar open={alert.open} autoHideDuration={6000} onClose={handleCloseAlert}>
+        <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: '100%' }}>
+          {alert.message}
+        </Alert>
       </Snackbar>
     </Box>
   );

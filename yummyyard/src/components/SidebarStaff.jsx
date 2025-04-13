@@ -15,6 +15,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import PersonIcon from '@mui/icons-material/Person';
+import InventoryIcon from '@mui/icons-material/Inventory';
 
 const drawerWidth = 240;
 
@@ -35,9 +36,14 @@ const Sidebar = () => {
       path: '/order'
     },
     {
+      text: 'Inventory',
+      icon: <InventoryIcon />,
+      path: '/inventory'
+    },
+    {
       text: 'Profile',
       icon: <PersonIcon />,
-      path: '/profile'
+      path: '/staffprofile'
     }
   ];
 

@@ -14,6 +14,7 @@ import Dashboard from './pages/Staff/Dashboard';
 import StaffLogin from './pages/Staff/StaffLogin'; 
 import StaffRegister from './pages/Staff/StaffRegister'; 
 import Imventory from './pages/Staff/Inventory'; // Import Inventory component
+import StaffProfile from './pages/Staff/StaffProfile';
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -47,6 +48,7 @@ function App() {
         <Route path="/aboutcontact" element={<AboutContact />} />
         <Route path="/selectrole" element={<SelectRole />} />
         <Route path="/inventory" element={<Imventory />} />
+        <Route path="/staffprofile" element={<StaffProfile />} />
 
         {/* Protected customer routes */}
         <Route 

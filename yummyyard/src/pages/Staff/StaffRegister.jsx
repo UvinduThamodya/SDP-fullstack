@@ -45,16 +45,16 @@ const StaffRegister = () => {
   
     try {
       // Use apiService.register() for staff registration
-      await apiService.register(formData);
+      await apiService.registerStaff(formData);
   
       setAlert({
         open: true,
-        message: 'Registration successful! Redirecting to login...',
+        message: 'Registration successful! Redirecting to dashboard...',
         severity: 'success',
       });
   
       // Redirect to login after success
-      setTimeout(() => navigate('/staff-login'), 3000);
+      setTimeout(() => navigate('/dashboard'), 3000);
     } catch (error) {
       console.error('Registration error:', error);
       setAlert({
@@ -78,7 +78,7 @@ const StaffRegister = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundImage: 'url(../public/Background.jpg)',
+        // backgroundImage: 'url(../public/Background.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
