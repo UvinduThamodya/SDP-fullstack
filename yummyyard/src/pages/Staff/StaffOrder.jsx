@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Typography, Container } from '@mui/material';
-import Sidebar from './Sidebar';
+import SidebarStaff from '../../components/SidebarStaff';
 
 const Order = () => {
   return (
     <Box sx={{ display: 'flex' }}>
-      <Sidebar />
+      <SidebarStaff />
       <Box
         component="main"
         sx={{ 

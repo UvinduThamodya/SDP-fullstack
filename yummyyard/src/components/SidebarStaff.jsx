@@ -33,7 +33,7 @@ const Sidebar = () => {
     {
       text: 'Order',
       icon: <RestaurantMenuIcon />,
-      path: '/order'
+      path: '/stafforder'
     },
     {
       text: 'Inventory',
