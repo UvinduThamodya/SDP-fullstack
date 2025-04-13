@@ -24,10 +24,15 @@ import SearchIcon from '@mui/icons-material/Search';
 import WarningIcon from '@mui/icons-material/Warning';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 const Inventory = () => {
   const [ingredients, setIngredients] = useState([]); // To store inventory data
+  const [filteredIngredients, setFilteredIngredients] = useState([]); // To store filtered ingredients
+  const [filter, setFilter] = useState('All'); // Filter state: "All", "In Stock", "Out of Stock"
   const [searchTerm, setSearchTerm] = useState(''); // For searching
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: '' }); // Sorting state
   const [openAddDialog, setOpenAddDialog] = useState(false); // Add ingredient dialog
   const [newIngredient, setNewIngredient] = useState({
     item_name: '',
@@ -54,6 +59,7 @@ const Inventory = () => {
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
         setIngredients(data.ingredients);
+        setFilteredIngredients(data.ingredients); // Initialize filtered ingredients
       } else {
         // For debugging: log the raw response
         const text = await response.text();
@@ -65,18 +71,42 @@ const Inventory = () => {
     }
   };
   
-  
+  // Filter ingredients based on the selected filter
+  const handleFilterChange = (filterType) => {
+    setFilter(filterType);
+    if (filterType === 'All') {
+      setFilteredIngredients(ingredients);
+    } else if (filterType === 'In Stock') {
+      setFilteredIngredients(ingredients.filter((ingredient) => ingredient.quantity >= ingredient.threshold));
+    } else if (filterType === 'Out of Stock') {
+      setFilteredIngredients(ingredients.filter((ingredient) => ingredient.quantity < ingredient.threshold));
+    }
+  };
+
   // Handle search functionality
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    if (e.target.value.trim() === '') {
-      fetchInventory(); // Reset to full list if search is empty
-    } else {
-      const filtered = ingredients.filter((ingredient) =>
-        ingredient.item_name.toLowerCase().includes(e.target.value.toLowerCase())
-      );
-      setIngredients(filtered);
+    const filtered = ingredients.filter((ingredient) =>
+      ingredient.item_name.toLowerCase().includes(e.target.value.toLowerCase())
+    );
+    setFilteredIngredients(filtered);
+  };
+
+  // Handle sorting
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
     }
+    setSortConfig({ key, direction });
+
+    const sortedIngredients = [...filteredIngredients].sort((a, b) => {
+      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredIngredients(sortedIngredients);
   };
 
   // Open and close add ingredient dialog
@@ -218,237 +248,315 @@ const Inventory = () => {
   }, []);
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      {/* Page Title */}
-      <Typography variant="h4" gutterBottom>
-        Inventory Management
-      </Typography>
-
-      {/* Search Bar */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <TextField
-          fullWidth
-          placeholder="Search ingredients..."
-          value={searchTerm}
-          onChange={handleSearch}
-          InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ mr: 1 }} />
-            )
+    <Box
+      sx={{
+        minHeight: '100vh',
+        backgroundColor: '#f9f9f9',
+        py: 4,
+        px: 2,
+        fontFamily: 'Poppins, sans-serif'
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Page Title */}
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            color: '#333',
+            textAlign: 'center',
+            mb: 4,
+            fontFamily: 'Poppins, sans-serif',
+            fontSize: '2rem'
           }}
-        />
-      </Paper>
+        >
+          Inventory Management
+        </Typography>
 
-      {/* Add Ingredient Button */}
-      <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenAddDialog}>
-        Add Ingredient
-      </Button>
-
-      {/* Inventory Table */}
-      <TableContainer component={Paper} sx={{ mt: 3 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Ingredient</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Unit</TableCell>
-              <TableCell>Unit Price</TableCell>
-              <TableCell>Threshold</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell> {/* New column */}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {ingredients.map((ingredient) => (
-              <TableRow
-                key={ingredient.inventory_id}
-                sx={{
-                  backgroundColor: ingredient.quantity < ingredient.threshold ? '#fff8e1' : 'inherit', // Highlight if below threshold
-                  '&:hover': { backgroundColor: '#f5f5f5' }, // Add hover effect
-                }}
+        {/* Filter and Search Section */}
+        <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+            {/* Filter Buttons */}
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant={filter === 'All' ? 'contained' : 'outlined'}
+                onClick={() => handleFilterChange('All')}
+                sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}
               >
-                <TableCell>{ingredient.item_name}</TableCell>
-                <TableCell>{ingredient.quantity}</TableCell>
-                <TableCell>{ingredient.unit}</TableCell>
-                <TableCell>${ingredient.unit_price}</TableCell>
-                <TableCell>{ingredient.threshold}</TableCell>
-                <TableCell>
-                  {ingredient.quantity < ingredient.threshold ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', color: 'warning.main' }}>
-                      <WarningIcon fontSize="small" sx={{ mr: 1 }} />
-                      <Typography variant="body2">Low Stock</Typography>
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="success.main">
-                      In Stock
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    size="small"
-                    startIcon={<EditIcon />}
-                    onClick={() => handleEditIngredient(ingredient)}
-                    sx={{ mr: 1 }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => handleOpenDeleteDialog(ingredient)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                All
+              </Button>
+              <Button
+                variant={filter === 'In Stock' ? 'contained' : 'outlined'}
+                onClick={() => handleFilterChange('In Stock')}
+                sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}
+              >
+                In Stock
+              </Button>
+              <Button
+                variant={filter === 'Out of Stock' ? 'contained' : 'outlined'}
+                onClick={() => handleFilterChange('Out of Stock')}
+                sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}
+              >
+                Out of Stock
+              </Button>
+            </Box>
 
-      {/* Add Ingredient Dialog */}
-      <Dialog open={openAddDialog} onClose={handleCloseAddDialog}>
-        <DialogTitle>Add New Ingredient</DialogTitle>
-        <DialogContent>
-          <TextField
-            name="item_name"
-            label="Ingredient Name"
-            fullWidth
-            margin="dense"
-            value={newIngredient.item_name}
-            onChange={handleInputChange}
-          />
-          <TextField
-            name="quantity"
-            label="Quantity"
-            type="number"
-            fullWidth
-            margin="dense"
-            value={newIngredient.quantity}
-            onChange={handleInputChange}
-          />
-          <TextField
-            name="unit"
-            label="Unit"
-            fullWidth
-            margin="dense"
-            value={newIngredient.unit}
-            onChange={handleInputChange}
-          />
-          <TextField
-            name="unit_price"
-            label="Unit Price"
-            type="number"
-            fullWidth
-            margin="dense"
-            value={newIngredient.unit_price}
-            onChange={handleInputChange}
-          />
-          <TextField
-            name="threshold"
-            label="Threshold"
-            type="number"
-            fullWidth
-            margin="dense"
-            value={newIngredient.threshold}
-            onChange={handleInputChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAddDialog}>Cancel</Button>
-          <Button variant="contained" color="primary" onClick={handleAddIngredient}>
+            {/* Search Bar */}
+            <TextField
+              fullWidth
+              placeholder="Search ingredients..."
+              value={searchTerm}
+              onChange={handleSearch}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1 }} />
+              }}
+              sx={{ maxWidth: 400 }}
+            />
+          </Box>
+        </Paper>
+
+        {/* Add Ingredient Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenAddDialog(true)}
+          >
             Add Ingredient
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
 
-      {/* Edit Ingredient Dialog */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
-        <DialogTitle>Edit Ingredient</DialogTitle>
-        <DialogContent>
-          {editIngredient && (
-            <>
-              <TextField
-                name="item_name"
-                label="Ingredient Name"
-                fullWidth
-                margin="dense"
-                value={editIngredient.item_name}
-                onChange={handleEditInputChange}
-              />
-              <TextField
-                name="quantity"
-                label="Quantity"
-                type="number"
-                fullWidth
-                margin="dense"
-                value={editIngredient.quantity}
-                onChange={handleEditInputChange}
-              />
-              <TextField
-                name="unit"
-                label="Unit"
-                fullWidth
-                margin="dense"
-                value={editIngredient.unit}
-                onChange={handleEditInputChange}
-              />
-              <TextField
-                name="unit_price"
-                label="Unit Price"
-                type="number"
-                fullWidth
-                margin="dense"
-                value={editIngredient.unit_price}
-                onChange={handleEditInputChange}
-              />
-              <TextField
-                name="threshold"
-                label="Threshold"
-                type="number"
-                fullWidth
-                margin="dense"
-                value={editIngredient.threshold}
-                onChange={handleEditInputChange}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditDialog}>Cancel</Button>
-          <Button variant="contained" color="primary" onClick={handleUpdateIngredient}>
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {/* Inventory Table */}
+        <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell onClick={() => handleSort('item_name')} sx={{ cursor: 'pointer', fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}>
+                  Ingredient
+                  {sortConfig.key === 'item_name' && (
+                    sortConfig.direction === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />
+                  )}
+                </TableCell>
+                <TableCell onClick={() => handleSort('quantity')} sx={{ cursor: 'pointer', fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}>
+                  Quantity
+                  {sortConfig.key === 'quantity' && (
+                    sortConfig.direction === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />
+                  )}
+                </TableCell>
+                <TableCell sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}>Unit</TableCell>
+                <TableCell onClick={() => handleSort('unit_price')} sx={{ cursor: 'pointer', fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}>
+                  Unit Price
+                  {sortConfig.key === 'unit_price' && (
+                    sortConfig.direction === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />
+                  )}
+                </TableCell>
+                <TableCell onClick={() => handleSort('threshold')} sx={{ cursor: 'pointer', fontFamily: 'Poppins, sans-serif', fontSize: '1rem' }}>
+                  Threshold
+                  {sortConfig.key === 'threshold' && (
+                    sortConfig.direction === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />
+                  )}
+                </TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell> {/* New column */}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredIngredients.map((ingredient) => (
+                <TableRow
+                  key={ingredient.inventory_id}
+                  sx={{
+                    backgroundColor: ingredient.quantity < ingredient.threshold ? '#fff8e1' : 'inherit',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    fontFamily: 'Poppins, sans-serif',
+                    fontSize: '1rem'
+                  }}
+                >
+                  <TableCell>{ingredient.item_name}</TableCell>
+                  <TableCell>{ingredient.quantity}</TableCell>
+                  <TableCell>{ingredient.unit}</TableCell>
+                  <TableCell>${ingredient.unit_price}</TableCell>
+                  <TableCell>{ingredient.threshold}</TableCell>
+                  <TableCell>
+                    {ingredient.quantity < ingredient.threshold ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', color: 'warning.main' }}>
+                        <WarningIcon fontSize="small" sx={{ mr: 1 }} />
+                        <Typography variant="body2" sx={{ fontFamily: 'Poppins, sans-serif' }}>Low Stock</Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="success.main" sx={{ fontFamily: 'Poppins, sans-serif' }}>
+                        In Stock
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="small"
+                      startIcon={<EditIcon />}
+                      onClick={() => handleEditIngredient(ingredient)}
+                      sx={{ mr: 1, fontFamily: 'Poppins, sans-serif', fontSize: '0.9rem' }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => handleOpenDeleteDialog(ingredient)}
+                      sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.9rem' }}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      {/* Delete Ingredient Dialog */}
-      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          {deleteIngredient && (
-            <Typography>
-              Are you sure you want to delete "{deleteIngredient.item_name}"? This action cannot be undone.
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDeleteIngredient}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {/* Add Ingredient Dialog */}
+        <Dialog open={openAddDialog} onClose={handleCloseAddDialog}>
+          <DialogTitle>Add New Ingredient</DialogTitle>
+          <DialogContent>
+            <TextField
+              name="item_name"
+              label="Ingredient Name"
+              fullWidth
+              margin="dense"
+              value={newIngredient.item_name}
+              onChange={handleInputChange}
+            />
+            <TextField
+              name="quantity"
+              label="Quantity"
+              type="number"
+              fullWidth
+              margin="dense"
+              value={newIngredient.quantity}
+              onChange={handleInputChange}
+            />
+            <TextField
+              name="unit"
+              label="Unit"
+              fullWidth
+              margin="dense"
+              value={newIngredient.unit}
+              onChange={handleInputChange}
+            />
+            <TextField
+              name="unit_price"
+              label="Unit Price"
+              type="number"
+              fullWidth
+              margin="dense"
+              value={newIngredient.unit_price}
+              onChange={handleInputChange}
+            />
+            <TextField
+              name="threshold"
+              label="Threshold"
+              type="number"
+              fullWidth
+              margin="dense"
+              value={newIngredient.threshold}
+              onChange={handleInputChange}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddDialog}>Cancel</Button>
+            <Button variant="contained" color="primary" onClick={handleAddIngredient}>
+              Add Ingredient
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* Snackbar Notifications */}
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+        {/* Edit Ingredient Dialog */}
+        <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+          <DialogTitle>Edit Ingredient</DialogTitle>
+          <DialogContent>
+            {editIngredient && (
+              <>
+                <TextField
+                  name="item_name"
+                  label="Ingredient Name"
+                  fullWidth
+                  margin="dense"
+                  value={editIngredient.item_name}
+                  onChange={handleEditInputChange}
+                />
+                <TextField
+                  name="quantity"
+                  label="Quantity"
+                  type="number"
+                  fullWidth
+                  margin="dense"
+                  value={editIngredient.quantity}
+                  onChange={handleEditInputChange}
+                />
+                <TextField
+                  name="unit"
+                  label="Unit"
+                  fullWidth
+                  margin="dense"
+                  value={editIngredient.unit}
+                  onChange={handleEditInputChange}
+                />
+                <TextField
+                  name="unit_price"
+                  label="Unit Price"
+                  type="number"
+                  fullWidth
+                  margin="dense"
+                  value={editIngredient.unit_price}
+                  onChange={handleEditInputChange}
+                />
+                <TextField
+                  name="threshold"
+                  label="Threshold"
+                  type="number"
+                  fullWidth
+                  margin="dense"
+                  value={editIngredient.threshold}
+                  onChange={handleEditInputChange}
+                />
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEditDialog}>Cancel</Button>
+            <Button variant="contained" color="primary" onClick={handleUpdateIngredient}>
+              Update
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Ingredient Dialog */}
+        <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            {deleteIngredient && (
+              <Typography>
+                Are you sure you want to delete "{deleteIngredient.item_name}"? This action cannot be undone.
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+            <Button variant="contained" color="error" onClick={handleDeleteIngredient}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar Notifications */}
+        <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </Box>
   );
 };
 
