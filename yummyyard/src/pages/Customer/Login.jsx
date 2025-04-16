@@ -75,7 +75,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await apiService.login(credentials);
+      const response = await apiService.loginCustomer(credentials);
 
       if (response.user) {
         // Store user info

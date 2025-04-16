@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/menu-items'; // Full URL with your backend's port
 
-const MenuService = {
+const  MenuService = {
   // Create a new menu item
   createMenuItem: async (formData) => {
     try {
@@ -12,7 +12,7 @@ const MenuService = {
         }
       });
       return response.data;
-    } catch (error) {
+    } catch (error) {  
       console.error('Error creating menu item:', error);
       throw error;
     }
