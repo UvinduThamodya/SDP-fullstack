@@ -36,7 +36,7 @@ const Profile = () => {
     localStorage.removeItem('staffId');
     localStorage.removeItem('token');
     localStorage.removeItem('staff');
-    navigate('/staff-login');
+    navigate('/selectrole');
   };
 
   const handleEdit = () => setEditMode(true);
