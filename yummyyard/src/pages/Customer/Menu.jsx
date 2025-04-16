@@ -81,43 +81,43 @@ const Menu = () => {
   );
 
   // New menu item creation form
-  const AddMenuItemForm = () => (
-    <Dialog open={showAddForm} onClose={() => setShowAddForm(false)}>
-      <DialogTitle>Add New Menu Item</DialogTitle>
-      <DialogContent>
-        <TextField
-          label="Item Name"
-          fullWidth
-          sx={{ mb: 2 }}
-          onChange={(e) => setNewMenuItem({...newMenuItem, name: e.target.value})}
-        />
-        <TextField
-          label="Description"
-          fullWidth
-          multiline
-          sx={{ mb: 2 }}
-          onChange={(e) => setNewMenuItem({...newMenuItem, description: e.target.value})}
-        />
-        <TextField
-          label="Price"
-          type="number"
-          fullWidth
-          sx={{ mb: 2 }}
-          onChange={(e) => setNewMenuItem({...newMenuItem, price: parseFloat(e.target.value)})}
-        />
-        <ImageUploader 
-          onUpload={(url) => setNewMenuItem({...newMenuItem, image_url: url})}
-        />
-        <Button 
-          variant="contained" 
-          onClick={handleCreateMenuItem}
-          sx={{ mt: 2 }}
-        >
-          Create Item
-        </Button>
-      </DialogContent>
-    </Dialog>
-  );
+  // const AddMenuItemForm = () => (
+  //   <Dialog open={showAddForm} onClose={() => setShowAddForm(false)}>
+  //     <DialogTitle>Add New Menu Item</DialogTitle>
+  //     <DialogContent>
+  //       <TextField
+  //         label="Item Name"
+  //         fullWidth
+  //         sx={{ mb: 2 }}
+  //         onChange={(e) => setNewMenuItem({...newMenuItem, name: e.target.value})}
+  //       />
+  //       <TextField
+  //         label="Description"
+  //         fullWidth
+  //         multiline
+  //         sx={{ mb: 2 }}
+  //         onChange={(e) => setNewMenuItem({...newMenuItem, description: e.target.value})}
+  //       />
+  //       <TextField
+  //         label="Price"
+  //         type="number"
+  //         fullWidth
+  //         sx={{ mb: 2 }}
+  //         onChange={(e) => setNewMenuItem({...newMenuItem, price: parseFloat(e.target.value)})}
+  //       />
+  //       <ImageUploader 
+  //         onUpload={(url) => setNewMenuItem({...newMenuItem, image_url: url})}
+  //       />
+  //       <Button 
+  //         variant="contained" 
+  //         onClick={handleCreateMenuItem}
+  //         sx={{ mt: 2 }}
+  //       >
+  //         Create Item
+  //       </Button>
+  //     </DialogContent>
+  //   </Dialog>
+  // );
 
   // New menu item creation handler
   const handleCreateMenuItem = async () => {
@@ -175,13 +175,13 @@ const Menu = () => {
       <Sidebar />
       <Container maxWidth="lg" sx={{ pt: 5, pb: 8 }}>
         {/* Add New Item Button */}
-        <Button 
+        {/* <Button 
           variant="contained" 
           sx={{ mb: 4 }}
           onClick={() => setShowAddForm(true)}
         >
           Add New Menu Item
-        </Button>
+        </Button> */}
 
         {/* Existing menu grid with updated CardMedia */}
         <Grid container spacing={3}>
@@ -192,7 +192,7 @@ const Menu = () => {
           ))}
         </Grid>
 
-        <AddMenuItemForm />
+        {/* <AddMenuItemForm /> */}
         {/* Existing checkout dialog and other components */}
       </Container>
     </Box>
