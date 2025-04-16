@@ -83,132 +83,49 @@ const staffLogin = async (req, res) => {
 
 const registerStaff = async (req, res) => {
   try {
-    const { name, email, phone, password, role = 'Staff' } = req.body;
+    const { name, email, password } = req.body;
 
-    // Validate input
-    if (!name || !email || !phone || !password) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Name, email, phone, and password are required' 
-      });
-    }
+    // Add logic to register staff (e.g., save to database)
+    // Example:
+    const newStaff = await Staff.create({ name, email, password });
 
-    // Check if email already exists
-    const [existingStaff] = await db.query(
-      'SELECT * FROM Employees WHERE email = ?',
-      [email]
-    );
-    
-    if (existingStaff && existingStaff.length > 0) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Email already registered' 
-      });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Insert new staff into database
-    const [result] = await db.query(
-      'INSERT INTO Employees (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)',
-      [name, email, phone, hashedPassword, role]
-    );
-
-    if (!result.insertId) {
-      throw new Error('Failed to insert new staff member');
-    }
-
-    // Fetch the newly created staff to return (without password)
-    const [newStaffRows] = await db.query(
-      'SELECT employee_id, name, email, phone, role FROM Employees WHERE employee_id = ?',
-      [result.insertId]
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'Staff registered successfully',
-      staff: newStaffRows[0]
-    });
-
+    res.status(201).json({ message: 'Staff registered successfully', staff: newStaff });
   } catch (error) {
-    console.error('Staff registration error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Internal server error. Please try again later.' 
-    });
+    res.status(500).json({ error: 'Failed to register staff' });
   }
 };
 
-// Get staff by ID
-const getStaffById = async (req, res) => {
+const getStaffProfile = async (req, res) => {
   try {
-    const { id } = req.params;
-    
-    const [staffRows] = await db.query(
-      'SELECT employee_id, name, email, phone, role FROM Employees WHERE employee_id = ?',
-      [id]
+    const staffId = req.params.id;
+    const [rows] = await db.query(
+      'SELECT employee_id AS id, name, email, phone, role FROM Employees WHERE employee_id = ?',
+      [staffId]
     );
-    
-    if (!staffRows || staffRows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Staff member not found'
-      });
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Staff member not found' });
     }
-    
-    res.status(200).json({
-      success: true,
-      staff: staffRows[0]
-    });
-    
+    res.json(rows[0]);
   } catch (error) {
-    console.error('Error fetching staff:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error. Please try again later.'
-    });
+    res.status(500).json({ error: 'Failed to fetch staff profile' });
   }
 };
 
-// Update staff
-const updateStaff = async (req, res) => {
+const updateStaffProfile = async (req, res) => {
   try {
-    const { id } = req.params;
+    const staffId = req.params.id;
     const { name, email, phone } = req.body;
-    
-    // Update staff in database
-    const [result] = await db.query(
+    await db.query(
       'UPDATE Employees SET name = ?, email = ?, phone = ? WHERE employee_id = ?',
-      [name, email, phone, id]
+      [name, email, phone, staffId]
     );
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Staff member not found'
-      });
-    }
-    
-    res.status(200).json({
-      success: true,
-      message: 'Profile updated successfully'
-    });
-    
+    res.json({ message: 'Profile updated successfully' });
   } catch (error) {
-    console.error('Error updating staff:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error. Please try again later.'
-    });
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 };
 
 
-module.exports = { 
-  staffLogin,
-  registerStaff,
-  getStaffById,
-  updateStaff
-};
+// Add other staff controller functions as needed
+
+module.exports = { staffLogin, registerStaff, getStaffProfile, updateStaffProfile };

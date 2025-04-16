@@ -1,45 +1,214 @@
+// const db = require('../config/db');
+// const { v4: uuidv4 } = require('uuid'); // Add UUID package
+// const createOrder = async (req, res) => {
+//   const connection = await db.getConnection();
+//   try {
+//     await connection.beginTransaction();
+
+//     // 1. Get user info from JWT
+//     const userRole = req.user.role;
+//     const userId = req.user.id;
+//     const { items, payment } = req.body;
+
+//     // 2. Validate input
+//     if (!items || !Array.isArray(items) || items.length === 0) {
+//       return res.status(400).json({ error: 'Invalid order items' });
+//     }
+
+//     // 3. Create order record
+//     const [orderResult] = await connection.query(
+//       `INSERT INTO Orders 
+//       (customer_id, staff_id, total_amount, status) 
+//       VALUES (?, ?, ?, ?)`,
+//       [
+//         userRole === 'customer' ? userId : null,  // Set customer_id if customer
+//         userRole === 'staff' ? userId : null,     // Set staff_id if staff
+//         payment.amount,
+//         userRole === 'staff' ? 'Completed' : 'Pending' // Auto-complete staff orders
+//       ]
+//     );
+//     const orderId = orderResult.insertId;
+
+//     // 4. Add order items
+//     for (const item of items) {
+//       await connection.query(
+//         `INSERT INTO OrderItems 
+//         (order_id, item_id, quantity, subtotal) 
+//         VALUES (?, ?, ?, ?)`,
+//         [
+//           orderId,
+//           item.item_id || item.itemId,
+//           item.quantity,
+//           item.price * item.quantity
+//         ]
+//       );
+//     }
+
+//     // // 5. Record payment
+//     // await connection.query(
+//     //   `INSERT INTO Payments 
+//     //   (order_id, amount, method, payment_id) 
+//     //   VALUES (?, ?, ?, ?)`,
+//     //   [
+//     //     orderId,
+//     //     payment.amount,
+//     //     payment.method,
+//     //     payment.stripeToken || null // For card payments
+//     //   ]
+//     // );
+//     await connection.query(
+//       `INSERT INTO Payments 
+//       (order_id, amount, method, payment_id) 
+//       VALUES (?, ?, ?, ?)`,
+//       [
+//         orderId,
+//         payment.amount,
+//         payment.method,
+//         payment.method === 'card' 
+//           ? payment.stripeToken 
+//           : `cash-${uuidv4()}` // Generate UUID for cash
+//       ]
+//     );
+
+//     // 6. Clear cart only for customers
+//     if (userRole === 'customer') {
+//       const [cartResult] = await connection.query(
+//         'SELECT cart_id FROM Cart WHERE customer_id = ?',
+//         [userId]
+//       );
+      
+//       if (cartResult?.length > 0) {
+//         await connection.query(
+//           'DELETE FROM CartItems WHERE cart_id = ?',
+//           [cartResult[0].cart_id]
+//         );
+//       }
+//     }
+
+//     await connection.commit();
+    
+//     res.status(201).json({
+//       success: true,
+//       message: 'Order created successfully',
+//       orderId,
+//       orderType: userRole
+//     });
+
+//   } catch (error) {
+//     await connection.rollback();
+//     console.error('Order creation error:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Order processing failed',
+//       details: error.message
+//     });
+//   } finally {
+//     connection.release();
+//   }
+// };
+
+// module.exports = { createOrder };
+
 const db = require('../config/db');
+const { v4: uuidv4 } = require('uuid');
 
 const createOrder = async (req, res) => {
+  const connection = await db.getConnection();
   try {
-    const customerId = req.user.id; // From JWT token
-    const { items, totalAmount } = req.body;
-    
-    // Insert order into database
-    const [orderResult] = await db.query(
-      'INSERT INTO Orders (customer_id, total_amount, order_date, status) VALUES (?, ?, NOW(), ?)',
-      [customerId, totalAmount, 'Pending']
+    await connection.beginTransaction();
+
+    // 1. Get user info from JWT
+    const userRole = req.user.role;
+    const userId = req.user.id;
+    const { items, payment } = req.body;
+
+    // 2. Validate input
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Invalid order items' });
+    }
+
+    // 3. Create order record
+    const [orderResult] = await connection.query(
+      `INSERT INTO Orders 
+      (customer_id, staff_id, total_amount, status) 
+      VALUES (?, ?, ?, ?)`,
+      [
+        userRole === 'customer' ? userId : null,
+        userRole === 'staff' ? userId : null,
+        payment.amount,
+        userRole === 'staff' ? 'Completed' : 'Pending'
+      ]
     );
-    
     const orderId = orderResult.insertId;
-    
-    // Insert order items
+
+    // 4. Add order items
     for (const item of items) {
-      await db.query(
-        'INSERT INTO OrderItems (order_id, item_id, quantity, subtotal) VALUES (?, ?, ?, ?)',
-        [orderId, item.item_id || item.itemId, item.quantity, item.price * item.quantity]
+      await connection.query(
+        `INSERT INTO OrderItems 
+        (order_id, item_id, quantity, subtotal) 
+        VALUES (?, ?, ?, ?)`,
+        [
+          orderId,
+          item.item_id || item.itemId,
+          item.quantity,
+          item.price * item.quantity
+        ]
       );
     }
-    
-    // Clear customer's cart after order is placed
-    console.log("Customer id from JWT:", customerId);
-    
-    // Get the cart_id for this customer first, then delete items
-    const [cartResult] = await db.query(
-      'SELECT cart_id FROM Cart WHERE customer_id = ?',
-      [customerId]
+
+    // 5. Generate payment ID (Stripe ID for cards, UUID for cash)
+    const paymentId = payment.method === 'card' 
+      ? payment.stripeToken 
+      : `cash-${uuidv4()}`;
+
+    // 6. Record payment
+    await connection.query(
+      `INSERT INTO Payments 
+      (order_id, amount, method, payment_id) 
+      VALUES (?, ?, ?, ?)`,
+      [
+        orderId,
+        payment.amount,
+        payment.method,
+        paymentId
+      ]
     );
-    
-    if (cartResult && cartResult.length > 0) {
-      await db.query('DELETE FROM CartItems WHERE cart_id = ?', [cartResult[0].cart_id]);
+
+    // 7. Clear cart only for customers
+    if (userRole === 'customer') {
+      const [cartResult] = await connection.query(
+        'SELECT cart_id FROM Cart WHERE customer_id = ?',
+        [userId]
+      );
+      
+      if (cartResult?.length > 0) {
+        await connection.query(
+          'DELETE FROM CartItems WHERE cart_id = ?',
+          [cartResult[0].cart_id]
+        );
+      }
     }
+
+    await connection.commit();
     
-    res.status(201).json({ message: 'Order created successfully', orderId });
+    res.status(201).json({
+      success: true,
+      message: 'Order created successfully',
+      orderId,
+      orderType: userRole
+    });
+
   } catch (error) {
-    console.error('Error creating order:', error);
-    res.status(500).json({ error: 'Failed to create order', details: error.message });
+    await connection.rollback();
+    console.error('Order creation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Order processing failed',
+      details: error.message
+    });
+  } finally {
+    connection.release();
   }
 };
-
 
 module.exports = { createOrder };

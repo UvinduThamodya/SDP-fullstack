@@ -49,7 +49,7 @@ const StaffRegister = () => {
   
       setAlert({
         open: true,
-        message: 'Registration successful! Redirecting to dashboard...',
+        message: 'Registration successful! Redirecting to Dashboard...',
         severity: 'success',
       });
   
@@ -78,7 +78,7 @@ const StaffRegister = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        // backgroundImage: 'url(../public/Background.jpg)',
+        backgroundImage: 'url(../public/Background.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

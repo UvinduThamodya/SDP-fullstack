@@ -15,8 +15,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import PersonIcon from '@mui/icons-material/Person';
-import InventoryIcon from '@mui/icons-material/Inventory';
-
+import InventoryIcon from '@mui/icons-material/Inventory'; // Import Inventory icon
+import { styled } from '@mui/system';
 const drawerWidth = 240;
 
 const Sidebar = () => {
@@ -33,11 +33,11 @@ const Sidebar = () => {
     {
       text: 'Order',
       icon: <RestaurantMenuIcon />,
-      path: '/stafforder'
+      path: '/order'
     },
     {
       text: 'Inventory',
-      icon: <InventoryIcon />,
+      icon: <InventoryIcon />, 
       path: '/inventory'
     },
     {

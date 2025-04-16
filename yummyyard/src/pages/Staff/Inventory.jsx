@@ -47,6 +47,8 @@ const Inventory = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [deleteIngredient, setDeleteIngredient] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  
+
 
   const fetchInventory = async () => {
     try {

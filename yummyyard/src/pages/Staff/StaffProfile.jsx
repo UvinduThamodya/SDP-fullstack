@@ -1,194 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Container, Paper, Avatar, Grid, Divider, TextField, Button } from '@mui/material';
-import SidebarStaff from '../../components/SidebarStaff';
+import React, { useEffect, useState } from 'react';
+import { Box, Typography, Container, Paper, Avatar, CircularProgress, Alert, Button, TextField, Snackbar, Divider } from '@mui/material';
+import Sidebar from '../../components/SidebarStaff';
+import apiService from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 
-const StaffProfile = () => {
-  // State to store staff profile data
-  const [staffData, setStaffData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    role: ''
-  });
-  
-  // State for edit mode
-  const [isEditing, setIsEditing] = useState(false);
-  
-  // Load staff profile data on component mount
+const Profile = () => {
+  const [staff, setStaff] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({});
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const staffId = localStorage.getItem('staffId'); // Retrieve staffId from localStorage
-    
+    const staffId = localStorage.getItem('staffId');
     if (!staffId) {
-      console.error('Staff ID is null or missing');
+      setError('No staff member is currently logged in.');
+      setLoading(false);
       return;
     }
-  
-    const fetchStaffData = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/api/staff/${staffId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setStaffData(data.staff);
-        }
-      } catch (error) {
-        console.error('Error fetching staff data:', error);
-      }
-    };
-    
-    fetchStaffData();
-  }, []);
-  
-  
-  // Handle input changes when editing
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setStaffData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  // Handle save profile
-  const handleSaveProfile = async () => {
-    try {
-      const staffId = localStorage.getItem('staffId');
-      
-      // Replace with your actual API endpoint
-      const response = await fetch(`http://localhost:5000/api/staff/${staffId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(staffData)
+    apiService.getStaffProfile(staffId)
+      .then(data => {
+        setStaff(data.user || data.staff || data);
+        setEditData(data.user || data.staff || data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load staff profile.');
+        setLoading(false);
       });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        // Exit edit mode after successful save
-        setIsEditing(false);
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('staffId');
+    localStorage.removeItem('token');
+    localStorage.removeItem('staff');
+    navigate('/staff-login');
+  };
+
+  const handleEdit = () => setEditMode(true);
+
+  const handleChange = (e) => {
+    setEditData({ ...editData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    try {
+      await apiService.updateStaffProfile(staff.id, editData);
+      setStaff(editData);
+      setEditMode(false);
+      setSnackbar({ open: true, message: 'Profile updated successfully!', severity: 'success' });
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to update profile.', severity: 'error' });
     }
   };
+
+  const handleCancel = () => {
+    setEditData(staff);
+    setEditMode(false);
+  };
+
+  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <SidebarStaff />
+      <Sidebar />
       <Box
         component="main"
-        sx={{ 
-          flexGrow: 1, 
-          p: 3, 
+        sx={{
+          flexGrow: 1,
+          p: 3,
           backgroundColor: '#f5f5f5',
-          minHeight: '100vh'
+          minHeight: '100vh',
         }}
       >
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Typography variant="h4" gutterBottom>
+        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center', color: '#1976d2' }}>
             Staff Profile
           </Typography>
-          
-          <Paper elevation={3} sx={{ p: 4, mt: 3 }}>
-            <Grid container spacing={3}>
-              {/* Profile Header */}
-              <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar 
-                  sx={{ 
-                    width: 100, 
-                    height: 100, 
-                    bgcolor: '#10b981',
-                    fontSize: '2rem',
-                    mr: 3 
-                  }}
-                >
-                  {staffData.name ? staffData.name.charAt(0).toUpperCase() : 'S'}
+          <Divider sx={{ mb: 4 }} />
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Alert severity="error">{error}</Alert>
+          ) : staff ? (
+            <Paper elevation={3} sx={{ p: 4, mt: 3, borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Avatar sx={{ width: 80, height: 80, bgcolor: '#1976d2', fontSize: 36, mr: 3 }}>
+                  {staff.name ? staff.name.charAt(0).toUpperCase() : 'S'}
                 </Avatar>
                 <Box>
-                  <Typography variant="h5">{staffData.name}</Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    {staffData.role}
-                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{staff.name}</Typography>
+                  <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>{staff.role}</Typography>
                 </Box>
-                <Button 
-                  variant="contained" 
-                  sx={{ ml: 'auto' }}
-                  onClick={() => setIsEditing(!isEditing)}
-                >
-                  {isEditing ? 'Cancel' : 'Edit Profile'}
-                </Button>
-              </Grid>
-              
-              <Divider sx={{ width: '100%', my: 2 }} />
-              
-              {/* Profile Details */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom>
-                  Personal Information
-                </Typography>
-                
-                {isEditing ? (
-                  // Edit Mode
-                  <>
-                    <TextField
-                      fullWidth
-                      label="Full Name"
-                      name="name"
-                      value={staffData.name}
-                      onChange={handleChange}
-                      margin="normal"
-                    />
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      name="email"
-                      value={staffData.email}
-                      onChange={handleChange}
-                      margin="normal"
-                    />
-                    <TextField
-                      fullWidth
-                      label="Phone"
-                      name="phone"
-                      value={staffData.phone}
-                      onChange={handleChange}
-                      margin="normal"
-                    />
-                    <Button 
-                      variant="contained" 
-                      color="primary"
-                      onClick={handleSaveProfile}
-                      sx={{ mt: 2 }}
-                    >
-                      Save Changes
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+              {editMode ? (
+                <>
+                  <TextField
+                    label="Name"
+                    name="name"
+                    value={editData.name}
+                    onChange={handleChange}
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  />
+                  <TextField
+                    label="Email"
+                    name="email"
+                    value={editData.email}
+                    onChange={handleChange}
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  />
+                  <TextField
+                    label="Phone"
+                    name="phone"
+                    value={editData.phone}
+                    onChange={handleChange}
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                    <Button variant="contained" color="primary" onClick={handleSave}>
+                      Save
                     </Button>
-                  </>
-                ) : (
-                  // View Mode
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="body1">
-                      <strong>Name:</strong> {staffData.name}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 2 }}>
-                      <strong>Email:</strong> {staffData.email}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 2 }}>
-                      <strong>Phone:</strong> {staffData.phone}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 2 }}>
-                      <strong>Role:</strong> {staffData.role}
-                    </Typography>
+                    <Button variant="outlined" onClick={handleCancel}>
+                      Cancel
+                    </Button>
                   </Box>
-                )}
-              </Grid>
-            </Grid>
-          </Paper>
+                </>
+              ) : (
+                <>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Email:</strong> {staff.email}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Phone:</strong> {staff.phone}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+                    <Button variant="contained" onClick={handleEdit}>
+                      Edit Profile
+                    </Button>
+                    <Button variant="outlined" color="error" onClick={handleLogout}>
+                      Logout
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </Paper>
+          ) : (
+            <Typography>No staff data found.</Typography>
+          )}
         </Container>
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+        >
+          <Alert severity={snackbar.severity} onClose={handleSnackbarClose}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );
 };
 
-export default StaffProfile;
+export default Profile;
