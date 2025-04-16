@@ -90,7 +90,11 @@ CREATE TABLE contacts (
   created_at DATETIME NOT NULL
 );
 
+
+
 -- changes
+
+
 
 ALTER TABLE MenuItems
 ADD COLUMN category ENUM('Main-Dishes', 'Sea-Food', 'Desserts', 'Beverage') NOT NULL;
