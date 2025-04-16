@@ -103,6 +103,7 @@ ADD COLUMN delivery_address TEXT;
 
 ALTER TABLE Orders MODIFY COLUMN status ENUM('Pending', 'Preparing', 'Completed', 'Cancelled', 'Paid') DEFAULT 'Pending';
 
+
 ALTER TABLE Employees 
 ADD COLUMN password VARCHAR(255) NOT NULL;
 
