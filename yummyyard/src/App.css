@@ -37,7 +37,7 @@
   }
 }
 body {
-  background-image: url("../public/Background.jpg"); /* Change this to the correct path */
+  background-color: #282c34;
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

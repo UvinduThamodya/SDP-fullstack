@@ -106,12 +106,11 @@ const Login = () => {
         }, 2000);
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
-      setAlert({
-        open: true,
-        message: 'Login failed. Please check your credentials.',
-        severity: 'error',
-      });
+      if (err.response && err.response.status === 401) {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
     }

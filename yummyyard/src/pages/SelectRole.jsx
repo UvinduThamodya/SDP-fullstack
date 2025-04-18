@@ -42,12 +42,13 @@ const SelectRole = () => {
           edge="start" 
           sx={{ color: 'black', mr: 2 }}
         >
-          
+          {/* Add an icon here if needed */}
         </IconButton>
         <Typography 
           variant="h5" 
           component="div" 
-          sx={{ fontWeight: 'bold', color: 'black' }}
+          sx={{ fontWeight: 'bold', color: 'black', cursor: 'pointer' }}
+          onClick={() => navigate('/')} // Navigate to Homepage.jsx
         >
           Yummy Yard
         </Typography>
