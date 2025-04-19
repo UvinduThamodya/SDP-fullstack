@@ -1,22 +1,13 @@
 const CustomerModel = require("../models/customerModel");
-const StaffModel = require("../models/staffModel"); // You'll need to create this
+const StaffModel = require("../models/staffModel");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
 
 // This secret key should be in an environment variable in production
-const JWT_SECRET = "your-super-secret-key-change-this"; 
+const JWT_SECRET = "your-super-secret-key-change-this";
 
 const AuthController = {
-  // Generic methods (can keep for backward compatibility)
-  async register(req, res) {
-    // Your existing code
-  },
-
-  async login(req, res) {
-    // Your existing code
-  },
-
-  // Customer-specific methods
+  // Customer registration
   async registerCustomer(req, res) {
     try {
       const { name, email, phone, address, password } = req.body;
@@ -31,9 +22,10 @@ const AuthController = {
       }
 
       const userId = await CustomerModel.create({ name, email, phone, address, password });
-      
+
+      // Include role in the token
       const token = jwt.sign(
-        { id: userId, email, name },
+        { id: userId, email, name, role: "customer" },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -49,6 +41,7 @@ const AuthController = {
     }
   },
 
+  // Customer login
   async loginCustomer(req, res) {
     try {
       const { email, password } = req.body;
@@ -67,8 +60,9 @@ const AuthController = {
         return res.status(401).json({ error: "Invalid email or password" });
       }
 
+      // Include role in the token
       const token = jwt.sign(
-        { id: user.customer_id, email: user.email, name: user.name },
+        { id: user.customer_id, email: user.email, name: user.name, role: "customer" },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -82,6 +76,7 @@ const AuthController = {
           email: user.email,
           phone: user.phone,
           address: user.address,
+          role: "customer"
         },
       });
     } catch (error) {
@@ -90,7 +85,7 @@ const AuthController = {
     }
   },
 
-  // Staff-specific methods
+  // Staff registration
   async registerStaff(req, res) {
     try {
       const { name, email, phone, role, password } = req.body;
@@ -99,15 +94,14 @@ const AuthController = {
         return res.status(400).json({ error: "All fields are required" });
       }
 
-      // You'll need to implement this method in your StaffModel
       const existingStaff = await StaffModel.findByEmail(email);
       if (existingStaff) {
         return res.status(409).json({ error: "Email already in use" });
       }
 
-      // You'll need to implement this method in your StaffModel
       const staffId = await StaffModel.create({ name, email, phone, role, password });
-      
+
+      // Include role in the token
       const token = jwt.sign(
         { id: staffId, email, name, role },
         JWT_SECRET,
@@ -125,6 +119,7 @@ const AuthController = {
     }
   },
 
+  // Staff login
   async loginStaff(req, res) {
     try {
       const { email, password } = req.body;
@@ -133,7 +128,6 @@ const AuthController = {
         return res.status(400).json({ error: "Email and password are required" });
       }
 
-      // You'll need to implement this method in your StaffModel
       const staff = await StaffModel.findByEmail(email);
       if (!staff) {
         return res.status(401).json({ error: "Invalid email or password" });
@@ -144,6 +138,7 @@ const AuthController = {
         return res.status(401).json({ error: "Invalid email or password" });
       }
 
+      // Include role in the token
       const token = jwt.sign(
         { id: staff.employee_id, email: staff.email, name: staff.name, role: staff.role },
         JWT_SECRET,
