@@ -11,9 +11,14 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import Sidebar from '../../components/Sidebar';
 import MenuService from '../../services/menuService';
 import apiService from '../../services/api';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import IconButton from '@mui/material/IconButton';
+
 
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') =>
   new Intl.NumberFormat(locale, { style: 'currency', currency }).format(price);
+
 
 const Menu = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -34,7 +39,47 @@ const Menu = () => {
     fetchMenuItems();
   }, []);
 
-  const displayItems = menuItems.filter(item => item.category === selectedCategory);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+
+  const displayItems = selectedCategory === 'Favorites'
+  ? menuItems.filter(item => favoriteIds.includes(item.item_id))
+  : menuItems.filter(item => item.category === selectedCategory);
+
+
+ 
+
+useEffect(() => {
+  // Fetch favorite IDs for the logged-in customer
+  const fetchFavorites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/favorites', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setFavoriteIds(data.map(item => item.item_id));
+    } catch (error) {
+      // handle error
+    }
+  };
+  fetchFavorites();
+}, []);
+// Toggle favorite status
+const handleToggleFavorite = async (itemId) => {
+  try {
+    const token = localStorage.getItem('token');
+    await fetch(`http://localhost:5000/api/favorites/${itemId}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setFavoriteIds(prev =>
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
+    );
+  } catch (error) {
+    // handle error
+  }
+};
+
 
   const handleAddToCart = (itemId) => {
     const item = menuItems.find(i => i.item_id === itemId);
@@ -87,6 +132,7 @@ const Menu = () => {
           <Tab label="Sea Food" value="Sea-Food" />
           <Tab label="Desserts" value="Desserts" />
           <Tab label="Beverage" value="Beverage" />
+          <Tab label="Favorites" value="Favorites" />
         </Tabs>
 
         <Grid container spacing={3}>
@@ -104,6 +150,13 @@ const Menu = () => {
                   <Typography variant="h5">{item.name}</Typography>
                   <Typography variant="body2">{item.description}</Typography>
                   <Typography variant="h6" sx={{ mt: 2 }}>
+                  <IconButton 
+  color="error"
+  onClick={() => handleToggleFavorite(item.item_id)}
+>
+  {favoriteIds.includes(item.item_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+</IconButton>
+
                     {formatCurrency(item.price)}
                   </Typography>
                   <Button
