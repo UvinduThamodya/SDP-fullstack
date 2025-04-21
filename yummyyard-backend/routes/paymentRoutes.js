@@ -6,19 +6,26 @@ const { authenticateUser } = require('../middleware/authMiddleware');
 router.post('/create-intent', authenticateUser, async (req, res) => {
   try {
     const { amount } = req.body;
-    
+
+    // Validate minimum amount (150 LKR ≈ $0.50 USD)
+    if (amount < 50) {
+      return res.status(400).json({ error: "Minimum payment is ₹150" });
+    }
+
+    // Create Stripe PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount: amount, // Already in LKR
       currency: 'lkr',
       metadata: { integration_check: 'accept_a_payment' }
     });
     
     res.json({ clientSecret: paymentIntent.client_secret });
+    
   } catch (error) {
-    console.error('Payment error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

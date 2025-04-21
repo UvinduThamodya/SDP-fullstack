@@ -28,15 +28,24 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use environm
 const createPaymentIntent = async (req, res) => {
   try {
     // Validate input
-    if (!req.body.amount || isNaN(req.body.amount)) {
+    // if (!req.body.amount || isNaN(req.body.amount)) {
+    //   return res.status(400).json({ error: "Invalid amount" });
+    // }
+
+    // const amount = Math.round(parseFloat(req.body.amount));
+        
+    // // Validate currency (LKR doesn't use decimal places)
+    // if (amount < 100) { // Minimum 50 LKR (Stripe's minimum for LKR)
+    //   return res.status(400).json({ error: "Amount must be at least LKR 50" });
+    // }
+    if (!req.body.amount || isNaN(req.body.amount) || parseFloat(req.body.amount) < 1) {
       return res.status(400).json({ error: "Invalid amount" });
     }
-
-    const amount = parseInt(req.body.amount);
     
-    // Validate currency (LKR doesn't use decimal places)
-    if (amount < 50) { // Minimum 50 LKR (Stripe's minimum for LKR)
-      return res.status(400).json({ error: "Amount must be at least LKR 50" });
+    const amount = Math.round(parseFloat(req.body.amount));
+    
+    if (amount < 50) {
+      return res.status(400).json({ error: "Minimum payment is ₹100" });
     }
 
     // Create payment intent

@@ -14,6 +14,16 @@ import apiService from '../../services/api';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import IconButton from '@mui/material/IconButton';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import StripePayment from '../../components/StripePayment';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+
+
+
+const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
+
 
 
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') =>
@@ -26,6 +36,14 @@ const Menu = () => {
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+const [openCashDialog, setOpenCashDialog] = useState(false);
+const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+const [paymentType, setPaymentType] = useState('');
+const [amountGiven, setAmountGiven] = useState('');
+const [balance, setBalance] = useState(0);
+const [errorMessage, setErrorMessage] = useState('');
+
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -45,7 +63,33 @@ const Menu = () => {
   ? menuItems.filter(item => favoriteIds.includes(item.item_id))
   : menuItems.filter(item => item.category === selectedCategory);
 
-
+  const handlePayment = async (paymentData) => {
+    try {
+      // Prepare cart items for order
+      const orderItems = cart.map(item => ({
+        item_id: item.item_id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+  
+      const orderData = {
+        items: orderItems,
+        payment: paymentData,
+      };
+  
+      await apiService.createOrder(orderData);
+  
+      setNotification({ open: true, message: 'Order placed successfully!', severity: 'success' });
+      setCart([]);
+      setAmountGiven('');
+      setBalance(0);
+      setOpenCashDialog(false);
+      setPaymentDialogOpen(false);
+    } catch (error) {
+      setNotification({ open: true, message: 'Payment failed. Please try again.', severity: 'error' });
+    }
+  };
+  
  
 
 useEffect(() => {
@@ -250,11 +294,138 @@ const handleToggleFavorite = async (itemId) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" color="primary" fullWidth disabled={cart.length === 0}>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={cart.length === 0}
+            onClick={() => setCheckoutOpen(true)} // Opens the checkout dialog
+          >
             Checkout
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog open={checkoutOpen} onClose={() => setCheckoutOpen(false)} maxWidth="sm" fullWidth>
+  <DialogTitle>Order Summary</DialogTitle>
+  <DialogContent>
+    <Typography variant="h6" sx={{ mb: 2 }}>
+      Total: {formatCurrency(calculateTotal(), 'LKR', 'en-LK')}
+    </Typography>
+    <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
+      Choose Payment Method
+    </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
+      <Button
+        variant="contained"
+        color="success"
+        startIcon={<AttachMoneyIcon />}
+        onClick={() => {
+          setPaymentType('cash');
+          setCheckoutOpen(false);
+          setOpenCashDialog(true);
+        }}
+        sx={{ px: 4 }}
+      >
+        Cash
+      </Button>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<CreditCardIcon />}
+        onClick={() => {
+          setPaymentType('card');
+          setCheckoutOpen(false);
+          setPaymentDialogOpen(true);
+        }}
+        sx={{ px: 4 }}
+      >
+        Card Payment
+      </Button>
+    </Box>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setCheckoutOpen(false)} color="error">
+      Cancel
+    </Button>
+  </DialogActions>
+</Dialog>
+
+<Dialog open={openCashDialog} onClose={() => setOpenCashDialog(false)} maxWidth="sm" fullWidth>
+  <DialogTitle>Cash Payment</DialogTitle>
+  <DialogContent>
+    <Typography variant="h6" sx={{ mb: 2 }}>
+      Total Amount: {formatCurrency(calculateTotal(), 'LKR', 'en-LK')}
+    </Typography>
+    <TextField
+      label="Amount Given"
+      type="number"
+      value={amountGiven}
+      onChange={(e) => {
+        setAmountGiven(e.target.value);
+        setBalance(e.target.value - calculateTotal());
+      }}
+      fullWidth
+      sx={{ mb: 2 }}
+      inputProps={{ min: 0 }}
+    />
+    <Typography variant="h6" sx={{ mt: 2 }}>
+      Balance: {balance >= 0 ? formatCurrency(balance, 'LKR', 'en-LK') : 'Insufficient Amount'}
+    </Typography>
+  </DialogContent>
+  <DialogActions>
+    <Button
+      variant="contained"
+      color="success"
+      onClick={async () => {
+        if (parseFloat(amountGiven) < calculateTotal()) {
+          setErrorMessage('Insufficient cash received');
+          return;
+        }
+        await handlePayment({
+          method: 'cash',
+          amount: calculateTotal(),
+          cashReceived: parseFloat(amountGiven),
+          change: parseFloat(amountGiven) - calculateTotal(),
+        });
+        setOpenCashDialog(false);
+      }}
+      sx={{ mb: 2 }}
+      disabled={balance < 0 || amountGiven === ''}
+    >
+      Confirm Order
+    </Button>
+    <Button onClick={() => setOpenCashDialog(false)} color="error">
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
+<Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
+  <DialogTitle>Card Payment</DialogTitle>
+  <DialogContent>
+    <Elements stripe={stripePromise}>
+      <StripePayment
+        amount={calculateTotal()}
+        onSuccess={async (paymentIntent) => {
+          await handlePayment({
+            method: 'card',
+            amount: calculateTotal(),
+            stripeToken: paymentIntent.id,
+          });
+          setPaymentDialogOpen(false);
+        }}
+        onError={() => setErrorMessage('Card payment failed.')}
+      />
+    </Elements>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setPaymentDialogOpen(false)} color="error">
+      Cancel
+    </Button>
+  </DialogActions>
+</Dialog>
+
 
       {/* Notification Snackbar */}
       <Snackbar

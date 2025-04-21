@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button, CircularProgress, Box, Typography } from '@mui/material';
 
+const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') =>
+  new Intl.NumberFormat(locale, { style: 'currency', currency }).format(price);
+
 function StripePayment({ amount, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -19,7 +22,7 @@ function StripePayment({ amount, onSuccess }) {
     
     try {
       // Call your backend to create a payment intent
-      console.log("Sending payment request for amount:", amount * 100);
+      // console.log("Sending payment request for amount:", amount * 100);
       
       const response = await fetch('http://localhost:5000/api/payment/create-intent', {
         method: 'POST',
@@ -27,7 +30,7 @@ function StripePayment({ amount, onSuccess }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ amount: Math.round(amount * 100) }) // Stripe uses cents
+        body: JSON.stringify({ amount: Math.round(amount * 100) }) // LKR is zero-decimal (no *100 needed) 
       });
       
       if (!response.ok) {
@@ -39,10 +42,12 @@ function StripePayment({ amount, onSuccess }) {
       const data = await response.json();
       console.log("Got payment secret:", data.clientSecret ? "Yes" : "No");
       
+      if (!response.ok) throw new Error(data.error || 'Payment failed');
+
       if (!data.clientSecret) {
         throw new Error("Missing payment secret from server");
       }
-    
+      
       
       // Confirm the payment
       const result = await stripe.confirmCardPayment(data.clientSecret, {
@@ -87,7 +92,7 @@ function StripePayment({ amount, onSuccess }) {
         disabled={!stripe || processing}
         fullWidth
       >
-        {processing ? <CircularProgress size={24} /> : `Pay $${amount.toFixed(2)}`}
+        {processing ? <CircularProgress size={24} /> : `Pay ${formatCurrency(amount, 'LKR')}`}
       </Button>
     </form>
   );
