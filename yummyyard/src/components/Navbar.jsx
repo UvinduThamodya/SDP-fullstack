@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 // Import logos for the pages
 import dashboardLogo from '../assets/dashboard (1).png';
 import menuLogo from '../assets/menu (1).png';
-// import ordersLogo from '../assets/Order.png';
+import ordersLogo from '../assets/Order.png';
 import aboutLogo from '../assets/aboutus.png';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import HomeIcon from '@mui/icons-material/Home'; // Import the Home icon
 
 const Navbar = () => {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -60,6 +61,7 @@ const Navbar = () => {
             <img
               src={yummyYard}
               alt="Yummy Yard Logo"
+              onClick={handleHomeClick}
               style={{ height: '60px', marginRight: '9px', borderRadius: '5px' }}
             />
           </IconButton>
@@ -78,16 +80,21 @@ const Navbar = () => {
         )}
         
         <Box sx={{ display: 'flex', gap: 3 }}>
+          <Tooltip title="Home" placement="bottom" sx={{ fontSize: '20px' }}>
+            <IconButton color="inherit" onClick={handleHomeClick}>
+              <HomeIcon sx={{ fontSize: 50 }} /> {/* Increase the font size to 40 */}
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Dashboard" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/dashboardcustomer')}>
               <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
-          {/* <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
+          <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/placeorder')}>
               <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
             </IconButton>
-          </Tooltip> */}
+          </Tooltip>
           <Tooltip title="Menu" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
               <img src={menuLogo} alt="Menu" style={{ height: '40px' }} />

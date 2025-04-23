@@ -16,6 +16,7 @@ import StaffRegister from './pages/Staff/StaffRegister';
 import Imventory from './pages/Staff/Inventory'; // Import Inventory component
 import StaffProfile from './pages/Staff/StaffProfile'; // Import StaffProfile component
 import Order from './pages/Staff/Order'; // Import Order component
+import PlaceOrder from './pages/Customer/PlaceOrder';
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -61,6 +62,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+
         <Route 
           path="/profile" 
           element={
@@ -69,11 +71,21 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         <Route 
           path="/homepageuser" 
           element={
             <ProtectedRoute>
               <HomepageUser />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/placeorder" 
+          element={
+            <ProtectedRoute>
+              <PlaceOrder />
             </ProtectedRoute>
           } 
         />

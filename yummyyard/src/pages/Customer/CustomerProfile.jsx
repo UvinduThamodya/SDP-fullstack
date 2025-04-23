@@ -354,7 +354,7 @@ import {
   Avatar,
   Card,
   CardContent,
-  IconButton,
+IconButton,
   useTheme,
   alpha
 } from '@mui/material';
@@ -366,7 +366,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import HomeIcon from '@mui/icons-material/Home';
-import Sidebar from '../../components/Sidebar';
+import Navbar from '../../components/Navbar'; // Import the Navbar component
 import { useNavigate } from 'react-router-dom';
 
 const CustomerProfile = () => {
@@ -524,287 +524,302 @@ const CustomerProfile = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'white', minHeight: '100vh' }}>
-      <Sidebar>
-        <Container sx={{ py: 5, mt: 2 }}>
-          {loading && !editMode ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : error && !customer ? (
-            <Alert severity="error">
-              Error loading profile data. Please try again later.
-            </Alert>
-          ) : (
-            <Box>
-              {/* User Info Card with Avatar */}
-              <Card 
-                elevation={4} 
-                sx={{ 
-                  mb: 4, 
-                  borderRadius: 3,
-                  overflow: 'visible',
-                  position: 'relative',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
-                  color: 'white'
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap'
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: { xs: 2, md: 0 } }}>
-                      <Avatar 
-                        sx={{ 
-                          width: 80, 
-                          height: 80, 
-                          bgcolor: 'white',
-                          color: theme.palette.primary.main,
-                          boxShadow: 3,
-                          fontSize: 40
-                        }}
-                      >
-                        {customer.name ? customer.name.charAt(0).toUpperCase() : 'U'}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                          {customer.name}
-                        </Typography>
-                        <Typography variant="subtitle1">
-                          {customer.email}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      {!editMode ? (
-                        <>
-                          <Button 
-                            variant="contained" 
-                            startIcon={<EditIcon />}
-                            onClick={handleEditClick}
-                            sx={{ 
-                              bgcolor: 'white', 
-                              color: theme.palette.primary.main,
-                              fontWeight: 'bold',
-                              '&:hover': {
-                                bgcolor: alpha(theme.palette.common.white, 0.9)
-                              }
-                            }}
-                          >
-                            Edit Profile
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            startIcon={<LogoutIcon />}
-                            onClick={handleLogout}
-                            sx={{ 
-                              borderColor: 'white', 
-                              color: 'white',
-                              '&:hover': {
-                                borderColor: alpha(theme.palette.common.white, 0.9),
-                                bgcolor: alpha(theme.palette.common.white, 0.1)
-                              }
-                            }}
-                          >
-                            Logout
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button 
-                            variant="outlined" 
-                            startIcon={<CancelIcon />}
-                            onClick={handleCancelClick}
-                            sx={{ 
-                              borderColor: 'white', 
-                              color: 'white',
-                              '&:hover': {
-                                borderColor: alpha(theme.palette.common.white, 0.9),
-                                bgcolor: alpha(theme.palette.common.white, 0.1)
-                              }
-                            }}
-                            disabled={loading}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            variant="contained" 
-                            startIcon={loading ? null : <SaveIcon />}
-                            onClick={handleSaveClick}
-                            sx={{ 
-                              bgcolor: 'white', 
-                              color: theme.palette.primary.main,
-                              fontWeight: 'bold',
-                              '&:hover': {
-                                bgcolor: alpha(theme.palette.common.white, 0.9)
-                              }
-                            }}
-                            disabled={loading}
-                          >
-                            {loading ? <CircularProgress size={24} color="primary" /> : 'Save'}
-                          </Button>
-                        </>
-                      )}
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-
-              {/* Personal Information Card */}
-              <Paper 
-                elevation={3} 
-                sx={{ 
-                  p: 4, 
-                  borderRadius: 3,
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    boxShadow: 6
-                  }
-                }}
-              >
-                <Typography 
-                  variant="h5" 
-                  gutterBottom 
-                  sx={{ 
-                    fontFamily: 'Poppins, sans-serif',
-                    fontWeight: 'bold',
-                    color: theme.palette.primary.main,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    mb: 3
-                  }}
-                >
-                  <PersonIcon sx={{ fontSize: 28 }} /> Personal Information
-                </Typography>
-                <Divider sx={{ mb: 4 }} />
-                
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Full Name"
-                      name="name"
-                      value={editMode ? formValues.name : customer.name}
-                      onChange={handleChange}
-                      disabled={!editMode || loading}
-                      variant={editMode ? "outlined" : "filled"}
-                      InputProps={{
-                        readOnly: !editMode,
-                        startAdornment: <PersonIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />,
-                      }}
-                      sx={{
-                        '& .MuiFilledInput-root': {
-                          borderRadius: 2,
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2
-                        }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Email Address"
-                      name="email"
-                      type="email"
-                      value={editMode ? formValues.email : customer.email}
-                      onChange={handleChange}
-                      disabled={!editMode || loading}
-                      variant={editMode ? "outlined" : "filled"}
-                      InputProps={{
-                        readOnly: !editMode,
-                        startAdornment: <EmailIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />,
-                      }}
-                      sx={{
-                        '& .MuiFilledInput-root': {
-                          borderRadius: 2,
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2
-                        }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Phone Number"
-                      name="phone"
-                      value={editMode ? formValues.phone : customer.phone}
-                      onChange={handleChange}
-                      disabled={!editMode || loading}
-                      variant={editMode ? "outlined" : "filled"}
-                      InputProps={{
-                        readOnly: !editMode,
-                        startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />,
-                      }}
-                      sx={{
-                        '& .MuiFilledInput-root': {
-                          borderRadius: 2,
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2
-                        }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Address"
-                      name="address"
-                      value={editMode ? formValues.address : customer.address}
-                      onChange={handleChange}
-                      disabled={!editMode || loading}
-                      variant={editMode ? "outlined" : "filled"}
-                      multiline
-                      rows={3}
-                      InputProps={{
-                        readOnly: !editMode,
-                        startAdornment: <HomeIcon sx={{ mr: 1, mt: 1, color: theme.palette.text.secondary }} />,
-                      }}
-                      sx={{
-                        '& .MuiFilledInput-root': {
-                          borderRadius: 2,
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2
-                        }
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Box>
-          )}
-        </Container>
-      </Sidebar>
-      
-      {/* Notification */}
-      <Snackbar 
-        open={notification.open} 
-        autoHideDuration={6000} 
-        onClose={handleNotificationClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'white' }}>
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Navbar /> {/* Add the Navbar component */}
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
       >
-        <Alert 
-          onClose={handleNotificationClose} 
-          severity={notification.severity}
-          variant="filled"
-          sx={{ borderRadius: 2 }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+        <Box sx={{ display: 'flex', bgcolor: 'white', minHeight: '100vh' }}>
+          
+            <Container sx={{ py: 5, mt: 2 }}>
+              {loading && !editMode ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : error && !customer ? (
+                <Alert severity="error">
+                  Error loading profile data. Please try again later.
+                </Alert>
+              ) : (
+                <Box>
+                  {/* User Info Card with Avatar */}
+                  <Card 
+                    elevation={4} 
+                    sx={{ 
+                      mb: 4, 
+                      borderRadius: 3,
+                      overflow: 'visible',
+                      position: 'relative',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                      color: 'white'
+                    }}
+                  >
+                    <CardContent sx={{ p: 3 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap'
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: { xs: 2, md: 0 } }}>
+                          <Avatar 
+                            sx={{ 
+                              width: 80, 
+                              height: 80, 
+                              bgcolor: 'white',
+                              color: theme.palette.primary.main,
+                              boxShadow: 3,
+                              fontSize: 40
+                            }}
+                          >
+                            {customer.name ? customer.name.charAt(0).toUpperCase() : 'U'}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                              {customer.name}
+                            </Typography>
+                            <Typography variant="subtitle1">
+                              {customer.email}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          {!editMode ? (
+                            <>
+                              <Button 
+                                variant="contained" 
+                                startIcon={<EditIcon />}
+                                onClick={handleEditClick}
+                                sx={{ 
+                                  bgcolor: 'white', 
+                                  color: theme.palette.primary.main,
+                                  fontWeight: 'bold',
+                                  '&:hover': {
+                                    bgcolor: alpha(theme.palette.common.white, 0.9)
+                                  }
+                                }}
+                              >
+                                Edit Profile
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                startIcon={<LogoutIcon />}
+                                onClick={handleLogout}
+                                sx={{ 
+                                  borderColor: 'white', 
+                                  color: 'white',
+                                  '&:hover': {
+                                    borderColor: alpha(theme.palette.common.white, 0.9),
+                                    bgcolor: alpha(theme.palette.common.white, 0.1)
+                                  }
+                                }}
+                              >
+                                Logout
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button 
+                                variant="outlined" 
+                                startIcon={<CancelIcon />}
+                                onClick={handleCancelClick}
+                                sx={{ 
+                                  borderColor: 'white', 
+                                  color: 'white',
+                                  '&:hover': {
+                                    borderColor: alpha(theme.palette.common.white, 0.9),
+                                    bgcolor: alpha(theme.palette.common.white, 0.1)
+                                  }
+                                }}
+                                disabled={loading}
+                              >
+                                Cancel
+                              </Button>
+                              <Button 
+                                variant="contained" 
+                                startIcon={loading ? null : <SaveIcon />}
+                                onClick={handleSaveClick}
+                                sx={{ 
+                                  bgcolor: 'white', 
+                                  color: theme.palette.primary.main,
+                                  fontWeight: 'bold',
+                                  '&:hover': {
+                                    bgcolor: alpha(theme.palette.common.white, 0.9)
+                                  }
+                                }}
+                                disabled={loading}
+                              >
+                                {loading ? <CircularProgress size={24} color="primary" /> : 'Save'}
+                              </Button>
+                            </>
+                          )}
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  {/* Personal Information Card */}
+                  <Paper 
+                    elevation={3} 
+                    sx={{ 
+                      p: 4, 
+                      borderRadius: 3,
+                      transition: 'all 0.3s ease-in-out',
+                      '&:hover': {
+                        boxShadow: 6
+                      }
+                    }}
+                  >
+                    <Typography 
+                      variant="h5" 
+                      gutterBottom 
+                      sx={{ 
+                        fontFamily: 'Poppins, sans-serif',
+                        fontWeight: 'bold',
+                        color: theme.palette.primary.main,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        mb: 3
+                      }}
+                    >
+                      <PersonIcon sx={{ fontSize: 28 }} /> Personal Information
+                    </Typography>
+                    <Divider sx={{ mb: 4 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Full Name"
+                          name="name"
+                          value={editMode ? formValues.name : customer.name}
+                          onChange={handleChange}
+                          disabled={!editMode || loading}
+                          variant={editMode ? "outlined" : "filled"}
+                          InputProps={{
+                            readOnly: !editMode,
+                            startAdornment: <PersonIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />,
+                          }}
+                          sx={{
+                            '& .MuiFilledInput-root': {
+                              borderRadius: 2,
+                              bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2
+                            }
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Email Address"
+                          name="email"
+                          type="email"
+                          value={editMode ? formValues.email : customer.email}
+                          onChange={handleChange}
+                          disabled={!editMode || loading}
+                          variant={editMode ? "outlined" : "filled"}
+                          InputProps={{
+                            readOnly: !editMode,
+                            startAdornment: <EmailIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />,
+                          }}
+                          sx={{
+                            '& .MuiFilledInput-root': {
+                              borderRadius: 2,
+                              bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2
+                            }
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Phone Number"
+                          name="phone"
+                          value={editMode ? formValues.phone : customer.phone}
+                          onChange={handleChange}
+                          disabled={!editMode || loading}
+                          variant={editMode ? "outlined" : "filled"}
+                          InputProps={{
+                            readOnly: !editMode,
+                            startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />,
+                          }}
+                          sx={{
+                            '& .MuiFilledInput-root': {
+                              borderRadius: 2,
+                              bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2
+                            }
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Address"
+                          name="address"
+                          value={editMode ? formValues.address : customer.address}
+                          onChange={handleChange}
+                          disabled={!editMode || loading}
+                          variant={editMode ? "outlined" : "filled"}
+                          multiline
+                          rows={3}
+                          InputProps={{
+                            readOnly: !editMode,
+                            startAdornment: <HomeIcon sx={{ mr: 1, mt: 1, color: theme.palette.text.secondary }} />,
+                          }}
+                          sx={{
+                            '& .MuiFilledInput-root': {
+                              borderRadius: 2,
+                              bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2
+                            }
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Box>
+              )}
+            </Container>
+          
+          
+          {/* Notification */}
+          <Snackbar 
+            open={notification.open} 
+            autoHideDuration={6000} 
+            onClose={handleNotificationClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              onClose={handleNotificationClose} 
+              severity={notification.severity}
+              variant="filled"
+              sx={{ borderRadius: 2 }}
+            >
+              {notification.message}
+            </Alert>
+          </Snackbar>
+        </Box>
+      </Box>
     </Box>
   );
 };

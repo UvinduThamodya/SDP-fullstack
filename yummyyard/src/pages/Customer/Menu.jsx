@@ -8,7 +8,6 @@ import {
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PaymentIcon from '@mui/icons-material/Payment';
-import Sidebar from '../../components/Sidebar';
 import MenuService from '../../services/menuService';
 import apiService from '../../services/api';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -19,6 +18,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import StripePayment from '../../components/StripePayment';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
+import Navbar from '../../components/Navbar'; // Import the Navbar component
 
 
 
@@ -163,8 +163,10 @@ const handleToggleFavorite = async (itemId) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', backgroundColor: 'white' }}>
-      <Sidebar />
+    <Box sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Navbar /> {/* Add the Navbar component */}
+      </Box>
       <Container maxWidth="lg" sx={{ pt: 5, pb: 8 }}>
         <Tabs
           value={selectedCategory}
