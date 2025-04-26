@@ -95,7 +95,7 @@ const SelectRole = () => {
                 backgroundColor: '#d5d5d5',
               }
             }}
-            onClick={() => handleRoleSelect('Admin')}
+            onClick={() => handleRoleSelect('/adminLogin')}
           >
             Admin
           </Button>

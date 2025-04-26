@@ -51,8 +51,53 @@ const registerAdmin = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone } = req.body;
+    
+    // Validate input
+    if (!name || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name, email, and phone are required'
+      });
+    }
+    
+    // Check if email already exists for another admin
+    const [existingEmails] = await db.query(
+      'SELECT * FROM Employees WHERE email = ? AND employee_id != ?',
+      [email, id]
+    );
+    
+    if (existingEmails.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already in use by another employee'
+      });
+    }
+    
+    // Update the admin profile
+    await db.query(
+      'UPDATE Employees SET name = ?, email = ?, phone = ? WHERE employee_id = ? AND role = "Admin"',
+      [name, email, phone, id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile'
+    });
+  }
+};
+
 // Add this to your exports
 module.exports = { 
-  // ... existing exports
-  registerAdmin 
+  
+  registerAdmin , updateProfile
 };

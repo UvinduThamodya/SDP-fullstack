@@ -3,7 +3,6 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const apiService = {
-
   registerStaff: async (staffData) => {
     try {
       const response = await axios.post(`${API_URL}/auth/staff/register`, staffData, {
@@ -16,12 +15,17 @@ const apiService = {
     }
   },
 
-  // Staff login
   loginStaff: async (credentials) => {
     try {
       const response = await axios.post(`${API_URL}/auth/staff/login`, credentials, {
         headers: { "Content-Type": "application/json" },
       });
+
+      // Store staffId in localStorage after successful login
+      if (response.data && response.data.staff && response.data.staff.id) {
+        localStorage.setItem('staffId', response.data.staff.id);
+      }
+
       return response.data;
     } catch (error) {
       console.error("Staff login error:", error.response?.data || error.message);
@@ -29,7 +33,6 @@ const apiService = {
     }
   },
 
-  // Customer registration
   registerCustomer: async (customerData) => {
     try {
       const response = await axios.post(`${API_URL}/auth/customer/register`, customerData, {
@@ -42,7 +45,6 @@ const apiService = {
     }
   },
 
-  // Customer login
   loginCustomer: async (credentials) => {
     try {
       const response = await axios.post(`${API_URL}/auth/customer/login`, credentials, {
@@ -55,7 +57,6 @@ const apiService = {
     }
   },
 
-  // Fetch user profile (optional, can be used later)
   getUserProfile: async (userId) => {
     try {
       const response = await axios.get(`${API_URL}/users/${userId}`);
@@ -65,7 +66,6 @@ const apiService = {
     }
   },
 
-  // Fetch staff profile
   getStaffProfile: async (staffId) => {
     try {
       const response = await axios.get(`${API_URL}/staff/${staffId}`, {
@@ -77,7 +77,7 @@ const apiService = {
       throw error;
     }
   },
-  
+
   updateStaffProfile: async (id, data) => {
     const response = await axios.put(`${API_URL}/staff/${id}`, data, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -85,7 +85,7 @@ const apiService = {
     return response.data;
   },
 
-  // Create Order
+// Create Order
   // createOrder: async (orderData) => {
   //   try {
   //     const token = localStorage.getItem('token'); // Retrieve the JWT token from localStorage
@@ -102,21 +102,42 @@ const apiService = {
   //   }
   // }
   // services/api.js
-createOrder: async (orderData) => {
-  try {
-    const response = await axios.post('/api/orders', orderData, {
-      headers: { 
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.error || 'Order failed');
-  }
-}
+  createOrder: async (orderData) => {
+    try {
+      const response = await axios.post('/api/orders', orderData, {
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.error || 'Order failed');
+    }
+  },
 
-  
+  updateAdminProfile: async (adminId, profileData) => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`http://localhost:5000/api/admin/profile/${adminId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(profileData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update profile');
+    }
+
+    return response.json();
+  },
 };
 
 export default apiService;

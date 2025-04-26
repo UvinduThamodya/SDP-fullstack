@@ -21,6 +21,7 @@ import Accounts from './pages/Admin/Accounts';
 import AdminRegister from './pages/Admin/AdminRegister';
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminProfile from './pages/Admin/AdminProfile';
+import AdminLogin from './pages/Admin/AdminLogin';
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -60,6 +61,7 @@ function App() {
         <Route path="/adminregister" element={<AdminRegister />} />
         <Route path='/admindashboard' element={<AdminDashboard/>} />
         <Route path='/adminprofile' element={<AdminProfile/>} />
+        <Route path="/adminlogin" element={<AdminLogin />} />
 
         {/* Protected customer routes */}
         <Route 
