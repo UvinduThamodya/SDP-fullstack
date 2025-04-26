@@ -20,6 +20,7 @@ import OrderHistory from './pages/Customer/OrderHistory';
 import Accounts from './pages/Admin/Accounts';
 import AdminRegister from './pages/Admin/AdminRegister';
 import AdminDashboard from './pages/Admin/AdminDashboard'
+import AdminProfile from './pages/Admin/AdminProfile';
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -58,6 +59,7 @@ function App() {
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/adminregister" element={<AdminRegister />} />
         <Route path='/admindashboard' element={<AdminDashboard/>} />
+        <Route path='/adminprofile' element={<AdminProfile/>} />
 
         {/* Protected customer routes */}
         <Route 

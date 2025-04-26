@@ -1,0 +1,257 @@
+CREATE DATABASE IF NOT EXISTS restaurant_db;
+USE restaurant_db;
+
+SET SQL_SAFE_UPDATES = 0;
+-- Customers Table
+CREATE TABLE Customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address TEXT,
+    password VARCHAR(255) NOT NULL
+);
+
+-- Menu Items Table
+CREATE TABLE MenuItems (
+    item_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    availability BOOLEAN DEFAULT TRUE,
+    category ENUM('Main-Dishes', 'Sea-Food', 'Desserts', 'Beverage') NOT NULL,
+    image_url VARCHAR(255),
+    favorite_count INT DEFAULT 0
+);
+
+-- Orders Table
+CREATE TABLE Orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NULL,
+    staff_id INT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('Pending', 'Preparing', 'Completed', 'Cancelled', 'Paid') DEFAULT 'Pending',
+    delivery_address TEXT,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (staff_id) REFERENCES Employees(employee_id)
+);
+
+-- Order Items Table (Many-to-Many Relationship)
+CREATE TABLE OrderItems (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    item_id INT,
+    quantity INT NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE
+);
+
+-- Employees Table
+CREATE TABLE Employees (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    role ENUM('Admin', 'Staff', 'Cashier', 'Chef') NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    profile_picture VARCHAR(500) DEFAULT NULL
+);
+
+-- Payments Table
+CREATE TABLE Payments (
+    payment_id VARCHAR(255) NOT NULL PRIMARY KEY,
+    order_id INT,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    method ENUM('Cash', 'Card', 'Online') NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE
+);
+
+-- Inventory Table
+CREATE TABLE Inventory (
+    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_name VARCHAR(100) NOT NULL,
+    quantity INT NOT NULL,
+    unit VARCHAR(20) NOT NULL DEFAULT 'grams',
+    unit_price DECIMAL(10,4) NOT NULL,
+    threshold INT NOT NULL,
+    CONSTRAINT unique_item_name UNIQUE (item_name)
+);
+
+-- Menu Item Ingredients (Many-to-Many Relationship between Menu Items and Inventory)
+CREATE TABLE MenuItemIngredients (
+    menu_item_ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT,
+    inventory_id INT,
+    quantity_required INT NOT NULL,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE,
+    FOREIGN KEY (inventory_id) REFERENCES Inventory(inventory_id) ON DELETE CASCADE,
+    CONSTRAINT unique_menu_item_ingredient UNIQUE (item_id, inventory_id)
+);
+
+-- Contacts Table
+CREATE TABLE contacts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    subject VARCHAR(200),
+    message TEXT NOT NULL,
+    created_at DATETIME NOT NULL
+);
+
+-- Cart Table
+CREATE TABLE Cart (
+    cart_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE
+);
+
+-- Cart Items Table
+CREATE TABLE CartItems (
+    cart_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    cart_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (cart_id) REFERENCES Cart(cart_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE
+);
+
+-- Favorites Table
+CREATE TABLE Favorites (
+    favorite_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    item_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_favorite (customer_id, item_id)
+);
+
+DELIMITER //
+CREATE TRIGGER deduct_ingredients AFTER INSERT ON OrderItems
+FOR EACH ROW
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE ingredient_id INT;
+    DECLARE qty_needed DECIMAL(10,2);
+
+    DECLARE cur CURSOR FOR 
+        SELECT inventory_id, quantity_required 
+        FROM MenuItemIngredients 
+        WHERE item_id = NEW.item_id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO ingredient_id, qty_needed;
+        IF done THEN LEAVE read_loop; END IF;
+
+        -- Update inventory (multiply by order quantity)
+        UPDATE Inventory 
+        SET quantity = quantity - (qty_needed * NEW.quantity)
+        WHERE inventory_id = ingredient_id;
+    END LOOP;
+
+    CLOSE cur;
+END //
+DELIMITER ;
+
+-- Insert inventory items
+INSERT INTO Inventory (item_name, quantity, unit, unit_price, threshold) VALUES
+('Rice', 50000, 'grams', 0.05, 5000),
+('Chicken', 20000, 'grams', 0.80, 3000),
+('Eggs', 200, 'pieces', 0.50, 50),
+('Vegetables', 15000, 'grams', 0.30, 2000),
+('Pasta', 10000, 'grams', 3.00, 2000),
+('Cheese', 5000, 'grams', 4.50, 1000),
+('Sausages', 200, 'pieces', 2.00, 50),
+('Fish', 10000, 'grams', 1.50, 2000),
+('Oil', 5000, 'ml', 0.20, 1000),
+('Urad Dal', 8000, 'grams', 0.40, 1500),
+('Spices', 3000, 'grams', 2.00, 500),
+('Flour', 10000, 'grams', 0.10, 2000);
+
+-- Insert menu items
+INSERT INTO MenuItems (item_id, name, description, price, availability, category, image_url) VALUES
+(21, 'Fried Rice', '#1 most liked', 570.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827439/Fried_Rice_tcnw70.jpg'),
+(22, 'Egg Fried Rice', '', 390.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744826127/Egg_Fried_Rice_jgefjg.jpg'),
+(27, 'Rice And Curry Fish', '', 330.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744828363/Rice_And_Curry_Fish_jydtuu.png'),
+(28, 'Rice And Curry Egg', '', 330.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744828444/Rice_and_Curry_Egg_yct64z.png'),
+(30, 'Egg Kottu', '', 500.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744828713/Egg_Kottu_ejgpfl.jpg'),
+(31, 'Chicken Kottu', '', 520.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744815041/Chicken_Kottu_euzynf.jpg'),
+(32, 'Roast Chicken Cheese Pasta', '', 975.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827873/Roast_Chicken_Cheese_Pasta_aild1o.jpg'),
+(33, 'Parata', '', 80.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827783/Parata_rcing9.jpg'),
+(34, 'Uludu Wade', '', 80.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827829/Uludu_Wade_wuolzm.jpg'),
+(35, 'Vegetable Rotti', '', 110.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827930/Vegetable_Rotti_hijlbr.jpg'),
+(36, 'Chicken Rotti', '', 130.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744823639/Chicken_Rotti_aazf6j.jpg'),
+(37, 'Egg Rotti', '', 160.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827058/Egg_Rotti_w8ox8v.jpg'),
+(38, 'Mini Deviled Sausage (4 pieces)', '', 160.00, TRUE, 'Main-Dishes', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1744827540/Mini_Deviled_Sausage_ttx5fz.jpg');
+
+-- Set auto-increment for future menu items
+ALTER TABLE MenuItems AUTO_INCREMENT = 39;
+
+-- Insert admin employee
+INSERT INTO Employees (name, role, email, phone, password)
+VALUES ('Super Admin', 'Admin', 'admin@yummyyard.com', '0712345678', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG');
+
+-- Insert staff employee
+INSERT INTO Employees (name, role, email, phone, password)
+VALUES ('John Doe', 'Staff', 'staff@example.com', '1234567890', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG');
+
+-- Insert menu item ingredients
+INSERT INTO MenuItemIngredients (item_id, inventory_id, quantity_required) VALUES
+-- Fried Rice
+(21, (SELECT inventory_id FROM Inventory WHERE item_name = 'Rice'), 300),
+(21, (SELECT inventory_id FROM Inventory WHERE item_name = 'Vegetables'), 100),
+(21, (SELECT inventory_id FROM Inventory WHERE item_name = 'Eggs'), 2),
+
+-- Egg Fried Rice
+(22, (SELECT inventory_id FROM Inventory WHERE item_name = 'Rice'), 250),
+(22, (SELECT inventory_id FROM Inventory WHERE item_name = 'Vegetables'), 80),
+(22, (SELECT inventory_id FROM Inventory WHERE item_name = 'Eggs'), 3),
+
+-- Chicken Kottu
+(31, (SELECT inventory_id FROM Inventory WHERE item_name = 'Flour'), 150),
+(31, (SELECT inventory_id FROM Inventory WHERE item_name = 'Chicken'), 200),
+(31, (SELECT inventory_id FROM Inventory WHERE item_name = 'Vegetables'), 120),
+(31, (SELECT inventory_id FROM Inventory WHERE item_name = 'Spices'), 15),
+
+-- Roast Chicken Cheese Pasta
+(32, (SELECT inventory_id FROM Inventory WHERE item_name = 'Pasta'), 300),
+(32, (SELECT inventory_id FROM Inventory WHERE item_name = 'Chicken'), 250),
+(32, (SELECT inventory_id FROM Inventory WHERE item_name = 'Cheese'), 120),
+(32, (SELECT inventory_id FROM Inventory WHERE item_name = 'Vegetables'), 80),
+
+-- Parata
+(33, (SELECT inventory_id FROM Inventory WHERE item_name = 'Flour'), 150),
+(33, (SELECT inventory_id FROM Inventory WHERE item_name = 'Oil'), 30),
+
+-- Uludu Wade
+(34, (SELECT inventory_id FROM Inventory WHERE item_name = 'Urad Dal'), 120),
+(34, (SELECT inventory_id FROM Inventory WHERE item_name = 'Oil'), 50),
+(34, (SELECT inventory_id FROM Inventory WHERE item_name = 'Spices'), 10),
+
+-- Vegetable Rotti
+(35, (SELECT inventory_id FROM Inventory WHERE item_name = 'Flour'), 120),
+(35, (SELECT inventory_id FROM Inventory WHERE item_name = 'Vegetables'), 100),
+(35, (SELECT inventory_id FROM Inventory WHERE item_name = 'Spices'), 10),
+
+-- Chicken Rotti
+(36, (SELECT inventory_id FROM Inventory WHERE item_name = 'Flour'), 120),
+(36, (SELECT inventory_id FROM Inventory WHERE item_name = 'Chicken'), 100),
+(36, (SELECT inventory_id FROM Inventory WHERE item_name = 'Spices'), 10),
+
+-- Egg Rotti
+(37, (SELECT inventory_id FROM Inventory WHERE item_name = 'Flour'), 120),
+(37, (SELECT inventory_id FROM Inventory WHERE item_name = 'Eggs'), 2),
+(37, (SELECT inventory_id FROM Inventory WHERE item_name = 'Spices'), 10),
+
+-- Mini Deviled Sausage
+(38, (SELECT inventory_id FROM Inventory WHERE item_name = 'Sausages'), 4),
+(38, (SELECT inventory_id FROM Inventory WHERE item_name = 'Spices'), 15),
+(38, (SELECT inventory_id FROM Inventory WHERE item_name = 'Oil'), 20);

@@ -37,7 +37,7 @@ const SidebarAdmin = () => {
           </ListItemIcon>
           <ListItemText primary="Accounts" />
         </ListItem>
-        <ListItem button onClick={() => handleNavigation('/profile')}>
+        <ListItem button onClick={() => handleNavigation('/adminprofile')}>
           <ListItemIcon>
             <AccountCircleIcon />
           </ListItemIcon>
