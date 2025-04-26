@@ -32,9 +32,35 @@ const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') =>
 
 const Menu = () => {
   const [menuItems, setMenuItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Main-Dishes');
+  const [cart, setCart] = useState(() => {
+    // Initialize cart from local storage
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
-  const [cart, setCart] = useState([]);
+
+  // Save cart to local storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
+
+  const handleAddToCart = (itemId) => {
+    const item = menuItems.find(i => i.item_id === itemId);
+    if (!item) return;
+
+    setCart(prevCart => {
+      const existing = prevCart.find(ci => ci.item_id === itemId);
+      if (existing) {
+        return prevCart.map(ci => ci.item_id === itemId ? { ...ci, quantity: ci.quantity + 1 } : ci);
+      } else {
+        return [...prevCart, { ...item, quantity: 1 }];
+      }
+    });
+
+    setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState('Main-Dishes');
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 const [openCashDialog, setOpenCashDialog] = useState(false);
@@ -124,22 +150,6 @@ const handleToggleFavorite = async (itemId) => {
   }
 };
 
-
-  const handleAddToCart = (itemId) => {
-    const item = menuItems.find(i => i.item_id === itemId);
-    if (!item) return;
-
-    setCart(prevCart => {
-      const existing = prevCart.find(ci => ci.item_id === itemId);
-      if (existing) {
-        return prevCart.map(ci => ci.item_id === itemId ? { ...ci, quantity: ci.quantity + 1 } : ci);
-      } else {
-        return [...prevCart, { ...item, quantity: 1 }];
-      }
-    });
-    setCartOpen(true);
-    setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
-  };
 
   const handleRemoveFromCart = (itemId) => {
     setCart(prevCart => prevCart.filter(ci => ci.item_id !== itemId));

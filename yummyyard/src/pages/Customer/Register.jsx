@@ -116,7 +116,7 @@ const Register = () => {
     });
     
     try {
-      await apiService.register(formData);
+      await apiService.registerCustomer(formData);
       setSubmitStatus({
         submitted: true,
         success: true,

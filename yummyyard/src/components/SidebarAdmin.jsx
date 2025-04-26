@@ -25,7 +25,7 @@ const SidebarAdmin = () => {
       }}
     >
       <List>
-        <ListItem button onClick={() => handleNavigation('/dashboardadmin')}>
+        <ListItem button onClick={() => handleNavigation('/admindashboard')}>
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>

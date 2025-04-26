@@ -16,9 +16,10 @@ import StaffRegister from './pages/Staff/StaffRegister';
 import Imventory from './pages/Staff/Inventory'; // Import Inventory component
 import StaffProfile from './pages/Staff/StaffProfile'; // Import StaffProfile component
 import Order from './pages/Staff/Order'; // Import Order component
-import PlaceOrder from './pages/Customer/PlaceOrder';
+import OrderHistory from './pages/Customer/OrderHistory';
 import Accounts from './pages/Admin/Accounts';
 import AdminRegister from './pages/Admin/AdminRegister';
+import AdminDashboard from './pages/Admin/AdminDashboard'
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -56,6 +57,7 @@ function App() {
         <Route path="/order" element={<Order />} />
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/adminregister" element={<AdminRegister />} />
+        <Route path='/admindashboard' element={<AdminDashboard/>} />
 
         {/* Protected customer routes */}
         <Route 
@@ -86,10 +88,10 @@ function App() {
         />
 
         <Route 
-          path="/placeorder" 
+          path="/orderhistory" 
           element={
             <ProtectedRoute>
-              <PlaceOrder />
+              <OrderHistory />
             </ProtectedRoute>
           } 
         />

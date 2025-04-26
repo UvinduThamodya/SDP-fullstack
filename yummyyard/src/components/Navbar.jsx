@@ -91,7 +91,7 @@ const Navbar = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/placeorder')}>
+            <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
               <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
