@@ -90,14 +90,14 @@ const Navbar = () => {
               <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
-              <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
-            </IconButton>
-          </Tooltip>
           <Tooltip title="Menu" placement="bottom" sx={{ fontSize: '20px' }}>
             <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
               <img src={menuLogo} alt="Menu" style={{ height: '40px' }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
+            <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
+              <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="About Us" placement="bottom" sx={{ fontSize: '20px' }}>
