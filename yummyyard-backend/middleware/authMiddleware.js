@@ -94,7 +94,7 @@
 
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'your-super-secret-key-change-this';
+const JWT_SECRET = 'your-very-secure-jwt-secret-key';
 
 const authenticateUser = (req, res, next) => {
   // Check for token in Authorization header OR query parameter

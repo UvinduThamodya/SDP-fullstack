@@ -49,12 +49,12 @@ const StaffRegister = () => {
   
       setAlert({
         open: true,
-        message: 'Registration successful! Redirecting to Dashboard...',
+        message: 'Registration successful! Redirecting to accounts...',
         severity: 'success',
       });
   
       // Redirect to login after success
-      setTimeout(() => navigate('/dashboard'), 3000);
+      setTimeout(() => navigate('/accounts'), 3000);
     } catch (error) {
       console.error('Registration error:', error);
       setAlert({

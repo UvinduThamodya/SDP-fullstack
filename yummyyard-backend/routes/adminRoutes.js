@@ -10,4 +10,12 @@ router.post('/register', adminController.registerAdmin);
 // Protected routes - admin authentication required
 router.put('/profile/:id', authenticateAdmin, adminController.updateProfile);
 
+// Staff management routes
+router.get('/staff', authenticateAdmin, adminController.getAllStaff);
+router.delete('/staff/:id', authenticateAdmin, adminController.deleteStaff);
+
+// Customer management routes
+router.get('/customers', authenticateAdmin, adminController.getAllCustomers);
+router.delete('/customers/:id', authenticateAdmin, adminController.deleteCustomer);
+
 module.exports = router;

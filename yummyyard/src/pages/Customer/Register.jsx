@@ -124,7 +124,7 @@ const Register = () => {
       });
       
       // Redirect to HomepageUser after successful registration
-      setTimeout(() => navigate('/HomepageUser'), 2000);
+      setTimeout(() => navigate('/homepageuser'), 2000);
     } catch (error) {
       setSubmitStatus({
         submitted: true,
