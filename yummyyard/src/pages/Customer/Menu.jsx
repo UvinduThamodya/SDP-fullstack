@@ -19,7 +19,9 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import StripePayment from '../../components/StripePayment';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import Navbar from '../../components/Navbar'; // Import the Navbar component
+import Navbar from '../../components/Navbar'; 
+import { alpha } from '@mui/material/styles'; // Add this import
+
 
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
@@ -220,35 +222,35 @@ const Menu = () => {
               label="Main Dishes" 
               value="Main-Dishes" 
               sx={{ 
-                backgroundColor: selectedCategory === 'Main-Dishes' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+                backgroundColor: selectedCategory === 'Main-Dishes' ? 'rgba(58, 202, 130, 0.1)' : 'transparent',
               }} 
             />
             <Tab 
               label="Sea Food" 
               value="Sea-Food" 
               sx={{ 
-                backgroundColor: selectedCategory === 'Sea-Food' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+                backgroundColor: selectedCategory === 'Sea-Food' ? 'rgba(58, 202, 130, 0.1)' : 'transparent',
               }} 
             />
             <Tab 
               label="Desserts" 
               value="Desserts" 
               sx={{ 
-                backgroundColor: selectedCategory === 'Desserts' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+                backgroundColor: selectedCategory === 'Desserts' ? 'rgba(58, 202, 130, 0.1)' : 'transparent',
               }} 
             />
             <Tab 
               label="Beverage" 
               value="Beverage" 
               sx={{ 
-                backgroundColor: selectedCategory === 'Beverage' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+                backgroundColor: selectedCategory === 'Beverage' ? 'rgba(58, 202, 130, 0.1)' : 'transparent',
               }} 
             />
             <Tab 
               label="Favorites" 
               value="Favorites" 
               sx={{ 
-                backgroundColor: selectedCategory === 'Favorites' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+                backgroundColor: selectedCategory === 'Favorites' ? 'rgba(58, 202, 130, 0.1)' : 'transparent',
               }} 
             />
           </Tabs>
@@ -297,7 +299,7 @@ const Menu = () => {
                     <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>{item.name}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{item.description}</Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#3ACA82' }}>
                         {formatCurrency(item.price)}
                       </Typography>
                       <Button
@@ -308,8 +310,8 @@ const Menu = () => {
                         sx={{ 
                           borderRadius: '24px',
                           px: 2,
-                          backgroundColor: '#ff9800',
-                          '&:hover': { backgroundColor: '#f57c00' },
+                          backgroundColor: '#3ACA82',
+                          '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
                         }}
                       >
                         Add
@@ -331,9 +333,9 @@ const Menu = () => {
             bottom: 24,
             right: 24,
             zIndex: 1300,
-            backgroundColor: '#ff9800',
+            backgroundColor: '#3ACA82',
             '&:hover': {
-              backgroundColor: '#f57c00',
+              backgroundColor: alpha('#3ACA82', 0.8),
               transform: 'scale(1.05)',
             },
             boxShadow: '0 6px 12px rgba(0,0,0,0.2)',
@@ -533,8 +535,8 @@ const Menu = () => {
                   sx={{ 
                     py: 1.5, 
                     borderRadius: 2,
-                    backgroundColor: '#ff9800',
-                    '&:hover': { backgroundColor: '#f57c00' },
+                    backgroundColor: '#3ACA82',
+                    '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
                     transition: 'all 0.3s',
                   }}
                 >
@@ -667,8 +669,8 @@ const Menu = () => {
               {amountGiven && (
                 <Box sx={{ 
                   p: 2, 
-                  backgroundColor: balance >= 0 ? 'success.light' : 'error.light',
-                  color: balance >= 0 ? 'success.contrastText' : 'error.contrastText',
+                  backgroundColor: balance >= 0 ? 'rgba(58, 202, 130, 0.1)' : 'rgba(211, 47, 47, 0.1)',
+                  color: balance >= 0 ? '#3ACA82' : '#d32f2f',
                   borderRadius: 2,
                   textAlign: 'center',
                   transition: 'all 0.3s'
@@ -721,29 +723,30 @@ const Menu = () => {
         </Dialog>
 
         <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Card Payment</DialogTitle>
-          <DialogContent>
-            <Elements stripe={stripePromise}>
-              <StripePayment
-                amount={calculateTotal()}
-                onSuccess={async (paymentIntent) => {
-                  await handlePayment({
-                    method: 'card',
-                    amount: calculateTotal(),
-                    stripeToken: paymentIntent.id,
-                  });
-                  setPaymentDialogOpen(false);
-                }}
-                onError={() => setErrorMessage('Card payment failed.')}
-              />
-            </Elements>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setPaymentDialogOpen(false)} color="error">
-              Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
+  <DialogTitle>Card Payment</DialogTitle>
+  <DialogContent>
+    <Elements stripe={stripePromise}>
+      <StripePayment
+        amount={calculateTotal()}
+        onSuccess={async (paymentIntent) => {
+          await handlePayment({
+            method: 'card',
+            amount: calculateTotal(),
+            stripeToken: paymentIntent.id,
+          });
+          setPaymentDialogOpen(false);
+        }}
+        onError={() => setErrorMessage('Card payment failed.')}
+      />
+    </Elements>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setPaymentDialogOpen(false)} color="error">
+      Cancel
+    </Button>
+  </DialogActions>
+</Dialog>
+
 
         {/* Notification Snackbar */}
         <Snackbar
@@ -766,7 +769,7 @@ const Menu = () => {
               width: '100%',
               borderRadius: 8,
               boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
-              backgroundColor: notification.severity === 'success' ? '#2e7d32' : '#d32f2f',
+              backgroundColor: notification.severity === 'success' ? '#3ACA82' : '#d32f2f',
               color: '#ffffff',
             }}
           >

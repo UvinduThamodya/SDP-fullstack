@@ -1,6 +1,10 @@
-import React from 'react';
-import { Box, Container, Grid, Typography, Button, Card, CardMedia, CardContent, Link, IconButton } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import React, { useEffect, useState } from 'react';
+import { 
+  Box, Container, Grid, Typography, Button, Card, CardMedia, 
+  CardContent, Link, IconButton, Divider, Avatar, Rating, 
+  Chip, Paper, Grow, useMediaQuery, alpha
+} from '@mui/material';
+import { styled, useTheme } from '@mui/material/styles';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -8,9 +12,13 @@ import {
   Facebook as FacebookIcon, 
   Phone as PhoneIcon, 
   LocationOn as LocationIcon,
-  Email as EmailIcon
+  Email as EmailIcon,
+  Restaurant as RestaurantIcon,
+  AccessTime as AccessTimeIcon,
+  ArrowForward as ArrowForwardIcon,
+  Star as StarIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import { useNavigate } from 'react-router-dom';
 
 // Import images for the slider
 import bgImage1 from '../../assets/sliderimage1.jpg';
@@ -18,27 +26,120 @@ import bgImage2 from '../../assets/sliderimage2.jpg';
 import bgImage3 from '../../assets/sliderimage3.jpg';
 
 // Import restaurant logo for dishes (placeholder)
-import restaurantLogo from '../../assets/YummyYard_logo.png'; // Replace with your actual logo path
+import restaurantLogo from '../../assets/YummyYard_logo.png';
 
-// Import social media images
-import foodieJenny from '../../assets/foodie-jenny.jpg';
-import eatsWithSam from '../../assets/eats-with-sam.jpg';
-import Navbar from '../../components/Navbar'; // Import the Navbar component
+// Import Navbar component
+import Navbar from '../../components/Navbar';
 
 // Styled Components for Reusability
-const StyledButton = styled(Button)({
+const StyledButton = styled(Button)(({ theme }) => ({
   backgroundColor: 'black',
   color: 'white',
-  fontFamily: 'Runalto, sans-serif', // Apply Runalto font
+  fontFamily: 'Runalto, sans-serif',
+  padding: '10px 24px',
+  borderRadius: '30px',
+  fontWeight: 'bold',
+  textTransform: 'none',
+  transition: 'all 0.3s ease',
   '&:hover': {
-    backgroundColor: 'grey',
+    backgroundColor: alpha('#3ACA82', 0.8),
+    transform: 'translateY(-3px)',
+    boxShadow: '0 6px 12px rgba(58, 202, 130, 0.3)',
   },
-});
+}));
 
 // Style for Runalto Font
 const RunaltoTypography = styled(Typography)({
   fontFamily: 'Runalto, sans-serif',
 });
+
+// Gradient Overlay for Images
+const GradientOverlay = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  background: 'linear-gradient(rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%)',
+  zIndex: 1,
+}));
+
+// Animation for Cards
+const AnimatedCard = styled(Card)(({ theme }) => ({
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: '#fff',
+  borderRadius: '12px',
+  overflow: 'hidden',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+  transition: 'all 0.4s ease',
+  '&:hover': {
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
+    transform: 'translateY(-8px)',
+  }
+}));
+
+// Featured Dish Tag
+const FeatureTag = styled(Chip)(({ theme }) => ({
+  position: 'absolute',
+  top: 16,
+  right: 16,
+  backgroundColor: '#3ACA82',
+  color: 'black',
+  fontWeight: 'bold',
+  zIndex: 2,
+}));
+
+// Price Tag
+const PriceTag = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  bottom: 16,
+  right: 16,
+  backgroundColor: 'rgba(58, 202, 130, 0.8)',
+  color: 'white',
+  padding: '8px 16px',
+  borderRadius: '20px',
+  fontWeight: 'bold',
+  zIndex: 2,
+}));
+
+// Section Title with animated underline
+const SectionTitle = styled(Box)(({ theme }) => ({
+  textAlign: 'center',
+  marginBottom: theme.spacing(6),
+  position: 'relative',
+  '& .underline': {
+    width: '80px',
+    height: '3px',
+    backgroundColor: '#3ACA82',
+    margin: '0 auto',
+    marginTop: theme.spacing(2),
+    position: 'relative',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      left: '50%',
+      bottom: 0,
+      width: '30px',
+      height: '3px',
+      backgroundColor: '#3ACA82',
+      transform: 'translateX(-50%)',
+      animation: 'pulse 2s infinite',
+    }
+  },
+  '@keyframes pulse': {
+    '0%': {
+      width: '30px',
+    },
+    '50%': {
+      width: '60px',
+    },
+    '100%': {
+      width: '30px',
+    }
+  }
+}));
 
 // Footer Styled Components
 const FooterTitle = styled(Typography)(({ theme }) => ({
@@ -54,7 +155,7 @@ const FooterTitle = styled(Typography)(({ theme }) => ({
     left: 0,
     width: 80,
     height: 3,
-    backgroundColor: '#d4af37',
+    backgroundColor: '#3ACA82',
   }
 }));
 
@@ -69,25 +170,82 @@ const SocialButton = styled(IconButton)(({ theme }) => ({
   marginRight: theme.spacing(1),
   transition: 'all 0.3s ease',
   '&:hover': {
-    backgroundColor: '#d4af37',
+    backgroundColor: '#3ACA82',
     transform: 'translateY(-3px)',
+  }
+}));
+
+// Testimonial Card
+const TestimonialCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  borderRadius: '12px',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  transition: 'transform 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
   }
 }));
 
 const Homepage = () => {
   // Initialize useNavigate hook
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // State for animations
+  const [showSpecials, setShowSpecials] = useState(false);
+  
+  useEffect(() => {
+    // Show specials section with slight delay for animation
+    const timer = setTimeout(() => {
+      setShowSpecials(true);
+    }, 500);
+    
+    // Load Facebook SDK
+    const loadFacebookSDK = () => {
+      window.fbAsyncInit = function() {
+        window.FB.init({
+          xfbml: true,
+          version: 'v22.0',
+        });
+      };
+
+      // Load the SDK asynchronously
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "https://connect.facebook.net/en_GB/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    };
+
+    loadFacebookSDK();
+    
+    // Clean up
+    return () => {
+      delete window.fbAsyncInit;
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Function to handle login button click
   const handleLoginClick = () => {
     console.log("Login button clicked");
-    navigate('/login'); // Navigate to the login page
+    navigate('/login');
   };
 
   // Function to handle signup button click
   const handleSignupClick = () => {
     console.log("Register button clicked");
-    navigate('/Register'); // Navigate to the signup page
+    navigate('/Register');
   };
 
   // Background image slider settings
@@ -100,6 +258,7 @@ const Homepage = () => {
     autoplay: true,
     autoplaySpeed: 5000,
     fade: true,
+    pauseOnHover: false,
   };
 
   // Featured items slider settings
@@ -107,37 +266,123 @@ const Homepage = () => {
     dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 3,
+    slidesToShow: isMobile ? 1 : isTablet ? 2 : 3,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        }
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        }
-      }
-    ]
+    arrows: !isMobile,
+    pauseOnHover: true,
   };
 
-  const backgroundImages = [bgImage1, bgImage2, bgImage3]; // Array of background images
+  // Testimonials slider settings
+  const testimonialSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: isMobile ? 1 : 2,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    arrows: !isMobile,
+  };
 
-  // Featured dishes data (with placeholder names 1-5)
+  const backgroundImages = [bgImage1, bgImage2, bgImage3];
+
+  // Featured dishes data with improved descriptions
   const featuredDishes = [
-    { id: 1, name: "Dish 1", price: "Rs.299", image: restaurantLogo },
-    { id: 2, name: "Dish 2", price: "Rs.349", image: restaurantLogo },
-    { id: 3, name: "Dish 3", price: "Rs.399", image: restaurantLogo },
-    { id: 4, name: "Dish 4", price: "Rs.449", image: restaurantLogo },
-    { id: 5, name: "Dish 5", price: "Rs.499", image: restaurantLogo },
+    { 
+      id: 1, 
+      name: "Spicy Seafood Fusion", 
+      price: "Rs.299", 
+      image: restaurantLogo,
+      featured: true,
+      description: "A delightful blend of local spices with fresh seafood" 
+    },
+    { 
+      id: 2, 
+      name: "Tropical Chicken Grill", 
+      price: "Rs.349", 
+      image: restaurantLogo,
+      featured: false,
+      description: "Grilled chicken with tropical fruits and special sauce" 
+    },
+    { 
+      id: 3, 
+      name: "Vegetable Paradise", 
+      price: "Rs.399", 
+      image: restaurantLogo,
+      featured: true,
+      description: "Fresh garden vegetables with aromatic herbs" 
+    },
+    { 
+      id: 4, 
+      name: "Signature Rice Bowl", 
+      price: "Rs.449", 
+      image: restaurantLogo,
+      featured: false,
+      description: "Our special rice bowl with chef's secret recipe" 
+    },
+    { 
+      id: 5, 
+      name: "Island Dessert Platter", 
+      price: "Rs.499", 
+      image: restaurantLogo,
+      featured: true,
+      description: "Selection of local sweets with a modern twist" 
+    },
+  ];
+
+  // Chef's specials
+  const chefSpecials = [
+    {
+      id: 1,
+      name: "Seafood Coconut Curry",
+      description: "Delicate seafood simmered in rich coconut curry with local spices",
+      price: "Rs.599",
+      image: restaurantLogo,
+    },
+    {
+      id: 2,
+      name: "Royal Family Feast",
+      description: "A traditional family platter with various delicacies and accompaniments",
+      price: "Rs.1299",
+      image: restaurantLogo,
+    }
+  ];
+
+  // Testimonial data
+  const testimonials = [
+    {
+      id: 1,
+      name: "Sarah D.",
+      avatar: null, // Use null for default avatar
+      rating: 5,
+      comment: "The food was absolutely amazing! Best dining experience I've had in Sri Lanka. The staff was very attentive and friendly too.",
+      date: "March 2025"
+    },
+    {
+      id: 2,
+      name: "Michael T.",
+      avatar: null,
+      rating: 4.5,
+      comment: "Excellent flavor combinations and beautiful presentation. The ambiance is perfect for both family dinners and special occasions.",
+      date: "April 2025"
+    },
+    {
+      id: 3,
+      name: "Lakshmi P.",
+      avatar: null,
+      rating: 5,
+      comment: "Authentic Sri Lankan flavors with a modern twist. I highly recommend the seafood dishes - simply outstanding!",
+      date: "February 2025"
+    }
+  ];
+  
+  // Opening hours data
+  const openingHours = [
+    { day: "Monday - Friday", hours: "11:00 AM - 10:00 PM" },
+    { day: "Saturday - Sunday", hours: "10:00 AM - 11:00 PM" },
+    { day: "Public Holidays", hours: "12:00 PM - 9:00 PM" }
   ];
 
   return (
@@ -146,13 +391,22 @@ const Homepage = () => {
       display: 'flex',
       flexDirection: 'column',
       position: 'relative',
-      backgroundColor: '#000', // Dark background for rest of page
+      backgroundColor: '#000',
     }}>
+      {/* Facebook SDK root div */}
+      <div id="fb-root"></div>
+      
+      {/* Navigation Bar */}
+      <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 2 }}>
+        <Navbar />
+      </Box>
+
       {/* Hero Section with Background Slider */}
       <Box sx={{
         height: '100vh',
         position: 'relative',
         overflow: 'hidden',
+        marginTop: '84px', // Add space below navbar
       }}>
         {/* Background Image Slider */}
         <Slider {...backgroundSliderSettings} style={{
@@ -161,7 +415,7 @@ const Homepage = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: 0, // Place behind all other content
+          zIndex: 0,
         }}>
           {backgroundImages.map((image, index) => (
             <div key={index}>
@@ -172,47 +426,67 @@ const Homepage = () => {
                   backgroundImage: `url(${image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  '&:before': {  // Black overlay
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',  // Adjust alpha for desired shade
-                  },
+                  position: 'relative',
                 }}
-              />
+              >
+                <GradientOverlay />
+              </Box>
             </div>
           ))}
         </Slider>
 
-        {/* Navigation Bar */}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Navbar />
-        </Box>
-
-        {/* Hero Section */}
+        {/* Hero Section Content */}
         <Box sx={{
-          py: 10, // Reduced padding to move upwards
+          py: 10,
           color: 'white',
           textAlign: 'center',
-          position: 'relative', 
+          position: 'relative',
           zIndex: 1,
-          height: 'calc(100vh - 64px)', // Adjust based on your navbar height
+          height: 'calc(100vh - 84px)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center', // Center content horizontally
+          justifyContent: 'center',
         }}>
           <Container>
-            <Grid container spacing={3} alignItems="center" justifyContent="center"> {/* Center content horizontally */}
-              <Grid item xs={12} md={8} sx={{ mb: 4, textAlign: 'center' }}> {/* Center content horizontally */}
-                <RunaltoTypography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold', fontSize: '4rem' }}> {/* Increased font size */}
-                  Welcome to an Island of Flavors
-                </RunaltoTypography>
-                <RunaltoTypography variant="h6" paragraph sx={{ fontSize: '1.5rem' }}> {/* Increased font size */}
-                  Enjoy delicious meals and a great dining experience.
-                </RunaltoTypography>
+            <Grid container spacing={3} alignItems="center" justifyContent="center">
+              <Grid item xs={12} md={10} sx={{ mb: 4, textAlign: 'center' }}>
+                <Grow in={true} timeout={1000}>
+                  <Box>
+                    <RunaltoTypography variant="h2" component="h1" gutterBottom 
+                      sx={{ 
+                        fontWeight: 'bold', 
+                        fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem' },
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                        letterSpacing: '1px',
+                      }}>
+                      Welcome to an Island of Flavors
+                    </RunaltoTypography>
+                    <RunaltoTypography variant="h6" paragraph 
+                      sx={{ 
+                        fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' },
+                        maxWidth: '800px',
+                        margin: '0 auto',
+                        marginBottom: 4,
+                        opacity: 0.9
+                      }}>
+                      Experience authentic Sri Lankan cuisine with a modern twist
+                    </RunaltoTypography>
+                    
+                    <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
+                      <Grid item>
+                        <StyledButton 
+                          variant="contained" 
+                          size="large"
+                          onClick={() => navigate('/menu')}
+                          endIcon={<ArrowForwardIcon />}
+                        >
+                          Explore Our Menu
+                        </StyledButton>
+                      </Grid>
+                      {/* Removed "Reserve a Table" button */}
+                    </Grid>
+                  </Box>
+                </Grow>
               </Grid>
             </Grid>
           </Container>
@@ -220,135 +494,476 @@ const Homepage = () => {
       </Box>
 
       {/* Featured Items with Slider */}
-      <Container sx={{ py: 6 }}>
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <RunaltoTypography variant="subtitle1" align="center" color="#d4af37" paragraph sx={{ fontSize: '1.25rem' }}>
+      <Container sx={{ py: { xs: 6, md: 10 } }}>
+        <SectionTitle>
+          <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+            sx={{ 
+              fontSize: '1.25rem', 
+              letterSpacing: '2px', 
+              textTransform: 'uppercase',
+              fontWeight: 'bold'
+            }}>
             Popular Dishes
           </RunaltoTypography>
-          <RunaltoTypography variant="h3" component="h2" align="center" gutterBottom sx={{ fontWeight: 'bold', color: 'white', fontSize: '2.5rem' }}>
-            Our Delicious Food
+          <RunaltoTypography variant="h3" component="h2" align="center" 
+            sx={{ 
+              fontWeight: 'bold', 
+              color: 'white', 
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              margin: '8px 0'
+            }}>
+            Your Favorites
           </RunaltoTypography>
-        </Box>
+          <div className="underline"></div>
+        </SectionTitle>
         
         {/* Featured Items Slider */}
-        <Box sx={{ my: 4 }}>
+        <Box sx={{ my: 6 }}>
           <Slider {...featuredItemsSettings}>
             {featuredDishes.map((dish) => (
               <Box key={dish.id} sx={{ px: 1 }}>
-                <Card sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                  '&:hover': {
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-                    transform: 'translateY(-5px)',
-                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                  }
-                }}>
-                  <CardMedia
-                    component="img"
-                    image={dish.image}
-                    alt={dish.name}
-                    sx={{ 
-                      height: 220,
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <RunaltoTypography gutterBottom variant="h6" component="div">
+                <AnimatedCard>
+                  {dish.featured && (
+                    <FeatureTag label="Popular" size="small" />
+                  )}
+                  <Box sx={{ position: 'relative' }}>
+                    <CardMedia
+                      component="img"
+                      image={dish.image}
+                      alt={dish.name}
+                      sx={{ 
+                        height: 220,
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <PriceTag>{dish.price}</PriceTag>
+                  </Box>
+                  <CardContent sx={{ textAlign: 'center', flexGrow: 1 }}>
+                    <RunaltoTypography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
                       {dish.name}
                     </RunaltoTypography>
-                    <RunaltoTypography variant="subtitle1" color="#d4af37" sx={{ fontWeight: 'bold' }}>
-                      {dish.price}
+                    <RunaltoTypography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {dish.description}
                     </RunaltoTypography>
+                    <Button 
+                      variant="outlined" 
+                      color="primary" 
+                      size="small"
+                      sx={{ 
+                        borderRadius: '20px',
+                        borderColor: '#3ACA82',
+                        color: '#3ACA82',
+                        '&:hover': {
+                          backgroundColor: '#3ACA82',
+                          color: 'black'
+                        }
+                      }}
+                    >
+                      Order Now
+                    </Button>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
               </Box>
             ))}
           </Slider>
         </Box>
         
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <StyledButton variant="contained">View All Menu</StyledButton>
+          <StyledButton 
+            variant="contained" 
+            endIcon={<ArrowForwardIcon />}
+            onClick={() => navigate('/menu')}
+          >
+            View Complete Menu
+          </StyledButton>
         </Box>
       </Container>
 
-      {/* Chef's Recommendations */}
-      <Box sx={{ py: 4, textAlign: 'center', backgroundColor: 'rgba(0, 0, 0, 0.7)', color: 'white' }}>
-        <Container>
-          <RunaltoTypography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Chef's Recommendations
-          </RunaltoTypography>
-          <RunaltoTypography variant="subtitle1" paragraph>
-            Discover special dishes handpicked by our chef
-          </RunaltoTypography>
-          <Button variant="outlined" color="inherit" style={{fontFamily: 'Runalto, sans-serif'}}>View Recommendations</Button>
-        </Container>
-      </Box>
-
-      {/* Social Media Updates */}
-      <Container sx={{ py: 6 }}>
-        <RunaltoTypography variant="h4" component="h2" align="center" gutterBottom sx={{ fontWeight: 'bold', color: 'white' }}>
-          Social Media Updates
-        </RunaltoTypography>
-        <RunaltoTypography variant="subtitle1" align="center" color="white" paragraph>
-          Follow us on social media for the latest news
-        </RunaltoTypography>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <StyledButton variant="contained">Follow Us</StyledButton>
-        </Box>
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          {/* Foodie Jenny */}
-          <Grid item xs={12} sm={6}>
-            <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}>
-              <CardContent>
-                <RunaltoTypography variant="subtitle2" gutterBottom>
-                  Foodie.Jenny
+      {/* Opening Hours Section - Moved */}
+      <Container sx={{ py: { xs: 6, md: 8 }, textAlign: 'center' }}>
+        <Grid container spacing={4} alignItems="center" justifyContent="center">
+          <Grid item xs={12} md={6}>
+            <Box sx={{ 
+              backgroundColor: 'rgba(58, 202, 130, 0.1)', 
+              borderRadius: '16px',
+              p: 4,
+              border: '1px solid rgba(58, 202, 130, 0.3)',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'center' }}>
+                <AccessTimeIcon sx={{ color: '#3ACA82', fontSize: 36, mr: 2 }} />
+                <RunaltoTypography variant="h4" component="h2" color="white" sx={{ fontWeight: 'bold' }}>
+                  Opening Hours
                 </RunaltoTypography>
-                <CardMedia
-                  component="img"
-                  image={foodieJenny}
-                  alt="Foodie Jenny"
-                />
-                <RunaltoTypography variant="body2">
-                  Just had an amazing meal at @Yummy Yard! Highly recommended.
-                </RunaltoTypography>
-              </CardContent>
-            </Card>
-          </Grid>
-          {/* Eats With Sam */}
-          <Grid item xs={12} sm={6}>
-            <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}>
-              <CardContent>
-                <RunaltoTypography variant="subtitle2" gutterBottom>
-                  EatsWithSam
-                </RunaltoTypography>
-                <CardMedia
-                  component="img"
-                  image={eatsWithSam}
-                  alt="Eats With Sam"
-                />
-                <RunaltoTypography variant="body2">
-                  Loved the dessert selection at Yummy Yard! Must try!
-                </RunaltoTypography>
-              </CardContent>
-            </Card>
+              </Box>
+              
+              <Divider sx={{ backgroundColor: 'rgba(255,255,255,0.1)', my: 2 }} />
+              
+              {openingHours.map((schedule, index) => (
+                <Box key={index} sx={{ mb: 2 }}>
+                  <RunaltoTypography variant="h6" color="white" sx={{ fontWeight: 'bold' }}>
+                    {schedule.day}
+                  </RunaltoTypography>
+                  <RunaltoTypography variant="body1" color="#3ACA82">
+                    {schedule.hours}
+                  </RunaltoTypography>
+                  {index < openingHours.length - 1 && (
+                    <Divider sx={{ backgroundColor: 'rgba(255,255,255,0.1)', my: 2 }} />
+                  )}
+                </Box>
+              ))}
+              
+            </Box>
           </Grid>
         </Grid>
       </Container>
 
-      {/* Footer Section - REPLACING the Contact Us section */}
+      {/* Chef's Recommendations */}
+      <Box sx={{ 
+        py: { xs: 6, md: 10 }, 
+        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+        color: 'white',
+        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9))',
+      }}>
+        <Container>
+          <SectionTitle>
+            <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+              sx={{ 
+                fontSize: '1.25rem', 
+                letterSpacing: '2px', 
+                textTransform: 'uppercase',
+                fontWeight: 'bold'
+              }}>
+              Special Selection
+            </RunaltoTypography>
+            <RunaltoTypography variant="h3" component="h2" align="center" 
+              sx={{ 
+                fontWeight: 'bold', 
+                color: 'white', 
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                margin: '8px 0'
+              }}>
+              Chef's Recommendations
+            </RunaltoTypography>
+            <div className="underline"></div>
+          </SectionTitle>
+          
+          <Grid container spacing={4} justifyContent="center" sx={{ mt: 2 }}>
+            {chefSpecials.map((special, index) => (
+              <Grid item xs={12} md={6} key={special.id}>
+                <Grow in={showSpecials} timeout={1000 + (index * 500)}>
+                  <Paper sx={{ 
+                    p: 3, 
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: 'center',
+                    transition: 'transform 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-5px)',
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
+                    }
+                  }}>
+                    <Box 
+                      sx={{ 
+                        width: { xs: '100%', sm: '40%' }, 
+                        mb: { xs: 2, sm: 0 }, 
+                        mr: { xs: 0, sm: 3 },
+                        borderRadius: '12px',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <CardMedia
+                        component="img"
+                        image={special.image}
+                        alt={special.name}
+                        sx={{ 
+                          height: { xs: 180, sm: 200 },
+                          width: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ width: { xs: '100%', sm: '60%' }, textAlign: { xs: 'center', sm: 'left' } }}>
+                      <RunaltoTypography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
+                        {special.name}
+                      </RunaltoTypography>
+                      <RunaltoTypography variant="body1" paragraph sx={{ opacity: 0.9 }}>
+                        {special.description}
+                      </RunaltoTypography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+                        <RunaltoTypography variant="h6" color="#3ACA82" sx={{ fontWeight: 'bold', mr: 2 }}>
+                          {special.price}
+                        </RunaltoTypography>
+                        <Button 
+                          variant="contained" 
+                          sx={{ 
+                            backgroundColor: '#3ACA82', 
+                            color: 'black',
+                            '&:hover': {
+                              backgroundColor: alpha('#3ACA82', 0.8),
+                            }
+                          }}
+                        >
+                          Order Special
+                        </Button>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grow>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Testimonials Section - NEW */}
+      <Box sx={{ 
+        py: { xs: 6, md: 10 }, 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))',
+      }}>
+        <Container>
+          <SectionTitle>
+            <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+              sx={{ 
+                fontSize: '1.25rem', 
+                letterSpacing: '2px', 
+                textTransform: 'uppercase',
+                fontWeight: 'bold'
+              }}>
+              What People Say
+            </RunaltoTypography>
+            <RunaltoTypography variant="h3" component="h2" align="center" 
+              sx={{ 
+                fontWeight: 'bold', 
+                color: 'white', 
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                margin: '8px 0'
+              }}>
+        
+              Customer Testimonials
+            </RunaltoTypography>
+            <div className="underline"></div>
+          </SectionTitle>
+          
+          <Box sx={{ my: 6 }}>
+            <Slider {...testimonialSettings}>
+              {testimonials.map((testimonial) => (
+                <Box key={testimonial.id} sx={{ px: 2 }}>
+                  <TestimonialCard>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar 
+                        src={testimonial.avatar} 
+                        sx={{ 
+                          width: 60, 
+                          height: 60, 
+                          mr: 2,
+                          backgroundColor: '#3ACA82',
+                          color: 'black',
+                          fontWeight: 'bold',
+                          fontSize: '1.5rem'
+                        }}
+                      >
+                        {testimonial.name.charAt(0)}
+                      </Avatar>
+                      <Box>
+                        <RunaltoTypography variant="h6" color="white">
+                          {testimonial.name}
+                        </RunaltoTypography>
+                        <RunaltoTypography variant="body2" color="rgba(255,255,255,0.7)">
+                          {testimonial.date}
+                        </RunaltoTypography>
+                      </Box>
+                    </Box>
+                    
+                    <Rating 
+                      value={testimonial.rating} 
+                      precision={0.5} 
+                      readOnly 
+                      sx={{ 
+                        mb: 2,
+                        '& .MuiRating-iconFilled': {
+                          color: '#3ACA82',
+                        }
+                      }} 
+                    />
+                    
+                    <RunaltoTypography 
+                      variant="body1" 
+                      color="white" 
+                      paragraph 
+                      sx={{ 
+                        fontStyle: 'italic',
+                        opacity: 0.9,
+                        flexGrow: 1
+                      }}
+                    >
+                      "{testimonial.comment}"
+                    </RunaltoTypography>
+                  </TestimonialCard>
+                </Box>
+              ))}
+            </Slider>
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <StyledButton 
+              variant="contained" 
+              component="a" 
+              href="https://www.facebook.com/people/Yummy-Yard/61565171879434/" 
+              target="_blank"
+              startIcon={<FacebookIcon />}
+            >
+              Leave a Review
+            </StyledButton>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Social Media Updates */}
+      <Container sx={{ py: { xs: 6, md: 10 } }}>
+        <SectionTitle>
+          <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+            sx={{ 
+              fontSize: '1.25rem', 
+              letterSpacing: '2px', 
+              textTransform: 'uppercase',
+              fontWeight: 'bold'
+            }}>
+            Stay Connected
+          </RunaltoTypography>
+          <RunaltoTypography variant="h3" component="h2" align="center" 
+            sx={{ 
+              fontWeight: 'bold', 
+              color: 'white', 
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              margin: '8px 0'
+            }}>
+            Social Media Updates
+          </RunaltoTypography>
+          <div className="underline"></div>
+        </SectionTitle>
+        
+        <RunaltoTypography variant="subtitle1" align="center" color="white" paragraph sx={{ opacity: 0.8, mb: 4 }}>
+          Follow us on social media for the latest news, promotions, and behind-the-scenes content
+        </RunaltoTypography>
+        
+        {/* Facebook Page Plugin with enhanced styling */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: 'center',
+          gap: 4,
+        }}>
+          <Box sx={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '16px',
+            p: 2,
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            overflow: 'hidden',
+            width: { xs: '100%', md: '500px' },
+            height: { xs: 'auto', md: '500px' },
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+          }}>
+            <iframe 
+              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fpeople%2FYummy-Yard%2F61565171879434%2F&show_posts=true&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=true" 
+              width="100%" 
+              height="100%" 
+              style={{ border: 'none', overflow: 'hidden', borderRadius: '8px' }} 
+              scrolling="no" 
+              frameBorder="0" 
+              allowFullScreen={true} 
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              title="Yummy Yard Facebook Feed"
+            />
+          </Box>
+          
+          <Box sx={{ 
+            textAlign: { xs: 'center', md: 'left' },
+            maxWidth: { xs: '100%', md: '400px' }
+          }}>
+            <RunaltoTypography variant="h4" component="h3" color="white" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Never Miss an Update
+            </RunaltoTypography>
+            <RunaltoTypography variant="body1" color="white" paragraph sx={{ opacity: 0.8 }}>
+              Follow us on Facebook to stay informed about special events, new menu items, and exclusive offers. Join our community of food lovers!
+            </RunaltoTypography>
+            
+            <Box sx={{ mt: 4 }}>
+              <StyledButton 
+                variant="contained" 
+                component="a" 
+                href="https://www.facebook.com/people/Yummy-Yard/61565171879434/" 
+                target="_blank"
+                startIcon={<FacebookIcon />}
+                size="large"
+                sx={{ 
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem'
+                }}
+              >
+                Follow Us on Facebook
+              </StyledButton>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* Call to Action Section - NEW */}
+      <Box sx={{ 
+        py: { xs: 6, md: 8 }, 
+        backgroundColor: 'rgba(58, 202, 130, 0.1)',
+        borderTop: '1px solid rgba(58, 202, 130, 0.2)',
+        borderBottom: '1px solid rgba(58, 202, 130, 0.2)',
+      }}>
+        <Container>
+          <Grid container spacing={4} alignItems="center" justifyContent="center">
+            <Grid item xs={12} md={8} textAlign="center">
+              <RunaltoTypography variant="h4" component="h2" color="white" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Ready to Experience Our Flavors?
+              </RunaltoTypography>
+              
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item>
+                  <StyledButton 
+                    variant="outlined" 
+                    size="large"
+                    sx={{ 
+                      borderColor: 'white', 
+                      color: 'white',
+                      '&:hover': {
+                        borderColor: 'white',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      }
+                    }}
+                    onClick={() => navigate('/order')}
+                  >
+                    Order Online
+                  </StyledButton>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Footer Section - Enhanced */}
       <Box sx={{ 
         backgroundColor: '#121212',
         color: '#fff',
-        padding: '48px 0 32px',
+        padding: { xs: '40px 0 24px', md: '60px 0 32px' },
         position: 'relative',
         zIndex: 1,
         fontFamily: 'Runalto, sans-serif',
+        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 1))',
       }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
@@ -361,7 +976,7 @@ const Homepage = () => {
               <ContactItem>
                 <IconButton 
                   size="small" 
-                  sx={{ color: '#d4af37', mr: 2, backgroundColor: 'rgba(212, 175, 55, 0.1)' }}
+                  sx={{ color: '#3ACA82', mr: 2, backgroundColor: 'rgba(58, 202, 130, 0.1)' }}
                 >
                   <LocationIcon />
                 </IconButton>
@@ -377,7 +992,7 @@ const Homepage = () => {
               <ContactItem>
                 <IconButton 
                   size="small" 
-                  sx={{ color: '#d4af37', mr: 2, backgroundColor: 'rgba(212, 175, 55, 0.1)' }}
+                  sx={{ color: '#3ACA82', mr: 2, backgroundColor: 'rgba(58, 202, 130, 0.1)' }}
                 >
                   <PhoneIcon />
                 </IconButton>
@@ -390,11 +1005,10 @@ const Homepage = () => {
                   </Typography>
                 </Box>
               </ContactItem>
-              
               <ContactItem>
                 <IconButton 
                   size="small" 
-                  sx={{ color: '#d4af37', mr: 2, backgroundColor: 'rgba(212, 175, 55, 0.1)' }}
+                  sx={{ color: '#3ACA82', mr: 2, backgroundColor: 'rgba(58, 202, 130, 0.1)' }}
                 >
                   <EmailIcon />
                 </IconButton>
@@ -437,8 +1051,9 @@ const Homepage = () => {
                   width: '100%', 
                   height: '250px',
                   overflow: 'hidden',
-                  borderRadius: 1,
-                  border: '2px solid rgba(212, 175, 55, 0.3)',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(58, 202, 130, 0.3)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
                 }}
               >
                 <iframe 
@@ -474,3 +1089,5 @@ const Homepage = () => {
 };
 
 export default Homepage;
+
+//#3ACA82
