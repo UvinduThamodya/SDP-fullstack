@@ -4,6 +4,7 @@ import {
   Container, 
   Typography, 
   TextField, 
+  Link,
   Button, 
   Grid, 
   Paper, 
@@ -14,6 +15,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { 
+  Facebook as FacebookIcon, 
   Email as EmailIcon, 
   Phone as PhoneIcon, 
   LocationOn as LocationIcon,
@@ -65,21 +67,42 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
   }
 }));
 
+const SocialButton = styled(IconButton)(({ theme }) => ({
+  backgroundColor: 'rgba(0, 0, 0, 1)',
+  marginRight: theme.spacing(1),
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: '#3ACA82',
+    transform: 'translateY(-3px)',
+  }
+}));
+
 const HeroSection = styled(Box)(({ theme }) => ({
-  backgroundColor: '#3dcd83',
+  background: 'linear-gradient(135deg, #3dcd83 0%, #2bb673 100%)',
   color: theme.palette.primary.contrastText,
-  padding: theme.spacing(8, 0),
-  borderRadius: 0, // Remove rounded corners
+  padding: theme.spacing(12, 0),
+  borderRadius: 0,
   marginBottom: theme.spacing(6),
   textAlign: 'center',
-  width: '100vw', // 100% of viewport width
+  width: '100vw',
   maxWidth: '100vw',
-  position: 'center',
-  left: '90%',
-  right: '50%',
+  position: 'relative',
   marginLeft: '-50vw',
   marginRight: '-50vw',
-  boxSizing: 'border-box'
+  boxSizing: 'border-box',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: 'url("/path/to/subtle-pattern.png")',
+    opacity: 0.1,
+    zIndex: 1,
+  }
 }));
 
 
@@ -138,11 +161,11 @@ const AboutContact = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Poppins, sans-serif' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#fdfef8', fontFamily: 'Poppins, sans-serif' }}>
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Navbar /> {/* Add the Navbar component */}
       </Box>
-      <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Poppins, sans-serif' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fdfef8', fontFamily: 'Poppins, sans-serif' }}>
     
         
         <Box
@@ -175,13 +198,34 @@ const AboutContact = () => {
           )}
 
           <HeroSection sx={{ width: '100%' }}>
-            <Container maxWidth="lg">
-              <Typography variant="h3" align="center" gutterBottom sx={{ fontWeight: 700 }}>
+            <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
+              <Typography 
+                variant="h3" 
+                align="center" 
+                gutterBottom 
+                sx={{ 
+                  fontWeight: 700, 
+                  fontSize: { xs: '2rem', md: '3rem' },
+                  textShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                }}
+              >
                 Welcome to Yummy Yard
               </Typography>
-              <Typography variant="h6" align="center" sx={{ maxWidth: '800px', mx: 'auto', opacity: 0.9 }}>
+              <Typography 
+                variant="h6" 
+                align="center" 
+                sx={{ 
+                  maxWidth: '800px', 
+                  mx: 'auto', 
+                  opacity: 0.9,
+                  mb: 4,
+                  fontWeight: 300,
+                  fontSize: { xs: '1rem', md: '1.25rem' },
+                }}
+              >
                 Where every meal tells a story and every flavor creates a memory
               </Typography>
+              
             </Container>
           </HeroSection>
 
@@ -284,7 +328,7 @@ const AboutContact = () => {
                   </StyledPaper>
                 </Grid>
                 
-                <Grid item xs={12} md={7}>
+                {/* <Grid item xs={12} md={7}>
                   <StyledPaper>
                     <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: '#3dcd83', mb: 3 }}>
                       Send us a Message
@@ -364,7 +408,7 @@ const AboutContact = () => {
                       </Grid>
                     </form>
                   </StyledPaper>
-                </Grid>
+                </Grid> */}
               </Grid>
             </Box>
             
@@ -372,16 +416,62 @@ const AboutContact = () => {
             <Box 
               component="footer" 
               sx={{ 
-                py: 4, 
+                py: 6, 
+                mt: 8,
                 textAlign: 'center',
                 borderTop: '1px solid rgba(0,0,0,0.1)',
-                mt: 4,
-                width: '100%'
+                background: 'linear-gradient(to bottom, #f8faf9, #f0f2f1)',
+                width: '100vw', // Ensure it spans the full viewport width
+                marginLeft: '-50vw', // Center align by offsetting
+                marginRight: '-50vw',
+                position: 'relative',
+                left: '50%',
+                right: '50%',
+                boxSizing: 'border-box',
               }}
             >
-              <Typography variant="body2" color="text.secondary">
-                © {new Date().getFullYear()} Yummy Yard. All rights reserved.
-              </Typography>
+              <Container maxWidth="lg">
+                <Grid container spacing={4} justifyContent="center">
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#3dcd83' }}>
+                      Yummy Yard
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Experience the finest seafood in Galle, Sri Lanka. We're passionate about fresh, local ingredients and sustainable practices.
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#3dcd83' }}>
+                      Opening Hours
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Monday to Friday: 11:00 AM - 10:00 PM
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Saturday & Sunday: 10:00 AM - 11:00 PM
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#3dcd83' }}>
+                      Follow Us
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+                    <SocialButton 
+                    component={Link} 
+                    href="https://www.facebook.com/people/Yummy-Yard/61565171879434/" 
+                    target="_blank" 
+                    rel="noopener"
+                    aria-label="Facebook"
+                  >
+                    <FacebookIcon sx={{ color: 'white' }} />
+                  </SocialButton>
+                    </Box>
+                  </Grid>
+                </Grid>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
+                  © {new Date().getFullYear()} Yummy Yard. All rights reserved.
+                </Typography>
+              </Container>
             </Box>
           </Container>
         </Box>
