@@ -91,7 +91,6 @@
 
 // module.exports = { authenticateUser };
 
-
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'JWT_NEW_SECRET';
