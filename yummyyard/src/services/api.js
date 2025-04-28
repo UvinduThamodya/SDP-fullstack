@@ -383,7 +383,92 @@ const apiService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to delete customer');
     }
+  },
+
+  getLowStockItems: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/dashboard/inventory/low-stock`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching low stock items:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch low stock items');
+    }
+  },
+
+  getTopOrderedItems: async (limit = 3) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/dashboard/inventory/top-ordered?limit=${limit}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching top ordered items:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch top items');
+    }
+  },
+
+  getLeastOrderedItem: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/dashboard/least-ordered`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching least ordered item:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch least ordered item');
+    }
+  },
+
+  getAllIngredients: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/dashboard/inventory`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all ingredients:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch ingredients');
+    }
+  },
+
+  createStockOrder: async (orderData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/inventory/orders`, orderData, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating stock order:', error);
+      throw new Error(error.response?.data?.message || 'Failed to create stock order');
+    }
+  },
+
+  downloadStockOrderReceipt: async (orderId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/inventory/orders/${orderId}/receipt`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      throw new Error(error.response?.data?.message || 'Failed to download receipt');
+    }
   }
+
 };
+
+  
 
 export default apiService;

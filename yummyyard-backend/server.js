@@ -46,8 +46,10 @@ const favoritesRoutes = require('./routes/favoritesRoutes');
 
 const staffRoutes = require('./routes/staffRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const adminRoutes = require('./routes/adminRoutes');
+
 
 // Check database connection at startup
 app.listen(PORT, async () => {
@@ -82,5 +84,6 @@ app.use('/api/favorites', favoritesRoutes);
 
 app.use('/api/staff', staffRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.use('/api/admin', adminRoutes);
