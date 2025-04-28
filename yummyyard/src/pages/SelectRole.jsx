@@ -4,17 +4,25 @@ import {
   Button, 
   Typography, 
   Container,
-  IconButton,
-  Collapse
+  Collapse,
+  Paper,
+  Zoom
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import BadgeIcon from '@mui/icons-material/Badge';
+import PersonIcon from '@mui/icons-material/Person';
+import LoginIcon from '@mui/icons-material/Login';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const SelectRole = () => {
   const navigate = useNavigate();
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   
-  const handleRoleSelect = (role) => {
-    navigate(`${role.toLowerCase()}`);
+  const handleRoleSelect = (path) => {
+    navigate(path);
   };
   
   const handleCustomerClick = () => {
@@ -28,37 +36,17 @@ const SelectRole = () => {
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#00E676',
+        background: 'linear-gradient(135deg, #00E676 0%, #00C853 100%)',
         position: 'relative',
         overflow: 'hidden',
-        backgroundImage: 'url("./assets/Background.jpg")', // Add the background image
-        backgroundSize: 'cover', // Ensure the image covers the entire background
-        backgroundPosition: 'center', // Center the image
-        backgroundRepeat: 'no-repeat', // Prevent the image from repeating
+        fontFamily: '"Poppins", sans-serif',
       }}
     >
-      {/* Header */}
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-        <IconButton 
-          edge="start" 
-          sx={{ color: 'black', mr: 2 }}
-        >
-          {/* Add an icon here if needed */}
-        </IconButton>
-        <Typography 
-          variant="h5" 
-          component="div" 
-          sx={{ fontWeight: 'bold', color: 'black', cursor: 'pointer' }}
-          onClick={() => navigate('/')} // Navigate to Homepage.jsx
-        >
-          Yummy Yard
-        </Typography>
-      </Box>
-
       {/* Main content */}
       <Container 
         maxWidth="sm" 
         sx={{ 
-          mt: 2, 
+          mt: 8, 
           mb: 4,
           display: 'flex',
           flexDirection: 'column',
@@ -67,137 +55,204 @@ const SelectRole = () => {
           zIndex: 1
         }}
       >
-        <Typography 
-          variant="h2" 
-          align="center" 
-          sx={{ 
-            fontWeight: 'bold',
-            color: 'black',
-            mb: 2
-          }}
-        >
-          Select Role
-        </Typography>
+        <Zoom in={true} timeout={800}>
+          <Typography 
+            variant="h2" 
+            align="center" 
+            sx={{ 
+              fontWeight: '600',
+              color: 'white',
+              mb: 4,
+              fontFamily: '"Poppins", sans-serif',
+              textShadow: '1px 1px 3px rgba(0,0,0,0.2)'
+            }}
+          >
+            Login as
+          </Typography>
+        </Zoom>
         
-        <Box sx={{ width: '100%', mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              backgroundColor: '#e0e0e0',
-              color: 'black',
-              py: 1.5,
-              borderRadius: 1,
-              textTransform: 'none',
-              fontSize: '1.2rem',
-              fontWeight: 'medium',
-              '&:hover': {
-                backgroundColor: '#d5d5d5',
-              }
-            }}
-            onClick={() => handleRoleSelect('/adminLogin')}
-          >
-            Admin
-          </Button>
-          
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              backgroundColor: '#e0e0e0',
-              color: 'black',
-              py: 1.5,
-              borderRadius: 1,
-              textTransform: 'none',
-              fontSize: '1.2rem',
-              fontWeight: 'medium',
-              '&:hover': {
-                backgroundColor: '#d5d5d5',
-              }
-            }}
-            onClick={() => handleRoleSelect('/StaffLogin')}
-          >
-            Staff
-          </Button>
-          
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              backgroundColor: '#e0e0e0',
-              color: 'black',
-              py: 1.5,
-              borderRadius: 1,
-              textTransform: 'none',
-              fontSize: '1.2rem',
-              fontWeight: 'medium',
-              '&:hover': {
-                backgroundColor: '#d5d5d5',
-              }
-            }}
-            onClick={handleCustomerClick}
-          >
-            Customer
-          </Button>
-          
-          <Collapse in={customerDropdownOpen} timeout={500}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+        <Box sx={{ width: '100%', mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Zoom in={true} timeout={1000} style={{ transitionDelay: '200ms' }}>
+            <Paper 
+              elevation={4}
+              sx={{
+                borderRadius: 2,
+                overflow: 'hidden',
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-5px)'
+                }
+              }}
+            >
               <Button
                 variant="contained"
+                fullWidth
                 size="large"
+                startIcon={<AdminPanelSettingsIcon />}
                 sx={{
-                  backgroundColor: '#f5f5f5',
-                  color: 'black',
-                  py: 1.5,
-                  borderRadius: 1,
+                  backgroundColor: 'white',
+                  color: '#00C853',
+                  py: 2,
+                  borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '1.2rem',
-                  fontWeight: 'medium',
-                  boxShadow: 1,
+                  fontWeight: '500',
+                  fontFamily: '"Poppins", sans-serif',
                   '&:hover': {
-                    backgroundColor: '#e5e5e5',
+                    backgroundColor: '#f5f5f5',
                   }
                 }}
-                onClick={() => handleRoleSelect('/login')}
+                onClick={() => handleRoleSelect('/adminLogin')}
               >
-                Login
+                Admin
               </Button>
+            </Paper>
+          </Zoom>
+          
+          <Zoom in={true} timeout={1000} style={{ transitionDelay: '400ms' }}>
+            <Paper 
+              elevation={4}
+              sx={{
+                borderRadius: 2,
+                overflow: 'hidden',
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-5px)'
+                }
+              }}
+            >
               <Button
                 variant="contained"
+                fullWidth
                 size="large"
+                startIcon={<BadgeIcon />}
                 sx={{
-                  backgroundColor: '#f5f5f5',
-                  color: 'black',
-                  py: 1.5,
-                  borderRadius: 1,
+                  backgroundColor: 'white',
+                  color: '#00C853',
+                  py: 2,
+                  borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '1.2rem',
-                  fontWeight: 'medium',
-                  boxShadow: 1,
+                  fontWeight: '500',
+                  fontFamily: '"Poppins", sans-serif',
                   '&:hover': {
-                    backgroundColor: '#c4c4c4',
+                    backgroundColor: '#f5f5f5',
                   }
                 }}
-                onClick={() => navigate('/register')}
+                onClick={() => handleRoleSelect('/StaffLogin')}
               >
-                Register new account
+                Staff
               </Button>
-            </Box>
-          </Collapse>
+            </Paper>
+          </Zoom>
+          
+          <Zoom in={true} timeout={1000} style={{ transitionDelay: '600ms' }}>
+            <Paper 
+              elevation={4}
+              sx={{
+                borderRadius: 2,
+                overflow: 'hidden',
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-5px)'
+                }
+              }}
+            >
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                startIcon={<PersonIcon />}
+                endIcon={customerDropdownOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                sx={{
+                  backgroundColor: 'white',
+                  color: '#00C853',
+                  py: 2,
+                  borderRadius: customerDropdownOpen ? '16px 16px 0 0' : 2,
+                  textTransform: 'none',
+                  fontSize: '1.2rem',
+                  fontWeight: '500',
+                  fontFamily: '"Poppins", sans-serif',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  }
+                }}
+                onClick={handleCustomerClick}
+              >
+                Customer
+              </Button>
+              
+              <Collapse in={customerDropdownOpen} timeout={500}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: 0,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '0 0 16px 16px',
+                  overflow: 'hidden'
+                }}>
+                  <Button
+                    variant="text"
+                    size="large"
+                    startIcon={<LoginIcon />}
+                    sx={{
+                      py: 1.8,
+                      textTransform: 'none',
+                      fontSize: '1.1rem',
+                      fontWeight: '500',
+                      fontFamily: '"Poppins", sans-serif',
+                      color: '#00C853',
+                      borderRadius: 0,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 200, 83, 0.08)',
+                      }
+                    }}
+                    onClick={() => handleRoleSelect('/login')}
+                  >
+                    Login
+                  </Button>
+                  
+                  <Button
+                    variant="text"
+                    size="large"
+                    startIcon={<PersonAddIcon />}
+                    sx={{
+                      py: 1.8,
+                      textTransform: 'none',
+                      fontSize: '1.1rem',
+                      fontWeight: '500',
+                      fontFamily: '"Poppins", sans-serif',
+                      color: '#00C853',
+                      borderTop: '1px solid rgba(0,0,0,0.08)',
+                      borderRadius: 0,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 200, 83, 0.08)',
+                      }
+                    }}
+                    onClick={() => navigate('/register')}
+                  >
+                    Register new account
+                  </Button>
+                </Box>
+              </Collapse>
+            </Paper>
+          </Zoom>
         </Box>
       </Container>
 
-      {/* White curved section */}
+      {/* Improved curved section */}
       <Box
         sx={{
           position: 'absolute',
-          height: '50%',
-          width: '100%',
-          bottom: 0,
+          height: '40%',
+          width: '120%',
+          bottom: -40,
+          left: '-10%',
           backgroundColor: 'white',
-          borderTopLeftRadius: '60% 40%',
-          borderTopRightRadius: '60% 40%',
-          zIndex: 0
+          borderTopLeftRadius: '50% 60%',
+          borderTopRightRadius: '50% 60%',
+          zIndex: 0,
+          boxShadow: 'inset 0 15px 20px -10px rgba(0,0,0,0.2)'
         }}
       />
     </Box>

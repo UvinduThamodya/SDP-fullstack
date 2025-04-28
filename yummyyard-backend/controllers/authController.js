@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 // This secret key should be in an environment variable in production
-const JWT_SECRET = "your-super-secret-key-change-this";
+const JWT_SECRET = "JWT_NEW_SECRET";
 
 const AuthController = {
   // Customer registration
