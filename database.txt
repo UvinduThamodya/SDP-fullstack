@@ -310,6 +310,40 @@ INSERT INTO StockOrderItems (stock_order_id, inventory_id, quantity, unit_price,
 -- (4, 11, 1, 100.00, 100.00),
 -- (4, 12, 2, 100.00, 200.00);
 
+INSERT INTO Inventory (item_name, quantity, unit, unit_price, threshold)
+VALUES ('Coca Cola 100 ml', 25, 'bottles', 0.50, 5);
 
-      SELECT * FROM Inventory WHERE quantity < threshold;
+INSERT INTO MenuItems (name, description, price, availability, category, image_url)
+VALUES (
+    'Coca Cola 100 ml',
+    'Chilled Coca Cola bottle (100 ml)',
+    100.00, 
+    TRUE,
+    'Beverage',
+    'https://res.cloudinary.com/ddly9e3qr/image/upload/v1745875903/Coca_Cola_e7iocq.jpg' 
+);
 
+INSERT INTO MenuItemIngredients (item_id, inventory_id, quantity_required)
+VALUES (
+    (SELECT item_id FROM MenuItems WHERE name = 'Coca Cola 100 ml'),
+    (SELECT inventory_id FROM Inventory WHERE item_name = 'Coca Cola 100 ml'),
+    1 -- 1 bottle needed per menu order
+);
+
+INSERT INTO Inventory (item_name, quantity, unit, unit_price, threshold) VALUES
+('Sprite 100 ml', 25, 'bottles', 0.50, 5),
+('Pepsi 100 ml', 25, 'bottles', 0.50, 5),
+('Highland Milk packet 180 ML Vanilla', 25, 'packets', 0.60, 5),
+('Highland Milk packet 180 ML Chocolate', 25, 'packets', 0.60, 5);
+
+INSERT INTO MenuItems (name, description, price, availability, category, image_url) VALUES
+('Sprite 100 ml', 'Chilled Sprite bottle (100 ml)', 100.00, TRUE, 'Beverage', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1745877410/Sprite_q1lgka.jpg'),
+('Pepsi 100 ml', 'Chilled Pepsi bottle (100 ml)', 100.00, TRUE, 'Beverage', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1745877486/Pepsi_aqc09p.png'),
+('Highland Milk packet 180 ML Vanilla', 'Highland Milk - Vanilla flavor (180 ml)', 100.00, TRUE, 'Beverage', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1745877582/Highland_Vanilla_b14rnr.jpg'),
+('Highland Milk packet 180 ML Chocolate', 'Highland Milk - Chocolate flavor (180 ml)', 100.00, TRUE, 'Beverage', 'https://res.cloudinary.com/ddly9e3qr/image/upload/v1745877668/Highland_Choco_fvcuzl.jpg');
+
+INSERT INTO MenuItemIngredients (item_id, inventory_id, quantity_required) VALUES
+((SELECT item_id FROM MenuItems WHERE name = 'Sprite 100 ml'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Sprite 100 ml'), 1),
+((SELECT item_id FROM MenuItems WHERE name = 'Pepsi 100 ml'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Pepsi 100 ml'), 1),
+((SELECT item_id FROM MenuItems WHERE name = 'Highland Milk packet 180 ML Vanilla'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Highland Milk packet 180 ML Vanilla'), 1),
+((SELECT item_id FROM MenuItems WHERE name = 'Highland Milk packet 180 ML Chocolate'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Highland Milk packet 180 ML Chocolate'), 1);
