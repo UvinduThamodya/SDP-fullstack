@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Container, Grid, Paper, Button, Snackbar, Alert, IconButton,
-  TextField, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Tabs, Tab
+  TextField, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Tabs, Tab,
+  CssBaseline, ThemeProvider, createTheme
 } from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SidebarStaff from '../../components/SidebarStaff';
 import MenuService from '../../services/menuService';
 import apiService from '../../services/api';
@@ -12,7 +16,66 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '../../components/StripePayment';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+
+// Import Poppins font
+const poppinsFont = `
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+`;
+
+// Create theme with Poppins
+const theme = createTheme({
+  typography: {
+    fontFamily: '"Poppins", sans-serif',
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 500,
+    },
+    h6: {
+      fontWeight: 500,
+    },
+    button: {
+      fontWeight: 500,
+      textTransform: 'none',
+    },
+  },
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#f50057',
+    },
+    success: {
+      main: '#2e7d32',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 6,
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          },
+        },
+      },
+    },
+  },
+});
 
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
@@ -32,7 +95,6 @@ const Order = () => {
   const [balance, setBalance] = useState(0);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentType, setPaymentType] = useState('');
-  const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Calculate balance for cash payments
@@ -166,271 +228,381 @@ const Order = () => {
     }, 0);
 
   return (
-    <Box sx={{ display: 'flex', backgroundColor: '#F2F2F2' }}>
-      <SidebarStaff />
-      <Container maxWidth="lg" sx={{ pt: 5, pb: 8 }}>
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1, color: '#8a6d3b' }}>
-            FOOD MENU
-          </Typography>
-          {/* Category Tabs */}
-          <Box sx={{ width: '100%', bgcolor: 'background.paper', mb: 5 }}>
-          <Tabs
-  value={selectedCategory}
-  onChange={handleCategoryChange}
-  variant={isSmall ? "scrollable" : "standard"}
-  centered={!isSmall}
-  scrollButtons={isSmall ? "auto" : false}
->
-              {categories.map(category => (
-                <Tab key={category} label={category} value={category} />
-              ))}
-            </Tabs>
-          </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ mt: 3, mb: 2, px: 6, py: 1, fontSize: '1.6rem' }}
-            onClick={handleCheckout}
-          >
-            Checkout
-          </Button>
-        </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        <Grid container spacing={3}>
-          {displayItems.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.item_id}>
-              <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                  {item.name}
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  {item.description}
-                </Typography>
-                <Typography variant="h5" sx={{ mb: 2 }}>
-                  {formatCurrency(item.price, 'LKR', 'en-LK')}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <IconButton
-                    onClick={() => handleQuantityChange(item.item_id, (order[item.item_id] || 0) - 1)}
-                    color="primary"
-                  >
-                    -
-                  </IconButton>
-                  <TextField
-                    value={order[item.item_id] || 0}
-                    onChange={(e) => handleQuantityChange(item.item_id, parseInt(e.target.value) || 0)}
-                    type="number"
-                    inputProps={{ min: 0 }}
-                    sx={{ width: 60, textAlign: 'center' }}
-                  />
-                  <IconButton
-                    onClick={() => handleQuantityChange(item.item_id, (order[item.item_id] || 0) + 1)}
-                    color="primary"
-                  >
-                    +
-                  </IconButton>
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Snackbar
-          open={notification.open}
-          autoHideDuration={4000}
-          onClose={() => setNotification({ ...notification, open: false })}
-        >
-          <Alert severity={notification.severity} sx={{ width: '100%' }}>
-            {notification.message}
-          </Alert>
-        </Snackbar>
-
-        {/* Checkout Dialog */}
-        <Dialog open={openCheckoutDialog} onClose={() => setOpenCheckoutDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Order Summary</DialogTitle>
-          <DialogContent>
-            <Box sx={{ mb: 2 }}>
-              {Object.entries(order)
-                .filter(([_, quantity]) => quantity > 0)
-                .map(([itemId, quantity]) => {
-                  const item = menuItems.find((menuItem) => menuItem.item_id === parseInt(itemId));
-                  return (
-                    <Box
-                      key={itemId}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        mb: 2,
-                        p: 2,
-                        border: '1px solid #ddd',
-                        borderRadius: 1,
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="h6">{item.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Price: {formatCurrency(item.price, 'LKR', 'en-LK')}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <IconButton
-                          onClick={() => handleQuantityChange(itemId, quantity - 1)}
-                          color="primary"
-                        >
-                          -
-                        </IconButton>
-                        <TextField
-                          value={quantity}
-                          onChange={(e) => handleQuantityChange(itemId, parseInt(e.target.value) || 0)}
-                          type="number"
-                          inputProps={{ min: 0 }}
-                          sx={{ width: 60, textAlign: 'center' }}
-                        />
-                        <IconButton
-                          onClick={() => handleQuantityChange(itemId, quantity + 1)}
-                          color="primary"
-                        >
-                          +
-                        </IconButton>
-                      </Box>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => {
-                          setOrder((prevOrder) => {
-                            const updatedOrder = { ...prevOrder };
-                            delete updatedOrder[itemId];
-                            return updatedOrder;
-                          });
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </Box>
-                  );
-                })}
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            <Typography variant="h6" sx={{ textAlign: 'right', mb: 2 }}>
-              Total: {formatCurrency(
-                Object.entries(order)
-                  .filter(([_, quantity]) => quantity > 0)
-                  .reduce((total, [itemId, quantity]) => {
-                    const item = menuItems.find((menuItem) => menuItem.item_id === parseInt(itemId));
-                    return total + item.price * quantity;
-                  }, 0),
-                'LKR',
-                'en-LK'
-              )}
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <style>{poppinsFont}</style>
+      <Box sx={{ display: 'flex', backgroundColor: '#f7f7f7', minHeight: '100vh' }}>
+        <SidebarStaff />
+        <Container maxWidth="lg" sx={{ pt: 4, pb: 6 }}>
+          <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+            <Typography variant="h5" sx={{ mb: 2, fontSize: 28, fontWeight: 600, color: '#333' }}>
+              Food Menu
             </Typography>
-            <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
-              Choose Payment Method
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<AttachMoneyIcon />}
-                onClick={() => handlePaymentOption('Cash')}
-                sx={{ px: 4 }}
+            
+            {/* Category Tabs */}
+            <Box sx={{ width: '100%', bgcolor: 'background.paper', mb: 3 }}>
+              <Tabs
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                variant={isSmall ? "scrollable" : "standard"}
+                centered={!isSmall}
+                scrollButtons={isSmall ? "auto" : false}
+                sx={{
+                  '& .MuiTabs-indicator': {
+                    backgroundColor: theme.palette.primary.main,
+                  },
+                  '& .MuiTab-root': {
+                    fontWeight: 500,
+                    fontSize: 29,
+                    textTransform: 'none',
+                  }
+                }}
               >
-                Cash
-              </Button>
+                {categories.map(category => (
+                  <Tab key={category} label={category} value={category} />
+                ))}
+              </Tabs>
+            </Box>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
                 color="primary"
-                startIcon={<CreditCardIcon />}
-                onClick={() => handlePaymentOption('Card')}
-                sx={{ px: 4 }}
+                size="large"
+                onClick={handleCheckout}
+                disabled={Object.entries(order).filter(([_, qty]) => qty > 0).length === 0}
+                sx={{ 
+                  px: 4, 
+                  py: 1.2, 
+                  fontSize: '1rem', 
+                  fontWeight: 500 
+                }}
               >
-                Card Payment
+                Checkout ({Object.entries(order).filter(([_, qty]) => qty > 0).length} items)
               </Button>
             </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenCheckoutDialog(false)} color="error">
-              Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
+          </Paper>
 
-        {/* Cash Payment Dialog */}
-        <Dialog open={openCashDialog} onClose={() => setOpenCashDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Cash Payment</DialogTitle>
-          <DialogContent>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Grid container spacing={3}>
+            {displayItems.map((item) => (
+              <Grid item xs={12} sm={6} md={4} key={item.item_id}>
+                <Paper 
+                  sx={{ 
+                    p: 3, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    height: '100%',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    }
+                  }}
+                >
+                  <Typography variant="h6" sx={{ fontSize:30 ,fontWeight: 600, mb: 1 }}>
+                    {item.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2, color: '#666', flexGrow: 1 }}>
+                    {item.description}
+                  </Typography>
+                  <Typography variant="h6" sx={{ mb: 2, color: theme.palette.primary.main, fontWeight: 600 }}>
+                    {formatCurrency(item.price, 'LKR', 'en-LK')}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    <IconButton
+                      onClick={() => handleQuantityChange(item.item_id, (order[item.item_id] || 0) - 1)}
+                      color="primary"
+                      size="small"
+                      sx={{ 
+                        backgroundColor: '#f0f0f0', 
+                        '&:hover': { backgroundColor: '#e0e0e0' } 
+                      }}
+                    >
+                      <RemoveIcon />
+                    </IconButton>
+                    <TextField
+                      value={order[item.item_id] || 0}
+                      onChange={(e) => handleQuantityChange(item.item_id, parseInt(e.target.value) || 0)}
+                      type="number"
+                      variant="outlined"
+                      size="small"
+                      inputProps={{ 
+                        min: 0, 
+                        style: { textAlign: 'center', fontWeight: 500 }
+                      }}
+                      sx={{ width: 60 }}
+                    />
+                    <IconButton
+                      onClick={() => handleQuantityChange(item.item_id, (order[item.item_id] || 0) + 1)}
+                      color="primary"
+                      size="small"
+                      sx={{ 
+                        backgroundColor: '#f0f0f0', 
+                        '&:hover': { backgroundColor: '#e0e0e0' } 
+                      }}
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+
+          <Snackbar
+            open={notification.open}
+            autoHideDuration={4000}
+            onClose={() => setNotification({ ...notification, open: false })}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              severity={notification.severity} 
+              sx={{ width: '100%' }}
+              onClose={() => setNotification({ ...notification, open: false })}
+            >
+              {notification.message}
+            </Alert>
+          </Snackbar>
+
+          {/* Checkout Dialog */}
+          <Dialog 
+            open={openCheckoutDialog} 
+            onClose={() => setOpenCheckoutDialog(false)} 
+            maxWidth="sm" 
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Order Summary</DialogTitle>
+            <DialogContent dividers>
+              <Box sx={{ mb: 2 }}>
+                {Object.entries(order)
+                  .filter(([_, quantity]) => quantity > 0)
+                  .map(([itemId, quantity]) => {
+                    const item = menuItems.find((menuItem) => menuItem.item_id === parseInt(itemId));
+                    return (
+                      <Box
+                        key={itemId}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 2,
+                          p: 2,
+                          border: '1px solid #eee',
+                          borderRadius: 1,
+                          backgroundColor: '#f9f9f9',
+                        }}
+                      >
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>{item.name}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {formatCurrency(item.price, 'LKR', 'en-LK')} × {quantity} = {formatCurrency(item.price * quantity, 'LKR', 'en-LK')}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <IconButton
+                            onClick={() => handleQuantityChange(itemId, quantity - 1)}
+                            color="primary"
+                            size="small"
+                          >
+                            <RemoveIcon fontSize="small" />
+                          </IconButton>
+                          <TextField
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(itemId, parseInt(e.target.value) || 0)}
+                            type="number"
+                            size="small"
+                            inputProps={{ 
+                              min: 0, 
+                              style: { textAlign: 'center', width: '40px' } 
+                            }}
+                          />
+                          <IconButton
+                            onClick={() => handleQuantityChange(itemId, quantity + 1)}
+                            color="primary"
+                            size="small"
+                          >
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => {
+                              setOrder((prevOrder) => {
+                                const updatedOrder = { ...prevOrder };
+                                delete updatedOrder[itemId];
+                                return updatedOrder;
+                              });
+                            }}
+                            color="error"
+                            size="small"
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              <Typography variant="h6" sx={{ textAlign: 'right', mb: 3, fontWeight: 600 }}>
+                Total: {formatCurrency(
+                  Object.entries(order)
+                    .filter(([_, quantity]) => quantity > 0)
+                    .reduce((total, [itemId, quantity]) => {
+                      const item = menuItems.find((menuItem) => menuItem.item_id === parseInt(itemId));
+                      return total + item.price * quantity;
+                    }, 0),
+                  'LKR',
+                  'en-LK'
+                )}
+              </Typography>
+              <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
+                Choose Payment Method
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<AttachMoneyIcon />}
+                  onClick={() => handlePaymentOption('Cash')}
+                  sx={{ px: 4, py: 1 }}
+                >
+                  Cash
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<CreditCardIcon />}
+                  onClick={() => handlePaymentOption('Card')}
+                  sx={{ px: 4, py: 1 }}
+                >
+                  Card Payment
+                </Button>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+              <Button 
+                onClick={() => setOpenCheckoutDialog(false)} 
+                color="error"
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Cash Payment Dialog */}
+          <Dialog 
+            open={openCashDialog} 
+            onClose={() => setOpenCashDialog(false)} 
+            maxWidth="sm" 
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle sx={{ fontWeight: 600 }}>Cash Payment</DialogTitle>
+            <DialogContent dividers>
+              <Box sx={{ py: 2 }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 500 }}>
+                  Total Amount: {formatCurrency(totalAmount, 'LKR', 'en-LK')}
+                </Typography>
+                <TextField
+                  label="Amount Given"
+                  type="number"
+                  value={amountGiven}
+                  onChange={(e) => setAmountGiven(e.target.value)}
+                  fullWidth
+                  sx={{ mb: 3 }}
+                  inputProps={{ min: 0 }}
+                  variant="outlined"
+                />
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    mt: 2, 
+                    p: 2, 
+                    backgroundColor: balance >= 0 ? '#e8f5e9' : '#ffebee',
+                    borderRadius: 2 
+                  }}
+                >
+                  <Typography variant="h6" sx={{ fontWeight: 500, color: balance >= 0 ? '#2e7d32' : '#d32f2f' }}>
+                    Balance: {balance >= 0 ? formatCurrency(balance, 'LKR', 'en-LK') : 'Insufficient Amount'}
+                  </Typography>
+                </Paper>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+              <Button 
+                onClick={() => setOpenCashDialog(false)} 
+                color="error"
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() => handlePayment({
+                  method: 'cash',
+                  amount: totalAmount,
+                  cashReceived: parseFloat(amountGiven),
+                  change: parseFloat(amountGiven) - totalAmount,
+                })}
+                disabled={balance < 0 || amountGiven === ''}
+              >
+                Confirm Payment
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Card Payment Dialog */}
+          <Dialog 
+            open={paymentType === 'card' && paymentDialogOpen} 
+            onClose={() => setPaymentDialogOpen(false)} 
+            maxWidth="sm" 
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle sx={{ fontWeight: 600 }}>Card Payment</DialogTitle>
+            <DialogContent dividers>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 500 }}>
                 Total Amount: {formatCurrency(totalAmount, 'LKR', 'en-LK')}
               </Typography>
-              <TextField
-                label="Amount Given"
-                type="number"
-                value={amountGiven}
-                onChange={(e) => setAmountGiven(e.target.value)}
-                fullWidth
-                sx={{ mb: 2 }}
-                inputProps={{ min: 0 }}
-              />
-              <Typography variant="h6" sx={{ mt: 2 }}>
-                Balance: {balance >= 0 ? formatCurrency(balance, 'LKR', 'en-LK') : 'Insufficient Amount'}
-              </Typography>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={() => handlePayment({
-                method: 'cash',
-                amount: totalAmount,
-                cashReceived: parseFloat(amountGiven),
-                change: parseFloat(amountGiven) - totalAmount,
-              })}
-              sx={{ mb: 2 }}
-              disabled={balance < 0 || amountGiven === ''}
-            >
-              Confirm Order
-            </Button>
-            <Button onClick={() => setOpenCashDialog(false)} color="error">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Card Payment Dialog */}
-        <Dialog open={paymentType === 'card' && paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Card Payment</DialogTitle>
-          <DialogContent>
-            <Elements stripe={stripePromise}>
-              <StripePayment
-                amount={totalAmount}
-                onSuccess={(paymentIntent) => handlePayment({
-                  method: 'card',
-                  amount: totalAmount,
-                  stripeToken: paymentIntent.id,
-                })}
-                onError={() => setNotification({ open: true, message: 'Card payment failed.', severity: 'error' })}
-              />
-            </Elements>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setPaymentDialogOpen(false)} color="error">
-              Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </Box>
+              <Elements stripe={stripePromise}>
+                <StripePayment
+                  amount={totalAmount}
+                  onSuccess={(paymentIntent) => handlePayment({
+                    method: 'card',
+                    amount: totalAmount,
+                    stripeToken: paymentIntent.id,
+                  })}
+                  onError={() => setNotification({ open: true, message: 'Card payment failed.', severity: 'error' })}
+                />
+              </Elements>
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+              <Button 
+                onClick={() => setPaymentDialogOpen(false)} 
+                color="error"
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 };
 
 export default Order;
-   
