@@ -27,6 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import SidebarStaff from '../../components/SidebarStaff';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 const Inventory = () => {
   const [ingredients, setIngredients] = useState([]); // To store inventory data
@@ -245,6 +246,26 @@ const Inventory = () => {
     }
   };
 
+  const downloadInventoryReport = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch('http://localhost:5000/api/inventory/report/pdf', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) {
+      alert('Failed to download report');
+      return;
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `inventory-report-${new Date().toISOString().slice(0,10)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   // Fetch inventory on component mount
   useEffect(() => {
     fetchInventory();
@@ -331,6 +352,18 @@ const Inventory = () => {
               onClick={() => setOpenAddDialog(true)}
             >
               Add Ingredient
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<PictureAsPdfIcon />}
+              onClick={downloadInventoryReport}
+              sx={{ mb: 2 }}
+            >
+              Download Inventory Report
             </Button>
           </Box>
 

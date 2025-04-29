@@ -1,4 +1,6 @@
 const db = require('../config/db');
+const PDFDocument = require('pdfkit');
+const { Table } = require('pdfkit-table')
 
 // Get all ingredients from Inventory table
 exports.getAllIngredients = async (req, res) => {
@@ -94,5 +96,56 @@ exports.deleteIngredient = async (req, res) => {
       success: false,
       error: 'Failed to delete ingredient'
     });
+  }
+  
+};
+
+exports.downloadInventoryReport = async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT item_name, quantity, unit, unit_price, threshold FROM Inventory ORDER BY item_name');
+    const doc = new PDFDocument({ margin: 30, size: 'A4' });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="inventory-report-${new Date().toISOString().slice(0,10)}.pdf"`);
+
+    doc.pipe(res);
+
+    doc.fontSize(18).text('Yummy Yard Inventory Status Report', { align: 'center' }).moveDown();
+    doc.fontSize(12).text(`Date: ${new Date().toLocaleDateString()}`).moveDown();
+
+    // Use monospaced font for table
+    doc.font('Courier').fontSize(10);
+
+    // Table header
+    const header = [
+      'Ingredient'.padEnd(30),
+      'Qty'.padStart(10),
+      'Unit'.padStart(8),
+      'Unit Price'.padStart(15),
+      'Threshold'.padStart(10)
+    ].join('  ');
+    doc.text(header);
+    doc.text('-'.repeat(80));
+
+    // Table rows
+    rows.forEach(item => {
+      const quantity = (typeof item.quantity === 'number' && !isNaN(item.quantity))
+        ? item.quantity.toFixed(2)
+        : (parseFloat(item.quantity) ? parseFloat(item.quantity).toFixed(2) : '0.00');
+      const row = [
+        (item.item_name || '').padEnd(30),
+        quantity.padStart(10),
+        (item.unit || '').padStart(8),
+        (item.unit_price !== undefined ? `LKR ${item.unit_price}` : '').padStart(15),
+        (item.threshold !== undefined ? item.threshold.toString() : '').padStart(10)
+      ].join('  ');
+      doc.text(row);
+    });
+    
+
+    doc.end();
+  } catch (error) {
+    console.error('Error generating inventory report:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate inventory report' });
   }
 };

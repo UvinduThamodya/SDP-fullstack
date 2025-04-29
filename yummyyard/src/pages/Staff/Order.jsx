@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Container, Grid, Paper, Button, Snackbar, Alert, IconButton, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Divider } from '@mui/material';
+import {
+  Box, Typography, Container, Grid, Paper, Button, Snackbar, Alert, IconButton,
+  TextField, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Tabs, Tab
+} from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SidebarStaff from '../../components/SidebarStaff';
@@ -8,6 +11,8 @@ import apiService from '../../services/api';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '../../components/StripePayment';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
@@ -16,7 +21,7 @@ const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') =>
 
 const Order = () => {
   const [menuItems, setMenuItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Main-Dishes');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
@@ -27,8 +32,10 @@ const Order = () => {
   const [balance, setBalance] = useState(0);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentType, setPaymentType] = useState('');
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Automatic balance calculation for cash payments
+  // Calculate balance for cash payments
   useEffect(() => {
     const total = Object.entries(order)
       .filter(([_, qty]) => qty > 0)
@@ -36,17 +43,20 @@ const Order = () => {
         const item = menuItems.find(m => m.item_id === Number(itemId));
         return sum + (item?.price || 0) * qty;
       }, 0);
-
     const calculatedBalance = parseFloat(amountGiven || 0) - total;
     setBalance(calculatedBalance);
   }, [amountGiven, order, menuItems]);
 
+  // Fetch menu items and set default category
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
         setLoading(true);
         const items = await MenuService.getMenuItems();
         setMenuItems(items);
+        if (items.length > 0) {
+          setSelectedCategory(items[0].category); // Default to first category
+        }
       } catch (error) {
         setError('Failed to fetch menu items');
       } finally {
@@ -55,6 +65,9 @@ const Order = () => {
     };
     fetchMenuItems();
   }, []);
+
+  // Extract unique categories from menuItems
+  const categories = [...new Set(menuItems.map(item => item.category))];
 
   const handleCategoryChange = (event, newCategory) => {
     setSelectedCategory(newCategory);
@@ -79,7 +92,6 @@ const Order = () => {
       setNotification({ open: true, message: 'No items in the order!', severity: 'warning' });
       return;
     }
-
     setOpenCheckoutDialog(true);
   };
 
@@ -161,15 +173,28 @@ const Order = () => {
           <Typography variant="subtitle1" sx={{ mb: 1, color: '#8a6d3b' }}>
             FOOD MENU
           </Typography>
-          <Button
-  variant="contained"
-  color="primary"
-  sx={{ mt: 3, mb: 2, px: 6, py: 1, fontSize: '1.6rem' }}
-  onClick={handleCheckout}
+          {/* Category Tabs */}
+          <Box sx={{ width: '100%', bgcolor: 'background.paper', mb: 5 }}>
+          <Tabs
+  value={selectedCategory}
+  onChange={handleCategoryChange}
+  variant={isSmall ? "scrollable" : "standard"}
+  centered={!isSmall}
+  scrollButtons={isSmall ? "auto" : false}
 >
-  Checkout
-</Button>
-
+              {categories.map(category => (
+                <Tab key={category} label={category} value={category} />
+              ))}
+            </Tabs>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3, mb: 2, px: 6, py: 1, fontSize: '1.6rem' }}
+            onClick={handleCheckout}
+          >
+            Checkout
+          </Button>
         </Box>
 
         {error && (
@@ -227,6 +252,7 @@ const Order = () => {
           </Alert>
         </Snackbar>
 
+        {/* Checkout Dialog */}
         <Dialog open={openCheckoutDialog} onClose={() => setOpenCheckoutDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Order Summary</DialogTitle>
           <DialogContent>
@@ -336,6 +362,7 @@ const Order = () => {
           </DialogActions>
         </Dialog>
 
+        {/* Cash Payment Dialog */}
         <Dialog open={openCashDialog} onClose={() => setOpenCashDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Cash Payment</DialogTitle>
           <DialogContent>
@@ -378,6 +405,7 @@ const Order = () => {
           </DialogActions>
         </Dialog>
 
+        {/* Card Payment Dialog */}
         <Dialog open={paymentType === 'card' && paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Card Payment</DialogTitle>
           <DialogContent>
@@ -405,3 +433,4 @@ const Order = () => {
 };
 
 export default Order;
+   
