@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import apiService from '../../services/api';
 import { 
   Box, Container, Grid, Typography, Button, Card, CardMedia, 
   CardContent, Link, IconButton, Divider, Avatar, Rating, 
@@ -8,6 +9,7 @@ import { styled, useTheme } from '@mui/material/styles';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+
 import { 
   Facebook as FacebookIcon, 
   Phone as PhoneIcon, 
@@ -198,6 +200,8 @@ const Homepage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const [favorites, setFavorites] = useState([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(true);
   
   // State for animations
   const [showSpecials, setShowSpecials] = useState(false);
@@ -331,6 +335,16 @@ const Homepage = () => {
       description: "Selection of local sweets with a modern twist" 
     },
   ];
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      setFavoritesLoading(true);
+      const favs = await apiService.getFavorites();
+      setFavorites(favs);
+      setFavoritesLoading(false);
+    };
+    fetchFavorites();
+  }, []);
 
   // Chef's specials
   const chefSpecials = [
@@ -495,89 +509,84 @@ const Homepage = () => {
 
       {/* Featured Items with Slider */}
       <Container sx={{ py: { xs: 6, md: 10 } }}>
-        <SectionTitle>
-          <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
-            sx={{ 
-              fontSize: '1.25rem', 
-              letterSpacing: '2px', 
-              textTransform: 'uppercase',
-              fontWeight: 'bold'
-            }}>
-            Popular Dishes
-          </RunaltoTypography>
-          <RunaltoTypography variant="h3" component="h2" align="center" 
-            sx={{ 
-              fontWeight: 'bold', 
-              color: 'white', 
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              margin: '8px 0'
-            }}>
-            Your Favorites
-          </RunaltoTypography>
-          <div className="underline"></div>
-        </SectionTitle>
-        
-        {/* Featured Items Slider */}
-        <Box sx={{ my: 6 }}>
-          <Slider {...featuredItemsSettings}>
-            {featuredDishes.map((dish) => (
-              <Box key={dish.id} sx={{ px: 1 }}>
-                <AnimatedCard>
-                  {dish.featured && (
-                    <FeatureTag label="Popular" size="small" />
-                  )}
-                  <Box sx={{ position: 'relative' }}>
-                    <CardMedia
-                      component="img"
-                      image={dish.image}
-                      alt={dish.name}
-                      sx={{ 
-                        height: 220,
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <PriceTag>{dish.price}</PriceTag>
-                  </Box>
-                  <CardContent sx={{ textAlign: 'center', flexGrow: 1 }}>
-                    <RunaltoTypography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-                      {dish.name}
-                    </RunaltoTypography>
-                    <RunaltoTypography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {dish.description}
-                    </RunaltoTypography>
-                    <Button 
-                      variant="outlined" 
-                      color="primary" 
-                      size="small"
-                      sx={{ 
-                        borderRadius: '20px',
-                        borderColor: '#3ACA82',
-                        color: '#3ACA82',
-                        '&:hover': {
-                          backgroundColor: '#3ACA82',
-                          color: 'black'
-                        }
-                      }}
-                    >
-                      Order Now
-                    </Button>
-                  </CardContent>
-                </AnimatedCard>
+  <SectionTitle>
+    <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82"
+      sx={{
+        fontSize: '1.25rem',
+        letterSpacing: '2px',
+        textTransform: 'uppercase',
+        fontWeight: 'bold'
+      }}>
+      Your Favorites
+    </RunaltoTypography>
+    <RunaltoTypography variant="h3" component="h2" align="center"
+      sx={{
+        fontWeight: 'bold',
+        color: 'white',
+        fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+        margin: '8px 0'
+      }}>
+      {favorites.length > 0 ? "Favorite Dishes" : "No Favorites Yet"}
+    </RunaltoTypography>
+    <div className="underline"></div>
+  </SectionTitle>
+  <Box sx={{ my: 6 }}>
+    {favoritesLoading ? (
+      <Typography color="text.secondary" align="center">Loading favorites...</Typography>
+    ) : favorites.length > 0 ? (
+      <Grid container spacing={3}>
+        {favorites.map((dish) => (
+          <Grid item xs={12} sm={6} md={4} key={dish.item_id}>
+            <AnimatedCard>
+              <Box sx={{ position: 'relative' }}>
+                <CardMedia
+                  component="img"
+                  image={dish.image || restaurantLogo}
+                  alt={dish.name}
+                  sx={{
+                    height: 220,
+                    objectFit: 'cover',
+                  }}
+                />
+                <PriceTag>{dish.price}</PriceTag>
               </Box>
-            ))}
-          </Slider>
-        </Box>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <StyledButton 
-            variant="contained" 
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate('/menu')}
-          >
-            View Complete Menu
-          </StyledButton>
-        </Box>
-      </Container>
+              <CardContent sx={{ textAlign: 'center', flexGrow: 1 }}>
+                <RunaltoTypography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                  {dish.name}
+                </RunaltoTypography>
+                <RunaltoTypography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {dish.description}
+                </RunaltoTypography>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  sx={{
+                    borderRadius: '20px',
+                    borderColor: '#3ACA82',
+                    color: '#3ACA82',
+                    '&:hover': {
+                      backgroundColor: '#3ACA82',
+                      color: 'black'
+                    }
+                  }}
+                  onClick={() => navigate('/menu')} 
+                >
+                  Order Now
+                </Button>
+              </CardContent>
+            </AnimatedCard>
+          </Grid>
+        ))}
+      </Grid>
+    ) : (
+      <Typography color="text.secondary" align="center">
+        You have not added any favorites yet.
+      </Typography>
+    )}
+  </Box>
+</Container>
+
 
       {/* Opening Hours Section - Moved */}
       <Container sx={{ py: { xs: 6, md: 8 }, textAlign: 'center' }}>
@@ -944,7 +953,7 @@ const Homepage = () => {
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       }
                     }}
-                    onClick={() => navigate('/order')}
+                    onClick={() => navigate('/menu')}
                   >
                     Order Online
                   </StyledButton>

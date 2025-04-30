@@ -465,10 +465,27 @@ const apiService = {
       console.error('Error downloading receipt:', error);
       throw new Error(error.response?.data?.message || 'Failed to download receipt');
     }
+  },
+
+  getFavorites: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/favorites`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      // Some backends return { favorites: [...] }, others just [...]
+      // Adjust as needed for your backend's response format
+      if (Array.isArray(response.data)) {
+        return response.data; // if backend returns an array directly
+      }
+      return response.data.favorites || [];
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      return [];
+    }
   }
 
 };
-
   
 
 export default apiService;

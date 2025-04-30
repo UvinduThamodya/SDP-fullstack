@@ -67,7 +67,7 @@ const SelectRole = () => {
               textShadow: '1px 1px 3px rgba(0,0,0,0.2)'
             }}
           >
-            Login as
+            Login as,
           </Typography>
         </Zoom>
         

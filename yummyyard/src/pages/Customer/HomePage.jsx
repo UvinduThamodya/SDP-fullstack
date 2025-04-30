@@ -761,6 +761,63 @@ const Homepage = () => {
           </SectionTitle>
           
           <Box sx={{ my: 6 }}>
+          {/* <Slider {...testimonialSettings}>
+              {testimonials.map((testimonial) => (
+                <Box key={testimonial.id} sx={{ px: 2 }}>
+                  <TestimonialCard>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar 
+                        src={testimonial.avatar} 
+                        sx={{ 
+                          width: 60, 
+                          height: 60, 
+                          mr: 2,
+                          backgroundColor: '#3ACA82',
+                          color: 'black',
+                          fontWeight: 'bold',
+                          fontSize: '1.5rem'
+                        }}
+                      >
+                        {testimonial.name.charAt(0)}
+                      </Avatar>
+                      <Box>
+                        <RunaltoTypography variant="h6" color="white">
+                          {testimonial.name}
+                        </RunaltoTypography>
+                        <RunaltoTypography variant="body2" color="rgba(255,255,255,0.7)">
+                          {testimonial.date}
+                        </RunaltoTypography>
+                      </Box>
+                    </Box>
+                    
+                    <Rating 
+                      value={testimonial.rating} 
+                      precision={0.5} 
+                      readOnly 
+                      sx={{ 
+                        mb: 2,
+                        '& .MuiRating-iconFilled': {
+                          color: '#3ACA82',
+                        }
+                      }} 
+                    />
+                    
+                    <RunaltoTypography 
+                      variant="body1" 
+                      color="white" 
+                      paragraph 
+                      sx={{ 
+                        fontStyle: 'italic',
+                        opacity: 0.9,
+                        flexGrow: 1
+                      }}
+                    >
+                      "{testimonial.comment}"
+                    </RunaltoTypography>
+                  </TestimonialCard>
+                </Box>
+              ))}
+            </Slider> */}
   <div dangerouslySetInnerHTML={{ __html: `
     <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
     <div class="elfsight-app-772ca7a5-200d-4386-816a-f3910b2a4e88" data-elfsight-app-lazy></div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import apiService from '../../services/api';
 import Logo from '../../assets/YummyYard_logo.png';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // Material UI imports
 import {
@@ -166,6 +167,12 @@ const Login = () => {
             boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
           }}> 
+            <IconButton
+              onClick={() => navigate('/')}
+              sx={{ alignSelf: 'flex-start', mb: 5 }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
             <Box sx={{ mb: 5 }}>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: '1.75rem' }}> 
                 Welcome Back,
