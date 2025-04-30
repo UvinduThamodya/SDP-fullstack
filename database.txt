@@ -347,3 +347,17 @@ INSERT INTO MenuItemIngredients (item_id, inventory_id, quantity_required) VALUE
 ((SELECT item_id FROM MenuItems WHERE name = 'Pepsi 100 ml'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Pepsi 100 ml'), 1),
 ((SELECT item_id FROM MenuItems WHERE name = 'Highland Milk packet 180 ML Vanilla'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Highland Milk packet 180 ML Vanilla'), 1),
 ((SELECT item_id FROM MenuItems WHERE name = 'Highland Milk packet 180 ML Chocolate'), (SELECT inventory_id FROM Inventory WHERE item_name = 'Highland Milk packet 180 ML Chocolate'), 1);
+
+UPDATE menuitems
+SET name = 'Highland Vanilla'
+WHERE item_id = 42 ;
+
+UPDATE menuitems
+SET name = 'Highland Chocolate'
+WHERE item_id = 43 ;
+
+ALTER TABLE Orders 
+MODIFY status ENUM('Pending', 'Preparing', 'Ready to Pick up', 'Completed', 'Cancelled', 'Paid') 
+DEFAULT 'Pending';
+
+
