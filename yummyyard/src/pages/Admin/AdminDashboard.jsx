@@ -4,7 +4,7 @@ import {
   Box, Typography, Container, Grid, Paper, Card, CardContent,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
-  FormControl, InputLabel, Select, MenuItem, Divider, Alert, CircularProgress
+  FormControl, InputLabel, Select, MenuItem, Alert, CircularProgress, Snackbar
 } from '@mui/material';
 import {
   Warning as WarningIcon,
@@ -17,30 +17,47 @@ import {
 import { format } from 'date-fns';
 import apiService from '../../services/api';
 
+// Chart.js imports and registration
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  Title,
+  CategoryScale,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(
+  LineElement,
+  PointElement,
+  LinearScale,
+  Title,
+  CategoryScale,
+  Tooltip,
+  Legend
+);
+
 export default function AdminDashboard() {
   // State management
   const [lowStockItems, setLowStockItems] = useState([]);
   const [topItems, setTopItems] = useState([]);
   const [leastOrderedItem, setLeastOrderedItem] = useState(null);
-  const [recentOrder, setRecentOrder] = useState(null);
   const [allIngredients, setAllIngredients] = useState([]);
-  
   const [loading, setLoading] = useState({
     lowStock: true,
     topItems: true,
     leastOrdered: true,
-    recentOrder: true,
     ingredients: true
   });
-  
   const [error, setError] = useState({
     lowStock: null,
     topItems: null,
     leastOrdered: null,
-    recentOrder: null,
     ingredients: null
   });
-  
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState('');
   const [orderQuantity, setOrderQuantity] = useState(1);
@@ -48,7 +65,17 @@ export default function AdminDashboard() {
   const [notification, setNotification] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Sales summary and chart
+  const [salesSummary, setSalesSummary] = useState({ day: 0, month: 0, year: 0 });
+  const [salesLoading, setSalesLoading] = useState(true);
+  const [salesError, setSalesError] = useState(null);
+  const [salesNotification, setSalesNotification] = useState(null);
+  const [salesData, setSalesData] = useState([]);
+
   const currentDate = new Date();
+
+  // Add this state variable
+  const [topUsedIngredients, setTopUsedIngredients] = useState([]);
 
   // Fetch dashboard data on component mount
   useEffect(() => {
@@ -56,6 +83,37 @@ export default function AdminDashboard() {
     fetchTopItems();
     fetchLeastOrderedItem();
     fetchAllIngredients();
+  }, []);
+
+  // Sales summary and chart data
+  useEffect(() => {
+    const fetchSalesSummary = async () => {
+      setSalesLoading(true);
+      try {
+        const data = await apiService.getSalesSummary();
+        setSalesSummary(data);
+      } catch (err) {
+        setSalesError("Failed to load sales summary.");
+      } finally {
+        setSalesLoading(false);
+      }
+    };
+    fetchSalesSummary();
+    apiService.getSalesByMonth().then(setSalesData);
+  }, []);
+
+  // Fetch the data in a `useEffect`
+  useEffect(() => {
+    const fetchTopUsedIngredients = async () => {
+      try {
+        const data = await apiService.getTopUsedIngredients();
+        setTopUsedIngredients(data.ingredients || []);
+      } catch (err) {
+        console.error("Failed to fetch top used ingredients:", err);
+      }
+    };
+
+    fetchTopUsedIngredients();
   }, []);
 
   // Data fetching functions
@@ -75,7 +133,7 @@ export default function AdminDashboard() {
     setLoading(prev => ({ ...prev, topItems: true }));
     try {
       const data = await apiService.getTopOrderedItems(3);
-      setTopItems(data.topItems || []);
+      setTopItems(data.items || data.topItems || []);
     } catch (err) {
       setError(prev => ({ ...prev, topItems: 'Failed to load top items data.' }));
     } finally {
@@ -87,7 +145,7 @@ export default function AdminDashboard() {
     setLoading(prev => ({ ...prev, leastOrdered: true }));
     try {
       const data = await apiService.getLeastOrderedItem();
-      setLeastOrderedItem(data.leastOrderedItem || null);
+      setLeastOrderedItem(data.item || data.leastOrderedItem || null);
     } catch (err) {
       setError(prev => ({ ...prev, leastOrdered: 'Failed to load least ordered item data.' }));
     } finally {
@@ -113,7 +171,6 @@ export default function AdminDashboard() {
       setLoading(prev => ({ ...prev, ingredients: false }));
     }
   };
-  
 
   // Inventory order handlers
   const handleAddToOrder = () => {
@@ -135,7 +192,6 @@ export default function AdminDashboard() {
     setSelectedIngredient('');
     setOrderQuantity(1);
   };
-  
 
   const handleRemoveFromOrder = (orderId) => {
     setStockOrders(stockOrders.filter(order => order.id !== orderId));
@@ -144,13 +200,10 @@ export default function AdminDashboard() {
   // Submit stock order and download receipt
   const handleSubmitStockOrder = async () => {
     if (stockOrders.length === 0) return;
-    
     setSubmitting(true);
     try {
-      
       // Prepare order items
       const items = stockOrders.map(item => ({
-        
         ingredient_id: item.ingredient_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
@@ -158,12 +211,10 @@ export default function AdminDashboard() {
       }));
       const totalAmount = items.reduce((sum, i) => sum + i.total_price, 0);
       // Submit order
-      const result = await apiService.createStockOrder({ items,totalAmount });
-      
+      const result = await apiService.createStockOrder({ items, totalAmount });
       // Download receipt
       if (result.success && result.stockOrderId) {
         const receiptBlob = await apiService.downloadStockOrderReceipt(result.stockOrderId);
-        
         // Create a download link
         const url = window.URL.createObjectURL(new Blob([receiptBlob]));
         const link = document.createElement('a');
@@ -172,7 +223,6 @@ export default function AdminDashboard() {
         document.body.appendChild(link);
         link.click();
         link.remove();
-        
         setNotification('Stock order created and receipt downloaded.');
         setStockOrders([]);
         setOrderDialogOpen(false);
@@ -181,6 +231,50 @@ export default function AdminDashboard() {
       setNotification(`Error: ${error.message || 'Failed to process order'}`);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Sales chart data
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const chartData = {
+    labels: months,
+    datasets: [
+      {
+        label: 'Sales (LKR)',
+        data: months.map((_, idx) => {
+          const found = salesData.find(d => d.month === idx + 1);
+          return found ? found.total : 0;
+        }),
+        fill: false,
+        borderColor: '#1976d2',
+        backgroundColor: '#1976d2',
+        tension: 0.3,
+      },
+    ],
+  };
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: true },
+      title: { display: true, text: 'Monthly Sales (LKR)' },
+    },
+  };
+
+  // Sales report PDF download
+  const handleDownloadSalesReport = async (period) => {
+    try {
+      const blob = await apiService.downloadSalesReport(period);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `sales-report-${period}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setSalesNotification("Sales report downloaded.");
+    } catch (error) {
+      setSalesNotification("Failed to download sales report.");
     }
   };
 
@@ -206,12 +300,60 @@ export default function AdminDashboard() {
           </Button>
         </Box>
 
+        {/* --- Sales Reports Section --- */}
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h5" gutterBottom>Sales Reports</Typography>
+          {salesLoading ? (
+            <CircularProgress />
+          ) : salesError ? (
+            <Alert severity="error">{salesError}</Alert>
+          ) : (
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle1">Today</Typography>
+                <Typography variant="h6">LKR {Number(salesSummary.day).toLocaleString()}</Typography>
+                <Button
+                  onClick={() => handleDownloadSalesReport("day")}
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                >
+                  Download PDF
+                </Button>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle1">This Month</Typography>
+                <Typography variant="h6">LKR {Number(salesSummary.month).toLocaleString()}</Typography>
+                <Button
+                  onClick={() => handleDownloadSalesReport("month")}
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                >
+                  Download PDF
+                </Button>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle1">This Year</Typography>
+                <Typography variant="h6">LKR {Number(salesSummary.year).toLocaleString()}</Typography>
+                <Button
+                  onClick={() => handleDownloadSalesReport("year")}
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                >
+                  Download PDF
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+        </Paper>
+
+        
+
         {/* Low Stock Alert */}
         <Paper sx={{ p: 2, mb: 3, backgroundColor: lowStockItems.length > 0 ? '#fff8e1' : 'white' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             {lowStockItems.length > 0 && <WarningIcon sx={{ color: 'warning.main', mr: 1 }} />}
             <Typography variant="h6">
-              {loading.lowStock 
+              {loading.lowStock
                 ? 'Loading inventory status...'
                 : lowStockItems.length > 0
                   ? `Low Stock Alert: ${lowStockItems.length} items below threshold`
@@ -248,6 +390,12 @@ export default function AdminDashboard() {
           )}
         </Paper>
 
+        {/* Sales Chart */}
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h5" gutterBottom>Sales Overview</Typography>
+          <Line data={chartData} options={chartOptions} />
+        </Paper>
+
         {/* Analytics Section */}
         <Grid container spacing={3}>
           {/* Top Ordered Items */}
@@ -257,7 +405,6 @@ export default function AdminDashboard() {
                 <TrendingUpIcon sx={{ color: 'success.main', mr: 1 }} />
                 <Typography variant="h6">Top 3 Ordered Items</Typography>
               </Box>
-              
               {loading.topItems && <CircularProgress size={24} sx={{ ml: 2 }} />}
               {error.topItems && <Alert severity="error">{error.topItems}</Alert>}
               {!loading.topItems && !error.topItems && (
@@ -278,7 +425,7 @@ export default function AdminDashboard() {
                             <TableCell>#{idx + 1}</TableCell>
                             <TableCell>{item.name}</TableCell>
                             <TableCell align="right">{item.order_count}</TableCell>
-                            <TableCell align="right">LKR {Number(item.revenue).toLocaleString()}</TableCell>
+                            <TableCell align="right">LKR {Number(item.total_revenue ?? item.revenue).toLocaleString()}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -300,7 +447,6 @@ export default function AdminDashboard() {
                 <TrendingDownIcon sx={{ color: 'error.main', mr: 1 }} />
                 <Typography variant="h6">Least Ordered Item</Typography>
               </Box>
-              
               {loading.leastOrdered && <CircularProgress size={24} sx={{ ml: 2 }} />}
               {error.leastOrdered && <Alert severity="error">{error.leastOrdered}</Alert>}
               {!loading.leastOrdered && !error.leastOrdered && leastOrderedItem && (
@@ -326,8 +472,36 @@ export default function AdminDashboard() {
               )}
             </Paper>
           </Grid>
-
         </Grid>
+
+        {/* Top Used Ingredients */}
+        <Paper sx={{ p: 2, mb: 4 }}>
+          <Typography variant="h5" gutterBottom>Top 3 Used Ingredients</Typography>
+          {topUsedIngredients.length === 0 ? (
+            <Typography>No ingredient usage data available.</Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Rank</TableCell>
+                    <TableCell>Ingredient</TableCell>
+                    <TableCell align="right">Total Used</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {topUsedIngredients.slice(0, 3).map((ingredient, idx) => (
+                    <TableRow key={ingredient.inventory_id}>
+                      <TableCell>#{idx + 1}</TableCell>
+                      <TableCell>{ingredient.item_name}</TableCell>
+                      <TableCell align="right">{ingredient.total_used}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
 
         {/* Inventory Order Dialog */}
         <Dialog
@@ -364,16 +538,15 @@ export default function AdminDashboard() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                <TextField
-  label="Quantity"
-  type="number"
-  fullWidth
-  value={orderQuantity}
-  onChange={e => setOrderQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-  InputProps={{ inputProps: { min: 1 } }}
-  disabled={submitting}
-/>
-
+                  <TextField
+                    label="Quantity"
+                    type="number"
+                    fullWidth
+                    value={orderQuantity}
+                    onChange={e => setOrderQuantity(Math.max(1, parseInt(e.target.value) || 0))}
+                    InputProps={{ inputProps: { min: 1 } }}
+                    disabled={submitting}
+                  />
                 </Grid>
                 <Grid item xs={12} sm={2}>
                   <Button
@@ -462,6 +635,15 @@ export default function AdminDashboard() {
             {notification}
           </Alert>
         )}
+        <Snackbar
+          open={!!salesNotification}
+          autoHideDuration={4000}
+          onClose={() => setSalesNotification(null)}
+        >
+          <Alert onClose={() => setSalesNotification(null)} severity="info" sx={{ width: '100%' }}>
+            {salesNotification}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );

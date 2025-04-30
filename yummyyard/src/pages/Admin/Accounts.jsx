@@ -3,14 +3,72 @@ import {
   Box, Typography, Container, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, Button, Tabs, Tab, CircularProgress, 
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  Snackbar, Alert
+  Snackbar, Alert, ThemeProvider, createTheme, CssBaseline
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import AddIcon from '@mui/icons-material/Add';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import BadgeIcon from '@mui/icons-material/Badge';
 import SidebarAdmin from '../../components/SidebarAdmin';
 import { useNavigate } from 'react-router-dom';
+
+// Create custom theme with Poppins font
+const theme = createTheme({
+  typography: {
+    fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+    },
+    button: {
+      textTransform: 'none',
+      fontWeight: 500,
+    }
+  },
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#f8f9fa',
+    },
+  },
+  components: {
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#f5f5f5',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+        },
+      },
+    },
+  },
+});
 
 const Accounts = () => {
   const [tab, setTab] = useState('staff');
@@ -136,128 +194,211 @@ const Accounts = () => {
   });
 
   const handleAddStaff = () => {
-    navigate('/staffregister'); // Navigate to the staff registration page
+    navigate('/staffregister');
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Poppins, sans-serif' }}>
-      <SidebarAdmin />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        <SidebarAdmin />
 
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Typography variant="h4" align="center" sx={{ mb: 3, fontWeight: 'bold' }}>
-            Accounts Management
-          </Typography>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Tabs value={tab} onChange={handleTabChange} centered>
-              <Tab label="Staff" value="staff" />
-              <Tab label="Customers" value="customers" />
-            </Tabs>
-            {tab === 'staff' && (
-              <Button 
-                variant="contained" 
-                color="primary" 
-                startIcon={<AddIcon />} 
-                onClick={handleAddStaff}
-              >
-                Add Staff
-              </Button>
-            )}
-          </Box>
-          
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : error ? (
-            <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
-          ) : (
-            <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2 }}>
-              <Table>
-                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                  <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>Role</TableCell>
-                    {tab === 'customers' && <TableCell>Address</TableCell>}
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredAccounts.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={tab === 'customers' ? 7 : 6} align="center">
-                        <Typography variant="body1" sx={{ py: 2 }}>
-                          No accounts found
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredAccounts.map((account) => (
-                      <TableRow key={`${account.role}-${account.id}`}>
-                        <TableCell>{account.id}</TableCell>
-                        <TableCell>{account.name}</TableCell>
-                        <TableCell>{account.email}</TableCell>
-                        <TableCell>{account.phone}</TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <PersonIcon sx={{ mr: 1, color: account.role === 'Admin' ? 'primary.main' : 'text.secondary' }} />
-                            {account.role}
-                          </Box>
-                        </TableCell>
-                        {tab === 'customers' && <TableCell>{account.address || 'N/A'}</TableCell>}
-                        <TableCell align="center">
-                          <Button 
-                            variant="outlined" 
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={() => handleDeleteClick(account)}
-                            disabled={account.role === 'Admin'} // Prevent deleting admin accounts
-                          >
-                            Delete
-                          </Button>
-                        </TableCell>
+        <Box sx={{ flexGrow: 1, p: 3 }}>
+          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Paper elevation={0} sx={{ p: 3, mb: 4, backgroundColor: '#fff', borderRadius: 2 }}>
+              <Typography variant="h4" sx={{ mb: 3, color: '#333', textAlign: 'center' }}>
+                Accounts Management
+              </Typography>
+            
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                mb: 3,
+                borderBottom: '1px solid #e0e0e0',
+                pb: 1
+              }}>
+                <Tabs 
+                  value={tab} 
+                  onChange={handleTabChange} 
+                  textColor="primary"
+                  indicatorColor="primary"
+                  sx={{ 
+                    '& .MuiTab-root': { 
+                      fontWeight: 500,
+                      fontSize: '1rem',
+                      px: 3
+                    } 
+                  }}
+                >
+                  <Tab 
+                    icon={<BadgeIcon sx={{ mr: 1 }} />} 
+                    iconPosition="start" 
+                    label="Staff" 
+                    value="staff" 
+                  />
+                  <Tab 
+                    icon={<PeopleAltIcon sx={{ mr: 1 }} />} 
+                    iconPosition="start" 
+                    label="Customers" 
+                    value="customers" 
+                  />
+                </Tabs>
+                {tab === 'staff' && (
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    startIcon={<AddIcon />} 
+                    onClick={handleAddStaff}
+                    sx={{ py: 1, px: 2 }}
+                  >
+                    Add Staff
+                  </Button>
+                )}
+              </Box>
+              
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 4 }}>
+                  <CircularProgress size={40} thickness={4} />
+                </Box>
+              ) : error ? (
+                <Alert severity="error" sx={{ mt: 2, mb: 2 }}>{error}</Alert>
+              ) : (
+                <TableContainer component={Paper} sx={{ boxShadow: 2, borderRadius: 2, overflow: 'hidden' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>ID</TableCell>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Phone</TableCell>
+                        <TableCell>Role</TableCell>
+                        {tab === 'customers' && <TableCell>Address</TableCell>}
+                        <TableCell align="center">Actions</TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Container>
+                    </TableHead>
+                    <TableBody>
+                      {filteredAccounts.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={tab === 'customers' ? 7 : 6} align="center">
+                            <Typography variant="body1" sx={{ py: 4, color: '#666' }}>
+                              No accounts found
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredAccounts.map((account) => (
+                          <TableRow 
+                            key={`${account.role}-${account.id}`}
+                            hover
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                          >
+                            <TableCell>{account.id}</TableCell>
+                            <TableCell sx={{ fontWeight: 500 }}>{account.name}</TableCell>
+                            <TableCell>{account.email}</TableCell>
+                            <TableCell>{account.phone}</TableCell>
+                            <TableCell>
+                              <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                color: account.role === 'Admin' ? theme.palette.primary.main : 
+                                       account.role === 'Staff' ? theme.palette.secondary.main : '#666'
+                              }}>
+                                {account.role === 'Admin' ? (
+                                  <AdminPanelSettingsIcon sx={{ mr: 1 }} />
+                                ) : account.role === 'Staff' ? (
+                                  <BadgeIcon sx={{ mr: 1 }} />
+                                ) : (
+                                  <PersonIcon sx={{ mr: 1 }} />
+                                )}
+                                {account.role}
+                              </Box>
+                            </TableCell>
+                            {tab === 'customers' && <TableCell>{account.address || 'N/A'}</TableCell>}
+                            <TableCell align="center">
+                              <Button 
+                                variant="outlined" 
+                                color="error"
+                                startIcon={<DeleteIcon />}
+                                onClick={() => handleDeleteClick(account)}
+                                disabled={account.role === 'Admin'}
+                                size="small"
+                                sx={{ 
+                                  borderRadius: 4,
+                                  minWidth: '100px',
+                                  '&.Mui-disabled': {
+                                    opacity: 0.5,
+                                  }
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Paper>
+          </Container>
+        </Box>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog 
+          open={deleteDialog.open} 
+          onClose={handleCloseDialog}
+          PaperProps={{ 
+            sx: { borderRadius: 2, px: 1 } 
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 600 }}>
+            Confirm Deletion
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete the {deleteDialog.account?.role} account for{' '}
+              <strong>{deleteDialog.account?.name}</strong>? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, px: 2 }}>
+            <Button 
+              onClick={handleCloseDialog} 
+              variant="outlined"
+              sx={{ borderRadius: 6 }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirm} 
+              color="error" 
+              variant="contained"
+              sx={{ borderRadius: 6 }}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Notification Snackbar */}
+        <Snackbar 
+          open={notification.open} 
+          autoHideDuration={4000} 
+          onClose={handleCloseNotification}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseNotification} 
+            severity={notification.severity} 
+            sx={{ width: '100%', fontWeight: 500 }}
+            variant="filled"
+          >
+            {notification.message}
+          </Alert>
+        </Snackbar>
       </Box>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialog.open} onClose={handleCloseDialog}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the {deleteDialog.account?.role} account for {deleteDialog.account?.name}? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Notification Snackbar */}
-      <Snackbar 
-        open={notification.open} 
-        autoHideDuration={4000} 
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
-          {notification.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </ThemeProvider>
   );
 };
 

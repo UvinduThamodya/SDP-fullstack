@@ -365,9 +365,44 @@ const apiService = {
       console.error('Error fetching favorites:', error);
       return [];
     }
+  },
+
+  getSalesSummary: async () => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/dashboard/sales-summary`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+
+  getSalesByMonth: async () => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/dashboard/sales-by-month`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  
+  downloadSalesReport: async (period) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/dashboard/sales-report/${period}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob'
+    });
+    return response.data; // this is the PDF blob
+  }, 
+
+  getTopUsedIngredients: async () => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/dashboard/top-used-ingredients`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data.ingredients;
   }
+  
 
 };
-  
+
+
 
 export default apiService;

@@ -197,12 +197,173 @@ const downloadStockOrderReceipt = async (req, res) => {
   }
 };
 
+// Get total sales for day, month, year
+const getSalesSummary = async (req, res) => {
+  try {
+    // Today
+    const [dayRows] = await db.query(
+      "SELECT IFNULL(SUM(total_amount), 0) AS total FROM Orders WHERE DATE(order_date) = CURDATE() AND status = 'Completed'"
+    );
+    // This month
+    const [monthRows] = await db.query(
+      "SELECT IFNULL(SUM(total_amount), 0) AS total FROM Orders WHERE YEAR(order_date) = YEAR(CURDATE()) AND MONTH(order_date) = MONTH(CURDATE()) AND status = 'Completed'"
+    );
+    // This year
+    const [yearRows] = await db.query(
+      "SELECT IFNULL(SUM(total_amount), 0) AS total FROM Orders WHERE YEAR(order_date) = YEAR(CURDATE()) AND status = 'Completed'"
+    );
+    res.json({
+      day: dayRows[0].total,
+      month: monthRows[0].total,
+      year: yearRows[0].total,
+    });
+  } catch (error) {
+    console.error('Error fetching sales summary:', error);
+    res.status(500).json({ error: 'Failed to fetch sales summary' });
+  }
+};
+
+// Download PDF sales report for day, month, year
+const downloadSalesReport = async (req, res) => {
+  try {
+    const { period } = req.params; // 'day', 'month', 'year'
+    let query = "";
+    let title = "";
+    let filename = "";
+
+    if (period === "day") {
+      query = "SELECT * FROM Orders WHERE DATE(order_date) = CURDATE() AND status = 'Completed'";
+      title = "Daily Sales Report";
+      filename = `sales-report-${new Date().toISOString().slice(0, 10)}.pdf`;
+    } else if (period === "month") {
+      query = "SELECT * FROM Orders WHERE YEAR(order_date) = YEAR(CURDATE()) AND MONTH(order_date) = MONTH(CURDATE()) AND status = 'Completed'";
+      title = "Monthly Sales Report";
+      const month = new Date().toISOString().slice(0, 7);
+      filename = `sales-report-${month}.pdf`;
+    } else if (period === "year") {
+      query = "SELECT * FROM Orders WHERE YEAR(order_date) = YEAR(CURDATE()) AND status = 'Completed'";
+      title = "Yearly Sales Report";
+      filename = `sales-report-${new Date().getFullYear()}.pdf`;
+    } else {
+      return res.status(400).json({ error: "Invalid period" });
+    }
+
+    const [orders] = await db.query(query);
+
+    // PDF generation
+    const doc = new PDFDocument({ margin: 40, size: "A4" });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    doc.pipe(res);
+
+    doc.fontSize(18).text("YummyYard", { align: "center" });
+    doc.fontSize(14).text(title, { align: "center" });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Generated: ${new Date().toLocaleString()}`);
+    doc.moveDown();
+
+    // Table setup
+    const startY = doc.y + 10;
+    const colX = [50, 120, 260, 380, 470]; // X positions for columns
+    const rowHeight = 20;
+
+    // Table Header
+    doc.font('Helvetica-Bold').fontSize(12);
+    doc.text('Order ID', colX[0], startY);
+    doc.text('Date', colX[1], startY);
+    doc.text('Customer', colX[2], startY);
+    doc.text('Amount', colX[3], startY, { width: colX[4] - colX[3], align: 'right' });
+    doc.text('Status', colX[4], startY);
+    doc.moveTo(50, startY + 15).lineTo(550, startY + 15).stroke();
+
+    doc.font('Helvetica').fontSize(11);
+    let y = startY + 20;
+    let total = 0;
+
+    orders.forEach(order => {
+      if (y > doc.page.height - 50) {
+        doc.addPage();
+        y = 50;
+      }
+      doc.text(order.order_id.toString(), colX[0], y);
+      doc.text(new Date(order.order_date).toLocaleString(), colX[1], y);
+      doc.text(
+        order.customer_id ? `Customer #${order.customer_id}` : `Staff #${order.staff_id}`,
+        colX[2], y
+      );
+      doc.text(`LKR ${Number(order.total_amount).toLocaleString()}`, colX[3], y, { width: colX[4] - colX[3], align: 'right' });
+      doc.text(order.status, colX[4], y);
+      y += rowHeight;
+      total += Number(order.total_amount);
+    });
+
+    doc.moveTo(50, y).lineTo(550, y).stroke();
+
+    doc.moveDown(2);
+    doc.font("Helvetica-Bold").fontSize(13).text(`Total Sales: LKR ${total.toLocaleString()}`, { align: "right" });
+
+    doc.end();
+  } catch (error) {
+    console.error("Error generating sales report:", error);
+    res.status(500).json({ error: "Failed to generate sales report" });
+  }
+};
+
+
+const getSalesByMonth = async (req, res) => {
+  try {
+    // Returns sales totals for each month of the current year
+    const [rows] = await db.query(`
+      SELECT MONTH(order_date) AS month, SUM(total_amount) AS total
+      FROM Orders
+      WHERE YEAR(order_date) = YEAR(CURDATE()) AND status = 'Completed'
+      GROUP BY MONTH(order_date)
+      ORDER BY month
+    `);
+    res.json(rows); // [{ month: 1, total: 10000 }, ...]
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch sales data' });
+  }
+};
+
+const getTopUsedIngredients = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        i.inventory_id,
+        i.item_name,
+        SUM(oi.quantity * mii.quantity_required) AS total_used
+      FROM
+        OrderItems oi
+        JOIN Orders o ON oi.order_id = o.order_id
+        JOIN MenuItemIngredients mii ON oi.item_id = mii.item_id
+        JOIN Inventory i ON mii.inventory_id = i.inventory_id
+      WHERE
+        o.status = 'Completed'
+      GROUP BY
+        i.inventory_id, i.item_name
+      ORDER BY
+        total_used DESC
+      LIMIT 3
+    `);
+    res.json({ success: true, ingredients: rows });
+  } catch (error) {
+    console.error('Error fetching top used ingredients:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch top used ingredients' });
+  }
+};
+
 module.exports = {
   getLowStockItems,
   getTopOrderedItems,
   getLeastOrderedItem,
+  getSalesSummary,
+  downloadSalesReport,
   createStockOrder,
+  getSalesByMonth,
   downloadStockOrderReceipt,
+  getTopUsedIngredients,
   getAllInventory
 
 };

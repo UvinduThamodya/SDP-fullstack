@@ -21,5 +21,11 @@ router.get('/least-ordered', authenticateAdmin,dashboardController.getLeastOrder
 router.post('/stock-orders', authenticateAdmin, dashboardController.createStockOrder);
 router.get('/inventory', authenticateAdmin,dashboardController.getAllInventory);
 router.get('/stock-orders/:orderId/receipt', authenticateUser, dashboardController.downloadStockOrderReceipt);
+router.get('/sales-summary', authenticateAdmin, dashboardController.getSalesSummary);
+router.get('/sales-report/:period', authenticateAdmin, dashboardController.downloadSalesReport);
+router.get('/sales-by-month', authenticateAdmin, dashboardController.getSalesByMonth);
+router.get('/top-used-ingredients', authenticateAdmin, dashboardController.getTopUsedIngredients);
+
+
 
 module.exports = router;    
