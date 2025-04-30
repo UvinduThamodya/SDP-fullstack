@@ -281,6 +281,32 @@ const apiService = {
     }
   },
 
+  // Update order status
+  updateOrderStatus: async (orderId, newStatus) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/orders/${orderId}/status`, { status: newStatus }, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+
+  // Get all orders
+  getAllOrders: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/orders/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all orders:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch orders');
+    }
+  },
+
   // Admin functions
   loginAdmin: async (credentials) => {
     try {

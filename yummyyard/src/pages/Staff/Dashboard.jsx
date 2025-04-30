@@ -1,403 +1,447 @@
-import React, { useState, useEffect } from 'react';
-import SidebarStaff from '../../components/SidebarStaff'; // Adjust path as needed
+import React, { useEffect, useState } from 'react';
+import apiService from '../../services/api';
+import io from 'socket.io-client';
 import {
-  Box, Typography, Container, Grid, Paper, Card, CardContent,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
-  FormControl, InputLabel, Select, MenuItem, Divider, Alert
+  Box, Container, Typography, Paper, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Button, Chip, Snackbar, Alert, Dialog, 
+  DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl,
+  InputLabel, Divider, Grid, Card, CardContent
 } from '@mui/material';
-import {
-  Warning as WarningIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  Inventory as InventoryIcon,
-  Receipt as ReceiptIcon,
-  ShoppingCart as ShoppingCartIcon
-} from '@mui/icons-material';
-import { format } from 'date-fns';
-import apiService from '../../services/api'; // Adjust path as needed
+import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
+import SidebarStaff from '../../components/SidebarStaff';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import EditIcon from '@mui/icons-material/Edit';
 
-// Dummy data
-const topItems = [
-  { id: 1, name: 'Pizza', order_count: 120, revenue: 24000 },
-  { id: 2, name: 'Burger', order_count: 90, revenue: 13500 },
-  { id: 3, name: 'Pasta', order_count: 70, revenue: 10500 }
-];
+// Note: Add this link to your index.html:
+// <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-const leastOrderedItem = { id: 4, name: 'Salad', order_count: 2, category: 'Starter', price: 500 };
+const SOCKET_URL = 'http://localhost:5000'; // Change to your backend URL
 
-const recentOrder = {
-  order_id: 101,
-  order_date: new Date(),
-  total_amount: 2500,
-  status: 'Completed',
-  items: [
-    { id: 1, name: 'Pizza', quantity: 1, price: 1200, subtotal: 1200 },
-    { id: 2, name: 'Burger', quantity: 1, price: 800, subtotal: 800 },
-    { id: 3, name: 'Juice', quantity: 1, price: 500, subtotal: 500 }
-  ]
+// Create a custom theme with Poppins font
+const theme = createTheme({
+  typography: {
+    fontFamily: 'Poppins, Arial, sans-serif',
+    h4: {
+      fontWeight: 600,
+      fontSize: '1.75rem',
+    },
+    h6: {
+      fontWeight: 500,
+      fontSize: '1.15rem',
+    },
+    body1: {
+      fontSize: '0.95rem',
+    },
+  },
+  palette: {
+    primary: {
+      main: '#1976d2',
+      dark: '#0d47a1',
+      light: '#42a5f5',
+    },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#f5f7fa',
+      paper: '#ffffff',
+    },
+    status: {
+      completed: '#388e3c',
+      pending: '#f57c00',
+      readyToPickUp: '#0288d1',
+      cancelled: '#d32f2f',
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 500,
+          borderRadius: 6,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 500,
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          '& .MuiTableCell-head': {
+            backgroundColor: '#f3f4f6',
+            fontWeight: 600,
+          },
+        },
+      },
+    },
+  },
+});
+
+const StatusChip = styled(Chip)(({ theme, status }) => ({
+  fontFamily: 'Poppins, Arial, sans-serif',
+  fontWeight: 500,
+  backgroundColor: 
+    status === 'Completed' ? '#e8f5e9' :
+    status === 'Pending' ? '#fff3e0' :
+    status === 'Ready to Pick up' ? '#e1f5fe' :
+    status === 'Cancelled' ? '#ffebee' :
+    '#f5f5f5',
+  color: 
+    status === 'Completed' ? theme.palette.status.completed :
+    status === 'Pending' ? theme.palette.status.pending :
+    status === 'Ready to Pick up' ? theme.palette.status.readyToPickUp :
+    status === 'Cancelled' ? theme.palette.status.cancelled :
+    '#616161',
+}));
+
+const PageHeader = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  marginBottom: theme.spacing(3),
+  '& svg': {
+    marginRight: theme.spacing(1.5),
+    fontSize: '2rem',
+    color: theme.palette.primary.main,
+  },
+}));
+
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  '& .MuiTableRow-root': {
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    },
+  },
+}));
+
+const ActionButton = styled(Button)(({ theme, color }) => ({
+  boxShadow: 'none',
+  minWidth: '130px',
+}));
+
+const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+  }).format(price);
 };
 
-const allIngredients = [
-  { id: 1, name: 'Tomato', unit: 'kg', unit_price: 200 },
-  { id: 2, name: 'Cheese', unit: 'kg', unit_price: 1500 },
-  { id: 3, name: 'Bread', unit: 'loaf', unit_price: 100 }
-];
+const statusOptions = ['Pending', 'Ready to Pick up', 'Completed', 'Cancelled'];
 
-export default function AdminDashboard() {
-  const [lowStockItems, setLowStockItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
-  const [selectedIngredient, setSelectedIngredient] = useState('');
-  const [orderQuantity, setOrderQuantity] = useState(1);
-  const [stockOrders, setStockOrders] = useState([]);
-  const [notification, setNotification] = useState(null);
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Completed': return 'success';
+    case 'Pending': return 'warning';
+    case 'Ready to Pick up': return 'info';
+    case 'Cancelled': return 'error';
+    default: return 'default';
+  }
+};
 
-  const currentDate = new Date();
+export default function StaffDashboard() {
+  const [orders, setOrders] = useState([]);
+  const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [statusDialog, setStatusDialog] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  
+  // Stats counters
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0
+  });
 
+  // Calculate stats based on orders
   useEffect(() => {
-    const fetchLowStock = async () => {
-      setLoading(true);
-      try {
-        const data = await apiService.getLowStockItems();
-        setLowStockItems(data.ingredients || []);
-      } catch (err) {
-        setError('Failed to load low stock data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLowStock();
+    if (!orders.length) return;
+    
+    const totalOrders = orders.length;
+    const pendingOrders = orders.filter(order => order.status === 'Pending').length;
+    const completedOrders = orders.filter(order => order.status === 'Completed').length;
+    const cancelledOrders = orders.filter(order => order.status === 'Cancelled').length;
+    
+    setStats({
+      totalOrders,
+      pendingOrders,
+      completedOrders,
+      cancelledOrders
+    });
+  }, [orders]);
+
+  // Function to handle "Change Status" button click
+  const handleChangeStatus = (order) => {
+    setSelectedOrder(order); // Set the selected order
+    setNewStatus(order.status); // Set the current status as the default value
+    setStatusDialog(true); // Open the status change dialog
+  };
+
+  // Connect to Socket.IO and fetch orders on mount
+  useEffect(() => {
+    const socket = io(SOCKET_URL);
+
+    socket.on('orderCreated', (order) => {
+      setOrders(prev => [order, ...prev]);
+      setNotification({ open: true, message: `New order #${order.order_id} placed!`, severity: 'info' });
+    });
+
+    socket.on('orderUpdated', (order) => {
+      setOrders(prev => prev.map(o => o.order_id === order.order_id ? order : o));
+      setNotification({ open: true, message: `Order #${order.order_id} updated!`, severity: 'success' });
+    });
+
+    // Initial fetch using apiService
+    fetchOrders();
+
+    return () => socket.disconnect();
   }, []);
 
-  // Inventory order handlers
-  const handleAddToOrder = () => {
-    if (!selectedIngredient || orderQuantity <= 0) return;
-    const ingredient = allIngredients.find(i => i.id === selectedIngredient);
-    if (!ingredient) return;
-    setStockOrders([
-      ...stockOrders,
-      {
-        id: Date.now(),
-        ingredient_id: ingredient.id,
-        name: ingredient.name,
-        quantity: orderQuantity,
-        unit: ingredient.unit,
-        unit_price: ingredient.unit_price,
-        total_price: ingredient.unit_price * orderQuantity
-      }
-    ]);
-    setSelectedIngredient('');
-    setOrderQuantity(1);
+  const fetchOrders = async () => {
+    try {
+      const response = await apiService.getAllOrders();
+      console.log('Fetched orders:', response);
+      setOrders(response.orders); // Access the actual array
+    } catch (error) {
+      setNotification({ open: true, message: 'Failed to fetch orders', severity: 'error' });
+    }
   };
 
-  const handleRemoveFromOrder = (orderId) => {
-    setStockOrders(stockOrders.filter(order => order.id !== orderId));
-  };
-
-  // Dummy PDF generation (replace with real PDF logic)
-  const handleDownloadReceipt = () => {
-    setNotification('Receipt would be downloaded here (implement PDF logic)');
-    setStockOrders([]);
-    setOrderDialogOpen(false);
+  const handleStatusUpdate = async () => {
+    try {
+      await apiService.updateOrderStatus(selectedOrder.order_id, newStatus);
+      setStatusDialog(false);
+      setSelectedOrder(null);
+      // No need to refetch; socket will update state
+    } catch (error) {
+      setNotification({ open: true, message: 'Failed to update status', severity: 'error' });
+    }
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', background: '#f5f5f5' }}>
-      <SidebarStaff/>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, ml: 0 }}>
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h4" gutterBottom>
-              Admin Dashboard
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {format(currentDate, 'EEEE, MMMM dd, yyyy')}
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<ShoppingCartIcon />}
-            onClick={() => setOrderDialogOpen(true)}
-          >
-            Order Inventory
-          </Button>
-        </Box>
-
-        {/* Low Stock Alert */}
-        <Paper sx={{ p: 2, mb: 3, backgroundColor: lowStockItems.length > 0 ? '#fff8e1' : 'white' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            {lowStockItems.length > 0 && <WarningIcon sx={{ color: 'warning.main', mr: 1 }} />}
-            <Typography variant="h6">
-              {lowStockItems.length > 0
-                ? `Low Stock Alert: ${lowStockItems.length} items below threshold`
-                : 'Inventory Status: All items in stock'}
-            </Typography>
-          </Box>
-          {loading && <Typography>Loading...</Typography>}
-          {error && <Alert severity="error">{error}</Alert>}
-          {lowStockItems.length > 0 && !loading && (
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Ingredient</TableCell>
-                    <TableCell align="right">Current Quantity</TableCell>
-                    <TableCell align="right">Threshold</TableCell>
-                    <TableCell align="right">Unit</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {lowStockItems.map(item => (
-                    <TableRow key={item.inventory_id}>
-                      <TableCell>{item.item_name}</TableCell>
-                      <TableCell align="right" sx={{ color: 'error.main', fontWeight: 'bold' }}>
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell align="right">{item.threshold}</TableCell>
-                      <TableCell align="right">{item.unit}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Paper>
-
-        {/* Analytics Section */}
-        <Grid container spacing={3}>
-          {/* Top Ordered Items */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography variant="h6">Top 3 Ordered Items</Typography>
-              </Box>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Rank</TableCell>
-                      <TableCell>Item</TableCell>
-                      <TableCell align="right">Orders</TableCell>
-                      <TableCell align="right">Revenue</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {topItems.map((item, idx) => (
-                      <TableRow key={item.id}>
-                        <TableCell>#{idx + 1}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell align="right">{item.order_count}</TableCell>
-                        <TableCell align="right">LKR {item.revenue.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Grid>
-
-          {/* Least Ordered Item */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TrendingDownIcon sx={{ color: 'error.main', mr: 1 }} />
-                <Typography variant="h6">Least Ordered Item</Typography>
-              </Box>
-              <Card variant="outlined" sx={{ mb: 2 }}>
-                <CardContent>
-                  <Typography variant="h6">{leastOrderedItem.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Category: {leastOrderedItem.category}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Price: LKR {leastOrderedItem.price}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 1 }}>
-                    Orders: <strong>{leastOrderedItem.order_count}</strong>
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Paper>
-          </Grid>
-
-          {/* Recent Order */}
-          <Grid item xs={12}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Most Recent Order by Staff
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Order #{recentOrder.order_id} - {format(recentOrder.order_date, 'MMM dd, yyyy HH:mm')}
-                </Typography>
-                <Typography variant="body1">
-                  Total: LKR {recentOrder.total_amount.toLocaleString()}
-                </Typography>
-                <Typography variant="body2">
-                  Status: <strong>{recentOrder.status}</strong>
-                </Typography>
-              </Box>
-              <Divider sx={{ mb: 2 }} />
-              <Typography variant="subtitle2">Order Items:</Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Item</TableCell>
-                      <TableCell align="right">Quantity</TableCell>
-                      <TableCell align="right">Price</TableCell>
-                      <TableCell align="right">Subtotal</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {recentOrder.items.map(item => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell align="right">{item.quantity}</TableCell>
-                        <TableCell align="right">LKR {item.price.toLocaleString()}</TableCell>
-                        <TableCell align="right">LKR {item.subtotal.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Inventory Order Dialog */}
-        <Dialog
-          open={orderDialogOpen}
-          onClose={() => setOrderDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <InventoryIcon sx={{ mr: 1 }} />
-              Order Inventory Stock
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ mb: 3, mt: 1 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel id="ingredient-select-label">Ingredient</InputLabel>
-                    <Select
-                      labelId="ingredient-select-label"
-                      value={selectedIngredient}
-                      label="Ingredient"
-                      onChange={e => setSelectedIngredient(e.target.value)}
-                    >
-                      {allIngredients.map(ingredient => (
-                        <MenuItem key={ingredient.id} value={ingredient.id}>
-                          {ingredient.name} ({ingredient.unit})
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Quantity"
-                    type="number"
-                    fullWidth
-                    value={orderQuantity}
-                    onChange={e => setOrderQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={2}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{ height: '56px' }}
-                    onClick={handleAddToOrder}
-                    disabled={!selectedIngredient}
-                  >
-                    Add
-                  </Button>
-                </Grid>
+    <ThemeProvider theme={theme}>
+      <Box sx={{ display: 'flex', backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
+        <SidebarStaff />
+        
+        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <PageHeader>
+              <DashboardIcon />
+              <Typography variant="h4">Staff Dashboard</Typography>
+            </PageHeader>
+            
+            {/* Stats Cards */}
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Total Orders
+                    </Typography>
+                    <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+                      {stats.totalOrders}
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Grid>
-            </Box>
-            {stockOrders.length > 0 ? (
-              <TableContainer component={Paper} variant="outlined">
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Pending Orders
+                    </Typography>
+                    <Typography variant="h5" component="div" sx={{ fontWeight: 600, color: theme.palette.status.pending }}>
+                      {stats.pendingOrders}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Completed Orders
+                    </Typography>
+                    <Typography variant="h5" component="div" sx={{ fontWeight: 600, color: theme.palette.status.completed }}>
+                      {stats.completedOrders}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Cancelled Orders
+                    </Typography>
+                    <Typography variant="h5" component="div" sx={{ fontWeight: 600, color: theme.palette.status.cancelled }}>
+                      {stats.cancelledOrders}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+            
+            <Paper sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <ReceiptLongIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                  <Typography variant="h6">All Orders</Typography>
+                </Box>
+
+              </Box>
+              
+              <Divider sx={{ mb: 2 }} />
+              
+              <StyledTableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Ingredient</TableCell>
-                      <TableCell align="right">Quantity</TableCell>
-                      <TableCell align="right">Unit</TableCell>
-                      <TableCell align="right">Unit Price</TableCell>
-                      <TableCell align="right">Total</TableCell>
-                      <TableCell align="center">Action</TableCell>
+                      <TableCell>Order ID</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Customer/Staff</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell align="center">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {stockOrders.map(order => (
-                      <TableRow key={order.id}>
-                        <TableCell>{order.name}</TableCell>
-                        <TableCell align="right">{order.quantity}</TableCell>
-                        <TableCell align="right">{order.unit}</TableCell>
-                        <TableCell align="right">LKR {order.unit_price.toLocaleString()}</TableCell>
-                        <TableCell align="right">LKR {order.total_price.toLocaleString()}</TableCell>
-                        <TableCell align="center">
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => handleRemoveFromOrder(order.id)}
-                          >
-                            Remove
-                          </Button>
+                    {orders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                          <Typography color="textSecondary">No orders available</Typography>
                         </TableCell>
                       </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell colSpan={4} align="right" sx={{ fontWeight: 'bold' }}>
-                        Total:
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                        LKR {stockOrders.reduce((sum, order) => sum + order.total_price, 0).toLocaleString()}
-                      </TableCell>
-                      <TableCell />
-                    </TableRow>
+                    ) : (
+                      orders.map(order => (
+                        <TableRow key={order.order_id}>
+                          <TableCell sx={{ fontWeight: 500 }}>{order.order_id}</TableCell>
+                          <TableCell>{new Date(order.order_date).toLocaleString()}</TableCell>
+                          <TableCell>{order.customer_id ? `Customer #${order.customer_id}` : `Staff #${order.staff_id}`}</TableCell>
+                          <TableCell>
+                            <StatusChip 
+                              label={order.status} 
+                              status={order.status} 
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500 }}>{formatCurrency(order.total_amount)}</TableCell>
+                          <TableCell align="center">
+                            <ActionButton 
+                              variant="outlined" 
+                              size="small" 
+                              startIcon={<EditIcon />}
+                              onClick={() => handleChangeStatus(order)}
+                            >
+                              Change Status
+                            </ActionButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
-              </TableContainer>
-            ) : (
-              <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                No items added to order yet
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 3 }}>
-            <Button onClick={() => setOrderDialogOpen(false)}>Cancel</Button>
-            <Button
-              variant="contained"
-              startIcon={<ReceiptIcon />}
-              onClick={handleDownloadReceipt}
-              disabled={stockOrders.length === 0}
-            >
-              Generate Receipt
-            </Button>
-          </DialogActions>
-        </Dialog>
+              </StyledTableContainer>
+            </Paper>
 
-        {/* Notification */}
-        {notification && (
-          <Alert
-            severity="info"
-            onClose={() => setNotification(null)}
-            sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 9999 }}
-          >
-            {notification}
-          </Alert>
-        )}
-      </Container>
-    </Box>
+            {/* Status Change Dialog */}
+            <Dialog 
+              open={statusDialog} 
+              onClose={() => setStatusDialog(false)}
+              PaperProps={{
+                sx: {
+                  borderRadius: 2,
+                  width: '400px',
+                  maxWidth: '100%'
+                }
+              }}
+            >
+              <DialogTitle sx={{ 
+                borderBottom: '1px solid #e0e0e0',
+                fontWeight: 600
+              }}>
+                Change Order Status
+              </DialogTitle>
+              <DialogContent sx={{ pt: 3, pb: 1 }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500 }}>
+                  Order #{selectedOrder?.order_id}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                  {selectedOrder && new Date(selectedOrder.order_date).toLocaleString()}
+                </Typography>
+                
+                <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
+                  <InputLabel id="status-select-label">Status</InputLabel>
+                  <Select
+                    labelId="status-select-label"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    label="Status"
+                  >
+                    {statusOptions.map(status => (
+                      <MenuItem key={status} value={status}>
+                        <StatusChip 
+                          label={status} 
+                          status={status} 
+                          size="small" 
+                        />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
+                <Button onClick={() => setStatusDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleStatusUpdate} 
+                  variant="contained"
+                  color="primary"
+                >
+                  Update
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Notification Snackbar */}
+            <Snackbar
+              open={notification.open}
+              autoHideDuration={4000}
+              onClose={() => setNotification({ ...notification, open: false })}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Alert 
+                severity={notification.severity}
+                sx={{ 
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  borderRadius: 2,
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                {notification.message}
+              </Alert>
+            </Snackbar>
+          </Container>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 }

@@ -400,7 +400,7 @@ const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 const PDFDocument = require('pdfkit');
 
-// Existing createOrder function
+
 const createOrder = async (req, res) => {
   const connection = await db.getConnection();
   try {
@@ -413,8 +413,16 @@ const createOrder = async (req, res) => {
 
     // 2. Validate input
     if (!items || !Array.isArray(items) || items.length === 0) {
+      await connection.rollback();
       return res.status(400).json({ error: 'Invalid order items' });
     }
+    if (!payment || !payment.method || payment.amount === undefined) {
+      await connection.rollback();
+      return res.status(400).json({ error: 'Invalid payment information' });
+    }
+
+    // Normalize payment method
+    const paymentMethod = payment.method.toLowerCase();
 
     // 3. Create order record
     const [orderResult] = await connection.query(
@@ -422,10 +430,10 @@ const createOrder = async (req, res) => {
       (customer_id, staff_id, total_amount, status) 
       VALUES (?, ?, ?, ?)`,
       [
-        userRole === 'customer' ? userId : null,  // Set customer_id if customer
-        userRole === 'Staff' ? userId : null,     // Set staff_id if staff
+        userRole === 'customer' ? userId : null,
+        (userRole === 'Staff' || userRole === 'Admin') ? userId : null,
         payment.amount,
-        userRole === 'Staff' ? 'Completed' : 'Pending'
+        'Pending'
       ]
     );
     const orderId = orderResult.insertId;
@@ -446,8 +454,8 @@ const createOrder = async (req, res) => {
     }
 
     // 5. Generate payment ID (Stripe ID for cards, UUID for cash)
-    const paymentId = payment.method === 'card' 
-      ? payment.stripeToken 
+    const paymentId = paymentMethod === 'card'
+      ? payment.stripeToken
       : `cash-${uuidv4()}`;
 
     // 6. Record payment
@@ -458,7 +466,7 @@ const createOrder = async (req, res) => {
       [
         orderId,
         payment.amount,
-        payment.method,
+        paymentMethod,
         paymentId
       ]
     );
@@ -469,7 +477,6 @@ const createOrder = async (req, res) => {
         'SELECT cart_id FROM Cart WHERE customer_id = ?',
         [userId]
       );
-      
       if (cartResult?.length > 0) {
         await connection.query(
           'DELETE FROM CartItems WHERE cart_id = ?',
@@ -479,7 +486,18 @@ const createOrder = async (req, res) => {
     }
 
     await connection.commit();
-    
+
+    // 8. Emit real-time event for staff dashboard (Socket.IO)
+    try {
+      // Fetch the full order (with items) to emit
+      const [orderRows] = await connection.query('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+      const newOrder = orderRows[0];
+      req.app.get('io').emit('orderCreated', newOrder);
+    } catch (emitError) {
+      // Log but don't block order creation if emit fails
+      console.error('Socket emit error:', emitError);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
@@ -490,15 +508,24 @@ const createOrder = async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error('Order creation error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Order processing failed',
-      details: error.message
-    });
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid item ID or customer ID',
+        details: error.message
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Order processing failed',
+        details: error.message
+      });
+    }
   } finally {
     connection.release();
   }
 };
+
 
 // New function: Get order history for logged-in customer
 const getCustomerOrders = async (req, res) => {
@@ -712,11 +739,56 @@ const formatPDFReceipt = (doc, orderDetails) => {
   }
 };
 
+// Update order status
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
 
+    // Update order in the database
+    await db.query('UPDATE Orders SET status = ? WHERE order_id = ?', [status, orderId]);
+
+    // Fetch the updated order
+    const [orderRows] = await db.query('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+    if (!orderRows.length) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const updatedOrder = orderRows[0];
+
+    // Emit event to all staff dashboards
+    req.app.get('io').emit('orderUpdated', updatedOrder);
+
+    res.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+};
+
+// Get all orders
+const getAllOrders = async (req, res) => {
+  try {
+    // Fetch all orders with customer and staff details
+    const [orders] = await db.query(`
+      SELECT o.*, c.name AS customer_name, s.name AS staff_name
+      FROM Orders o
+      LEFT JOIN Customers c ON o.customer_id = c.customer_id
+      LEFT JOIN Employees s ON o.staff_id = s.employee_id
+      ORDER BY o.order_date DESC
+    `);
+
+    res.json({ orders });
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+};
 
 module.exports = {
   createOrder,
   getCustomerOrders,
   getOrderDetails,
-  generateOrderReceipt
+  generateOrderReceipt,
+  getAllOrders,
+  updateOrderStatus
 };
