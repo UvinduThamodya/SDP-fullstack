@@ -11,13 +11,15 @@ const { authenticateUser, authenticateAdmin } = require('../middleware/authMiddl
 
 // // Inventory management endpoints
 // router.get('/inventory/ingredients', authenticateAdmin, dashboardController.getAllIngredients);
-// router.post('/inventory/orders', authenticateAdmin, dashboardController.createStockOrder);
+
 // router.get('/inventory/orders/:orderId/receipt', authenticateAdmin, dashboardController.downloadStockOrderReceipt);
 
 // Ensure all functions exist in dashboardController
 router.get('/inventory/low-stock', authenticateAdmin,dashboardController.getLowStockItems);
 router.get('/inventory/top-ordered', authenticateAdmin,dashboardController.getTopOrderedItems);
-router.get('/least-ordered', dashboardController.getLeastOrderedItem);
-router.get('/inventory', dashboardController.getAllInventory);
+router.get('/least-ordered', authenticateAdmin,dashboardController.getLeastOrderedItem);
+router.post('/stock-orders', authenticateAdmin, dashboardController.createStockOrder);
+router.get('/inventory', authenticateAdmin,dashboardController.getAllInventory);
+router.get('/stock-orders/:orderId/receipt', authenticateUser, dashboardController.downloadStockOrderReceipt);
 
 module.exports = router;    

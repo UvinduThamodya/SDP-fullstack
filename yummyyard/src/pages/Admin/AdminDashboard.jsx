@@ -99,20 +99,27 @@ export default function AdminDashboard() {
     setLoading(prev => ({ ...prev, ingredients: true }));
     try {
       const data = await apiService.getAllIngredients();
-      setAllIngredients(data.ingredients || []);
+      // Map backend fields to frontend-friendly names
+      const mapped = (data.ingredients || []).map(ing => ({
+        id: ing.inventory_id,
+        name: ing.item_name,
+        unit: ing.unit,
+        unit_price: ing.unit_price
+      }));
+      setAllIngredients(mapped);
     } catch (err) {
       setError(prev => ({ ...prev, ingredients: 'Failed to load ingredients data.' }));
     } finally {
       setLoading(prev => ({ ...prev, ingredients: false }));
     }
   };
+  
 
   // Inventory order handlers
   const handleAddToOrder = () => {
     if (!selectedIngredient || orderQuantity <= 0) return;
     const ingredient = allIngredients.find(i => i.id === parseInt(selectedIngredient));
     if (!ingredient) return;
-    
     setStockOrders([
       ...stockOrders,
       {
@@ -125,10 +132,10 @@ export default function AdminDashboard() {
         total_price: ingredient.unit_price * orderQuantity
       }
     ]);
-    
     setSelectedIngredient('');
     setOrderQuantity(1);
   };
+  
 
   const handleRemoveFromOrder = (orderId) => {
     setStockOrders(stockOrders.filter(order => order.id !== orderId));
@@ -140,15 +147,18 @@ export default function AdminDashboard() {
     
     setSubmitting(true);
     try {
+      
       // Prepare order items
       const items = stockOrders.map(item => ({
+        
         ingredient_id: item.ingredient_id,
         quantity: item.quantity,
-        unit_price: item.unit_price
+        unit_price: item.unit_price,
+        total_price: item.total_price
       }));
-      
+      const totalAmount = items.reduce((sum, i) => sum + i.total_price, 0);
       // Submit order
-      const result = await apiService.createStockOrder({ items });
+      const result = await apiService.createStockOrder({ items,totalAmount });
       
       // Download receipt
       if (result.success && result.stockOrderId) {
@@ -354,15 +364,16 @@ export default function AdminDashboard() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Quantity"
-                    type="number"
-                    fullWidth
-                    value={orderQuantity}
-                    onChange={e => setOrderQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-                    InputProps={{ inputProps: { min: 1 } }}
-                    disabled={submitting}
-                  />
+                <TextField
+  label="Quantity"
+  type="number"
+  fullWidth
+  value={orderQuantity}
+  onChange={e => setOrderQuantity(Math.max(1, parseInt(e.target.value) || 0))}
+  InputProps={{ inputProps: { min: 1 } }}
+  disabled={submitting}
+/>
+
                 </Grid>
                 <Grid item xs={12} sm={2}>
                   <Button

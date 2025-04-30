@@ -1,147 +1,3 @@
-// import axios from 'axios';
-
-// const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// const apiService = {
-//   registerStaff: async (staffData) => {
-//     try {
-//       const response = await axios.post(`${API_URL}/auth/staff/register`, staffData, {
-//         headers: { "Content-Type": "application/json" },
-//       });
-//       return response.data;
-//     } catch (error) {
-//       console.error("Staff registration error:", error.response?.data || error.message);
-//       throw error;
-//     }
-//   },
-
-//   loginStaff: async (credentials) => {
-//     try {
-//       const response = await axios.post(`${API_URL}/auth/staff/login`, credentials, {
-//         headers: { "Content-Type": "application/json" },
-//       });
-
-//       // Store staffId in localStorage after successful login
-//       if (response.data && response.data.staff && response.data.staff.id) {
-//         localStorage.setItem('staffId', response.data.staff.id);
-//       }
-
-//       return response.data;
-//     } catch (error) {
-//       console.error("Staff login error:", error.response?.data || error.message);
-//       throw error;
-//     }
-//   },
-
-//   registerCustomer: async (customerData) => {
-//     try {
-//       const response = await axios.post(`${API_URL}/auth/customer/register`, customerData, {
-//         headers: { "Content-Type": "application/json" },
-//       });
-//       return response.data;
-//     } catch (error) {
-//       console.error("Customer registration error:", error.response?.data || error.message);
-//       throw error;
-//     }
-//   },
-
-//   loginCustomer: async (credentials) => {
-//     try {
-//       const response = await axios.post(`${API_URL}/auth/customer/login`, credentials, {
-//         headers: { "Content-Type": "application/json" },
-//       });
-//       return response.data;
-//     } catch (error) {
-//       console.error("Customer login error:", error.response?.data || error.message);
-//       throw error;
-//     }
-//   },
-
-//   getUserProfile: async (userId) => {
-//     try {
-//       const response = await axios.get(`${API_URL}/users/${userId}`);
-//       return response.data;
-//     } catch (error) {
-//       throw new Error(error.response?.data?.error || 'Failed to fetch user profile.');
-//     }
-//   },
-
-//   getStaffProfile: async (staffId) => {
-//     try {
-//       const response = await axios.get(`${API_URL}/staff/${staffId}`, {
-//         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-//       });
-//       return response.data;
-//     } catch (error) {
-//       console.error('Error fetching staff profile:', error);
-//       throw error;
-//     }
-//   },
-
-//   updateStaffProfile: async (id, data) => {
-//     const response = await axios.put(`${API_URL}/staff/${id}`, data, {
-//       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-//     });
-//     return response.data;
-//   },
-
-// // Create Order
-//   // createOrder: async (orderData) => {
-//   //   try {
-//   //     const token = localStorage.getItem('token'); // Retrieve the JWT token from localStorage
-//   //     const response = await axios.post(`${API_URL}/orders`, orderData, {
-//   //       headers: {
-//   //         'Content-Type': 'application/json',
-//   //         'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
-//   //       },
-//   //     });
-//   //     return response.data;
-//   //   } catch (error) {
-//   //     console.error('Error creating order:', error.response?.data || error.message);
-//   //     throw error;
-//   //   }
-//   // }
-//   // services/api.js
-//   createOrder: async (orderData) => {
-//     try {
-//       const response = await axios.post('/api/orders', orderData, {
-//         headers: { 
-//           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-//           'Content-Type': 'application/json'
-//         }
-//       });
-//       return response.data;
-//     } catch (error) {
-//       throw new Error(error.response?.data?.error || 'Order failed');
-//     }
-//   },
-
-//   updateAdminProfile: async (adminId, profileData) => {
-//     const token = localStorage.getItem('token');
-
-//     if (!token) {
-//       throw new Error('Authentication required');
-//     }
-
-//     const response = await fetch(`http://localhost:5000/api/admin/profile/${adminId}`, {
-//       method: 'PUT',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Authorization': `Bearer ${token}`
-//       },
-//       body: JSON.stringify(profileData)
-//     });
-
-//     if (!response.ok) {
-//       throw new Error('Failed to update profile');
-//     }
-
-//     return response.json();
-//   },
-// };
-
-// export default apiService;
-
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -466,7 +322,7 @@ const apiService = {
   createStockOrder: async (orderData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/inventory/orders`, orderData, {
+      const response = await axios.post(`${API_URL}/dashboard/stock-orders`, orderData, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -482,7 +338,7 @@ const apiService = {
   downloadStockOrderReceipt: async (orderId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/inventory/orders/${orderId}/receipt`, {
+      const response = await axios.get(`${API_URL}/dashboard/stock-orders/${orderId}/receipt`, {
         headers: { 'Authorization': `Bearer ${token}` },
         responseType: 'blob'
       });
