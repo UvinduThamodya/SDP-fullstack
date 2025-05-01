@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const menuItemController = require('../controllers/menuItemController');
 const { upload, handleImageUpload } = require('../middleware/imageUpload');
+const { authenticateAdmin } = require('../middleware/authMiddleware');
+
 // Route to get all menu items
 router.get('/', menuItemController.getAllMenuItems);
 
@@ -18,6 +20,7 @@ router.post('/',
 );
 
 // Update menu item
+router.put('/:id', menuItemController.updateMenuItem);
 router.patch('/:id', menuItemController.updateMenuItem);
 
 // Update menu item image
@@ -26,3 +29,9 @@ router.patch('/:id/image',
   handleImageUpload,
   menuItemController.updateMenuItemImage
 );
+
+router.get('/menu-items', authenticateAdmin, menuItemController.getAllMenuItems);
+router.post('/menu-items', authenticateAdmin, menuItemController.addMenuItem);
+router.put('/menu-items/:id', authenticateAdmin, menuItemController.updateMenuItem);
+router.delete('/:id', authenticateAdmin, menuItemController.deleteMenuItem);
+  

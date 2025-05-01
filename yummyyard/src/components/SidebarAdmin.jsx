@@ -37,6 +37,12 @@ const SidebarAdmin = () => {
           </ListItemIcon>
           <ListItemText primary="Accounts" />
         </ListItem>
+        <ListItem button onClick={() => handleNavigation('/adminmenu')}>
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+          <ListItemText primary="Menu" />
+        </ListItem>
         <ListItem button onClick={() => handleNavigation('/adminprofile')}>
           <ListItemIcon>
             <AccountCircleIcon />

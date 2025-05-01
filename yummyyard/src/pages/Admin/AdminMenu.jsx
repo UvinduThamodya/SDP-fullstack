@@ -1,0 +1,600 @@
+import React, { useState, useEffect } from "react";
+import {
+  Box, Typography, Container, Grid, Card, CardMedia, CardContent, CardActions,
+  Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, 
+  Snackbar, Alert, FormControl, InputLabel, Select, MenuItem, Paper, Divider,
+  ThemeProvider, createTheme, CssBaseline
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import MenuService from "../../services/menuService";
+import AdminSidebar from "../../components/SidebarAdmin";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+
+// Create a custom theme with Poppins font
+const theme = createTheme({
+  typography: {
+    fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 500,
+    },
+    button: {
+      fontWeight: 500,
+      textTransform: 'none',
+    },
+  },
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#f5f5f7',
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          boxShadow: '0 3px 10px rgba(0,0,0,0.08)',
+          transition: 'transform 0.2s',
+          '&:hover': {
+            boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
+          },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        contained: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 8,
+          },
+        },
+      },
+    },
+  },
+});
+
+const UPLOAD_PRESET = "menuitem_upload_preset";
+const CLOUDINARY_CLOUD_NAME = "ddly9e3qr";
+
+function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  
+  return fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+    method: "POST",
+    body: formData,
+  })
+    .then(res => res.json())
+    .then(data => data.secure_url);
+}
+
+export default function AdminMenu() {
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [currentItem, setCurrentItem] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    category: "",
+    price: "",
+    description: "",
+    image_url: ""
+  });  
+  const [addForm, setAddForm] = useState({ 
+    name: "", 
+    price: "", 
+    image_url: "", 
+    category: "",
+    description: "" 
+  });
+  const [imageUploading, setImageUploading] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const [notificationSeverity, setNotificationSeverity] = useState("info");
+
+  useEffect(() => {
+    fetchMenu();
+  }, []);
+
+  const fetchMenu = async () => {
+    setLoading(true);
+    try {
+      const items = await MenuService.getMenuItems();
+      setMenuItems(items);
+    } catch (err) {
+      showNotification("Failed to load menu items.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showNotification = (message, severity = "info") => {
+    setNotification(message);
+    setNotificationSeverity(severity);
+  };
+
+  // --- Edit ---
+  const handleEditOpen = (item) => {
+    setCurrentItem(item);
+    setEditForm({
+        name: item.name || "",
+        price: item.price || "",
+        image_url: item.image_url || "",
+        category: item.category || "",
+        description: item.description || ""
+    });      
+    setEditDialogOpen(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const handleEditImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setEditForm((f) => ({ ...f, image_url: url }));
+    } catch {
+      showNotification("Image upload failed.", "error");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    const { name, price, category, image_url } = editForm;
+    if (!name || !price || !category || !image_url) {
+      showNotification("All fields are required.", "warning");
+      return;
+    }
+    try {
+      await MenuService.updateMenuItem(currentItem.item_id, {
+        name,
+        price,
+        category,
+        image_url,
+        description: editForm.description || ""
+      });
+      showNotification("Menu item updated successfully.", "success");
+      setEditDialogOpen(false);
+      fetchMenu();
+    } catch {
+      showNotification("Update failed. Please try again.", "error");
+    }
+  };  
+  
+  // --- Add ---
+  const handleAddOpen = () => {
+    setAddForm({ name: "", price: "", image_url: "", category: "", description: "" });
+    setAddDialogOpen(true);
+  };
+
+  const handleAddChange = (event) => {
+    const { name, value } = event.target;
+    setAddForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAddImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setAddForm((f) => ({ ...f, image_url: url }));
+    } catch {
+      showNotification("Image upload failed.", "error");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleAddSubmit = async () => {
+    const { name, price, category, image_url } = addForm;
+  
+    if (!name || !price || !category || !image_url) {
+      showNotification("All fields are required.", "warning");
+      return;
+    }
+  
+    try {
+      await MenuService.addMenuItem({
+        name,
+        price,
+        category,
+        image_url,
+        description: addForm.description || ""
+      });
+      showNotification("Menu item added successfully.", "success");
+      setAddDialogOpen(false);
+      fetchMenu();
+    } catch (error) {
+      console.error("Add error:", error);
+      showNotification("Failed to add item. Please try again.", "error");
+    }
+  };
+
+  const handleDeleteMenuItem = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this menu item?")) return;
+    try {
+      await MenuService.deleteMenuItem(id);
+      showNotification("Menu item deleted.", "success");
+      fetchMenu();
+    } catch (error) {
+      showNotification("Delete failed. Please try again.", "error");
+    }
+  };
+
+  // Get unique categories for filtering
+  const categories = [...new Set(menuItems.map(item => item.category))];
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: "flex" }}>
+        <AdminSidebar />
+        <Box 
+          component="main" 
+          sx={{ 
+            flexGrow: 1, 
+            p: 3,
+            backgroundColor: "background.default",
+            minHeight: "100vh"
+          }}
+        >
+          <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 3, 
+                mb: 4, 
+                borderRadius: 2,
+                backgroundColor: '#fff'
+              }}
+            >
+              <Box sx={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center", 
+                mb: 2 
+              }}>
+                <Typography variant="h4" color="primary">
+                  Menu Management
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddOpen}
+                >
+                  Add New Item
+                </Button>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                {menuItems.map((item) => (
+                  <Grid item xs={12} sm={6} md={4} key={item.item_id}>
+                    <Card>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        image={item.image_url}
+                        alt={item.name}
+                        sx={{ objectFit: "cover" }}
+                      />
+                      <CardContent>
+                        <Typography variant="h6">{item.name}</Typography>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{ mb: 1 }}
+                        >
+                          {item.category}
+                        </Typography>
+                        <Typography variant="subtitle1" color="primary" fontWeight="medium">
+                          LKR {Number(item.price).toLocaleString()}
+                        </Typography>
+                        {item.description && (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, height: 40, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.description}
+                          </Typography>
+                        )}
+                      </CardContent>
+                      <CardActions sx={{ justifyContent: 'flex-end' }}>
+                        <IconButton 
+                          onClick={() => handleEditOpen(item)}
+                          color="primary"
+                          size="small"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton 
+                          color="error" 
+                          size="small" 
+                          onClick={() => handleDeleteMenuItem(item.item_id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+          </Container>
+
+          {/* Edit Dialog */}
+          <Dialog 
+            open={editDialogOpen} 
+            onClose={() => setEditDialogOpen(false)} 
+            maxWidth="sm" 
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle sx={{ pb: 1 }}>
+              <Typography variant="h5" fontWeight="medium">Edit Menu Item</Typography>
+            </DialogTitle>
+            <DialogContent>
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Name"
+                    fullWidth
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleEditChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Price (LKR)"
+                    fullWidth
+                    name="price"
+                    type="number"
+                    value={editForm.price}
+                    onChange={handleEditChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel>Category</InputLabel>
+                    <Select
+                      name="category"
+                      value={editForm.category}
+                      label="Category"
+                      onChange={handleEditChange}
+                    >
+                      <MenuItem value="Main-Dishes">Main Dishes</MenuItem>
+                      <MenuItem value="Sea-Food">Sea Food</MenuItem>
+                      <MenuItem value="Desserts">Desserts</MenuItem>
+                      <MenuItem value="Beverage">Beverage</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Description"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    name="description"
+                    value={editForm.description}
+                    onChange={handleEditChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Box sx={{ mb: 2 }}>
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      disabled={imageUploading}
+                      fullWidth
+                      sx={{ py: 1.5 }}
+                    >
+                      {imageUploading ? "Uploading..." : "Change Image"}
+                      <input type="file" accept="image/*" hidden onChange={handleEditImage} />
+                    </Button>
+                  </Box>
+                  {editForm.image_url && (
+                    <Paper variant="outlined" sx={{ p: 1, mt: 2, borderRadius: 2 }}>
+                      <img 
+                        src={editForm.image_url} 
+                        alt="Preview" 
+                        style={{ 
+                          width: "100%", 
+                          height: 180, 
+                          objectFit: "cover",
+                          borderRadius: 8 
+                        }} 
+                      />
+                    </Paper>
+                  )}
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3 }}>
+              <Button 
+                onClick={() => setEditDialogOpen(false)}
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={handleEditSubmit} 
+                disabled={imageUploading}
+              >
+                Save Changes
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Add Dialog */}
+          <Dialog 
+            open={addDialogOpen} 
+            onClose={() => setAddDialogOpen(false)} 
+            maxWidth="sm" 
+            fullWidth
+            PaperProps={{
+              sx: { borderRadius: 2 }
+            }}
+          >
+            <DialogTitle sx={{ pb: 1 }}>
+              <Typography variant="h5" fontWeight="medium">Add New Menu Item</Typography>
+            </DialogTitle>
+            <DialogContent>
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Name"
+                    fullWidth
+                    name="name"
+                    value={addForm.name}
+                    onChange={handleAddChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Price (LKR)"
+                    fullWidth
+                    name="price"
+                    type="number"
+                    value={addForm.price}
+                    onChange={handleAddChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel>Category</InputLabel>
+                    <Select
+                      name="category"
+                      value={addForm.category}
+                      label="Category"
+                      onChange={handleAddChange}
+                    >
+                      <MenuItem value="Main-Dishes">Main Dishes</MenuItem>
+                      <MenuItem value="Sea-Food">Sea Food</MenuItem>
+                      <MenuItem value="Desserts">Desserts</MenuItem>
+                      <MenuItem value="Beverage">Beverage</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Description"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    name="description"
+                    value={addForm.description}
+                    onChange={handleAddChange}
+                    variant="outlined"
+                    placeholder="Enter a brief description (optional)"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Box sx={{ mb: 2 }}>
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      disabled={imageUploading}
+                      fullWidth
+                      sx={{ py: 1.5 }}
+                    >
+                      {imageUploading ? "Uploading..." : "Upload Image"}
+                      <input type="file" accept="image/*" hidden onChange={handleAddImage} />
+                    </Button>
+                  </Box>
+                  {addForm.image_url && (
+                    <Paper variant="outlined" sx={{ p: 1, mt: 2, borderRadius: 2 }}>
+                      <img 
+                        src={addForm.image_url} 
+                        alt="Preview" 
+                        style={{ 
+                          width: "100%", 
+                          height: 180, 
+                          objectFit: "cover",
+                          borderRadius: 8 
+                        }} 
+                      />
+                    </Paper>
+                  )}
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3 }}>
+              <Button 
+                onClick={() => setAddDialogOpen(false)}
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={handleAddSubmit} 
+                disabled={imageUploading}
+              >
+                Add Item
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Notification */}
+          <Snackbar
+            open={!!notification}
+            autoHideDuration={4000}
+            onClose={() => setNotification(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Alert 
+              onClose={() => setNotification(null)} 
+              severity={notificationSeverity} 
+              variant="filled"
+              sx={{ width: '100%' }}
+            >
+              {notification}
+            </Alert>
+          </Snackbar>
+        </Box>
+      </Box>
+    </ThemeProvider>
+  );
+}
