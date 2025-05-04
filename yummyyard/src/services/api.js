@@ -398,13 +398,21 @@ const apiService = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data.ingredients;
+  },
+
+  generateOrderReport: async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/report`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob' // Important for PDF download
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error generating order report:', error);
+    throw new Error(error.response?.data?.message || 'Failed to generate order report');
   }
-  
-  
-
-
-
-
+}
 
 
 };

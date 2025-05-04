@@ -9,7 +9,7 @@ CREATE TABLE Customers (
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20) NOT NULL,
     address TEXT,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL  
 );
 
 -- Menu Items Table
@@ -361,3 +361,4 @@ MODIFY status ENUM('Pending', 'Preparing', 'Ready to Pick up', 'Completed', 'Can
 DEFAULT 'Pending';
 
 
+and under the section All Orders i only need to see the orders placed on that day only

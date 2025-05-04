@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import apiService from '../../services/api';
 import io from 'socket.io-client';
+import Swal from 'sweetalert2';
 import {
   Box, Container, Typography, Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Button, Chip, Snackbar, Alert, Dialog, 
@@ -12,6 +13,7 @@ import SidebarStaff from '../../components/SidebarStaff';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import EditIcon from '@mui/icons-material/Edit';
+import DownloadIcon from '@mui/icons-material/Download';
 
 // Note: Add this link to your index.html:
 // <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -98,13 +100,11 @@ const StatusChip = styled(Chip)(({ theme, status }) => ({
   backgroundColor: 
     status === 'Completed' ? '#e8f5e9' :
     status === 'Pending' ? '#fff3e0' :
-    status === 'Ready to Pick up' ? '#e1f5fe' :
     status === 'Cancelled' ? '#ffebee' :
     '#f5f5f5',
   color: 
     status === 'Completed' ? theme.palette.status.completed :
     status === 'Pending' ? theme.palette.status.pending :
-    status === 'Ready to Pick up' ? theme.palette.status.readyToPickUp :
     status === 'Cancelled' ? theme.palette.status.cancelled :
     '#616161',
 }));
@@ -142,13 +142,12 @@ const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   }).format(price);
 };
 
-const statusOptions = ['Pending', 'Ready to Pick up', 'Completed', 'Cancelled'];
+const statusOptions = ['Pending', 'Completed', 'Cancelled'];
 
 const getStatusColor = (status) => {
   switch (status) {
     case 'Completed': return 'success';
     case 'Pending': return 'warning';
-    case 'Ready to Pick up': return 'info';
     case 'Cancelled': return 'error';
     default: return 'default';
   }
@@ -161,28 +160,31 @@ export default function StaffDashboard() {
   const [statusDialog, setStatusDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   
-  // Stats counters
-  const [stats, setStats] = useState({
+  // Daily stats counters
+  const [dailyStats, setDailyStats] = useState({
     totalOrders: 0,
     pendingOrders: 0,
     completedOrders: 0,
-    cancelledOrders: 0
+    cancelledOrders: 0,
   });
 
-  // Calculate stats based on orders
+  // Calculate daily stats based on orders
   useEffect(() => {
     if (!orders.length) return;
-    
-    const totalOrders = orders.length;
-    const pendingOrders = orders.filter(order => order.status === 'Pending').length;
-    const completedOrders = orders.filter(order => order.status === 'Completed').length;
-    const cancelledOrders = orders.filter(order => order.status === 'Cancelled').length;
-    
-    setStats({
+
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    const dailyOrders = orders.filter(order => order.order_date.startsWith(today));
+
+    const totalOrders = dailyOrders.length;
+    const pendingOrders = dailyOrders.filter(order => order.status === 'Pending').length;
+    const completedOrders = dailyOrders.filter(order => order.status === 'Completed').length;
+    const cancelledOrders = dailyOrders.filter(order => order.status === 'Cancelled').length;
+
+    setDailyStats({
       totalOrders,
       pendingOrders,
       completedOrders,
-      cancelledOrders
+      cancelledOrders,
     });
   }, [orders]);
 
@@ -191,6 +193,21 @@ export default function StaffDashboard() {
     setSelectedOrder(order); // Set the selected order
     setNewStatus(order.status); // Set the current status as the default value
     setStatusDialog(true); // Open the status change dialog
+  };
+
+  // Function to show notification for new orders
+  const showNewOrderAlert = (orderData) => {
+    Swal.fire({
+      title: 'New Order!',
+      text: `Order #${orderData.order_id} has been placed`,
+      icon: 'info',
+      confirmButtonText: 'View Details'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Example: Navigate to order details or update UI
+        // navigate(`/orders/${orderData.order_id}`);
+      }
+    });
   };
 
   // Connect to Socket.IO and fetch orders on mount
@@ -211,6 +228,20 @@ export default function StaffDashboard() {
     fetchOrders();
 
     return () => socket.disconnect();
+  }, []);
+
+  // Connect to WebSocket for real-time updates
+  useEffect(() => {
+    const socket = new WebSocket('ws://localhost:5000/orders'); // Replace with your backend WebSocket URL
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_order') {
+        showNewOrderAlert(data.order);
+      }
+    };
+
+    return () => socket.close();
   }, []);
 
   const fetchOrders = async () => {
@@ -234,6 +265,26 @@ export default function StaffDashboard() {
     }
   };
 
+  const handleDownloadReport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // Create a link to download the PDF
+      const link = document.createElement('a');
+      link.href = `http://localhost:5000/api/orders/report?token=${token}`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setNotification({ open: true, message: 'Generating report...', severity: 'info' });
+    } catch (error) {
+      setNotification({ open: true, message: 'Failed to download report', severity: 'error' });
+    }
+  };
+
+  const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+  const todayOrders = orders.filter(order => order.order_date.startsWith(today));
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
@@ -246,52 +297,59 @@ export default function StaffDashboard() {
               <Typography variant="h4">Staff Dashboard</Typography>
             </PageHeader>
             
-            {/* Stats Cards */}
+            {/* Daily Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
+              {/* Total Orders */}
               <Grid item xs={12} sm={6} md={3}>
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom>
-                      Total Orders
+                      Total Orders (Today)
                     </Typography>
                     <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                      {stats.totalOrders}
+                      {dailyStats.totalOrders}
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
+
+              {/* Pending Orders */}
               <Grid item xs={12} sm={6} md={3}>
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom>
-                      Pending Orders
+                      Pending Orders (Today)
                     </Typography>
                     <Typography variant="h5" component="div" sx={{ fontWeight: 600, color: theme.palette.status.pending }}>
-                      {stats.pendingOrders}
+                      {dailyStats.pendingOrders}
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
+
+              {/* Completed Orders */}
               <Grid item xs={12} sm={6} md={3}>
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom>
-                      Completed Orders
+                      Completed Orders (Today)
                     </Typography>
                     <Typography variant="h5" component="div" sx={{ fontWeight: 600, color: theme.palette.status.completed }}>
-                      {stats.completedOrders}
+                      {dailyStats.completedOrders}
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
+
+              {/* Cancelled Orders */}
               <Grid item xs={12} sm={6} md={3}>
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom>
-                      Cancelled Orders
+                      Cancelled Orders (Today)
                     </Typography>
                     <Typography variant="h5" component="div" sx={{ fontWeight: 600, color: theme.palette.status.cancelled }}>
-                      {stats.cancelledOrders}
+                      {dailyStats.cancelledOrders}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -304,7 +362,14 @@ export default function StaffDashboard() {
                   <ReceiptLongIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
                   <Typography variant="h6">All Orders</Typography>
                 </Box>
-
+                
+                <Button
+                  variant="contained"
+                  startIcon={<DownloadIcon />}
+                  onClick={handleDownloadReport}
+                >
+                  Download Report
+                </Button>
               </Box>
               
               <Divider sx={{ mb: 2 }} />
@@ -322,14 +387,14 @@ export default function StaffDashboard() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {orders.length === 0 ? (
+                    {todayOrders.length === 0 ? ( // Use todayOrders instead of orders
                       <TableRow>
                         <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
                           <Typography color="textSecondary">No orders available</Typography>
                         </TableCell>
                       </TableRow>
                     ) : (
-                      orders.map(order => (
+                      todayOrders.map(order => ( // Use todayOrders instead of orders
                         <TableRow key={order.order_id}>
                           <TableCell sx={{ fontWeight: 500 }}>{order.order_id}</TableCell>
                           <TableCell>{new Date(order.order_date).toLocaleString()}</TableCell>

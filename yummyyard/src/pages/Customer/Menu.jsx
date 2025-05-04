@@ -276,10 +276,13 @@ const Menu = () => {
                   <Box sx={{ position: 'relative' }}>
                     <CardMedia
                       component="img"
-                      height="220"
                       image={item.image_url}
                       alt={item.name}
-                      sx={{ objectFit: 'cover' }}
+                      sx={{
+                        width: '100%', // Ensures it spans the card width
+                        height: 200,   // Fixed height for all images
+                        objectFit: 'cover', // Ensures the image maintains its aspect ratio
+                      }}
                     />
                     <IconButton
                       sx={{

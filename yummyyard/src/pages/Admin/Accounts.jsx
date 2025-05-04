@@ -321,7 +321,7 @@ const Accounts = () => {
                                 color="error"
                                 startIcon={<DeleteIcon />}
                                 onClick={() => handleDeleteClick(account)}
-                                disabled={account.role === 'Admin'}
+                                disabled={account.role === 'Admin' || account.role === 'Customer'} // Prevent deletion of Admin and Customer accounts
                                 size="small"
                                 sx={{ 
                                   borderRadius: 4,

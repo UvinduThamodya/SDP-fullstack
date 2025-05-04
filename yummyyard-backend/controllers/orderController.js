@@ -784,11 +784,75 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+const generateOrderReport = async (req, res) => {
+  try {
+    // Fetch all orders with customer/staff info
+    const [orders] = await db.query(`
+      SELECT o.order_id, o.order_date, o.total_amount, o.status, 
+             c.name AS customer_name, e.name AS staff_name
+      FROM Orders o
+      LEFT JOIN Customers c ON o.customer_id = c.customer_id
+      LEFT JOIN Employees e ON o.staff_id = e.employee_id
+      ORDER BY o.order_date DESC
+    `);
+    
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50 });
+    
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=order-history-report.pdf');
+    
+    // Pipe the PDF to the response
+    doc.pipe(res);
+    
+    // Add content to PDF
+    doc.fontSize(20).text('YummyYard', { align: 'center' });
+    doc.fontSize(15).text('Order History Report', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Generated on: ${new Date().toLocaleString()}`);
+    doc.moveDown();
+    
+    // Add table headers
+    let y = doc.y;
+    doc.text('Order ID', 50, y);
+    doc.text('Date', 120, y);
+    doc.text('Customer/Staff', 220, y);
+    doc.text('Status', 350, y);
+    doc.text('Amount', 450, y);
+    doc.moveDown();
+    
+    // Add a line under the header
+    y = doc.y;
+    doc.moveTo(50, y).lineTo(550, y).stroke();
+    doc.moveDown();
+    
+    // Add each order
+    orders.forEach(order => {
+      y = doc.y;
+      doc.text(order.order_id.toString(), 50, y);
+      doc.text(new Date(order.order_date).toLocaleDateString(), 120, y);
+      doc.text(order.customer_name || order.staff_name || 'Unknown', 220, y);
+      doc.text(order.status, 350, y);
+      doc.text(`LKR ${parseFloat(order.total_amount || 0).toFixed(2)}`, 450, y);
+      doc.moveDown();
+    });
+    
+    // Finalize PDF
+    doc.end();
+  } catch (error) {
+    console.error('Error generating order report:', error);
+    res.status(500).json({ error: 'Failed to generate order report' });
+  }
+};
+
+
 module.exports = {
   createOrder,
   getCustomerOrders,
   getOrderDetails,
   generateOrderReceipt,
   getAllOrders,
+  generateOrderReport,
   updateOrderStatus
 };
