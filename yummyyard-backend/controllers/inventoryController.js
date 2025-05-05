@@ -129,19 +129,19 @@ exports.downloadInventoryReport = async (req, res) => {
 
     // Table rows
     rows.forEach(item => {
-      const quantity = (typeof item.quantity === 'number' && !isNaN(item.quantity))
-        ? item.quantity.toFixed(2)
-        : (parseFloat(item.quantity) ? parseFloat(item.quantity).toFixed(2) : '0.00');
+      const quantity = (item.unit === 'grams' || item.unit === 'ml') 
+        ? (item.unit === 'grams' ? (item.quantity / 1000).toFixed(2) : (item.quantity / 1000).toFixed(2)) 
+        : item.quantity;
+      const unit = item.unit === 'grams' ? 'kg' : item.unit === 'ml' ? 'L' : item.unit;
       const row = [
         (item.item_name || '').padEnd(30),
-        quantity.padStart(10),
-        (item.unit || '').padStart(8),
+        quantity.toString().padStart(10),
+        unit.padStart(8),
         (item.unit_price !== undefined ? `LKR ${item.unit_price}` : '').padStart(15),
         (item.threshold !== undefined ? item.threshold.toString() : '').padStart(10)
       ].join('  ');
       doc.text(row);
     });
-    
 
     doc.end();
   } catch (error) {

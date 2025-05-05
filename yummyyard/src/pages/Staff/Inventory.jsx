@@ -157,6 +157,12 @@ const Inventory = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Prevent negative or zero values for numeric fields
+    if ((name === 'quantity' || name === 'unit_price' || name === 'threshold') && value < 1) {
+      return; // Do not update the state if the value is invalid
+    }
+
     setNewIngredient({ ...newIngredient, [name]: value });
   };
 
@@ -451,7 +457,7 @@ const Inventory = () => {
                         <TableCell sx={{ fontWeight: 500 }}>{ingredient.item_name}</TableCell>
                         <TableCell>{ingredient.quantity}</TableCell>
                         <TableCell>{ingredient.unit}</TableCell>
-                        <TableCell>${ingredient.unit_price}</TableCell>
+                        <TableCell>LKR {ingredient.unit_price}</TableCell>
                         <TableCell>{ingredient.threshold}</TableCell>
                         <TableCell>
                           {ingredient.quantity < ingredient.threshold ? (
@@ -521,23 +527,35 @@ const Inventory = () => {
                   margin="dense"
                   value={newIngredient.quantity}
                   onChange={handleInputChange}
+                  inputProps={{ min: 1 }} // Prevent negative or zero values
                 />
                 <TextField
                   name="unit"
                   label="Unit"
+                  select
                   fullWidth
                   margin="dense"
                   value={newIngredient.unit}
                   onChange={handleInputChange}
-                />
+                  SelectProps={{
+                    native: true,
+                  }}
+                >
+                  <option value="kg">kg</option>
+                  <option value="L">L</option>
+                  <option value="packets">packets</option>
+                  <option value="pieces">pieces</option>
+                  <option value="bottles">bottles</option>
+                </TextField>
                 <TextField
                   name="unit_price"
-                  label="Unit Price"
+                  label="Unit Price (LKR)"
                   type="number"
                   fullWidth
                   margin="dense"
                   value={newIngredient.unit_price}
                   onChange={handleInputChange}
+                  inputProps={{ min: 1 }} // Prevent negative or zero values
                 />
                 <TextField
                   name="threshold"
@@ -547,6 +565,7 @@ const Inventory = () => {
                   margin="dense"
                   value={newIngredient.threshold}
                   onChange={handleInputChange}
+                  inputProps={{ min: 1 }} // Prevent negative or zero values
                 />
               </DialogContent>
               <DialogActions sx={{ p: 2 }}>
