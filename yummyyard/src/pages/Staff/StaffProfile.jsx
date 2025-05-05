@@ -46,6 +46,20 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editData.email)) {
+      setSnackbar({ open: true, message: 'Invalid email format.', severity: 'error' });
+      return;
+    }
+
+    // Phone number validation
+    const phoneRegex = /^\d{10}$/; // Assuming phone number should be 10 digits
+    if (!phoneRegex.test(editData.phone)) {
+      setSnackbar({ open: true, message: 'Invalid phone number. It should be 10 digits.', severity: 'error' });
+      return;
+    }
+
     try {
       await apiService.updateStaffProfile(staff.id, editData);
       setStaff(editData);

@@ -12,6 +12,8 @@ const AdminProfile = () => {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [phoneError, setPhoneError] = useState(''); // State for phone validation error
+  const [emailError, setEmailError] = useState(''); // State for email validation error
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,10 +54,36 @@ const AdminProfile = () => {
   const handleEdit = () => setEditMode(true);
 
   const handleChange = (e) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setEditData({ ...editData, [name]: value });
+
+    // Validate phone number
+    if (name === 'phone') {
+      const phoneRegex = /^[0-9]{10}$/; // Example: 10-digit phone number
+      if (!phoneRegex.test(value)) {
+        setPhoneError('Phone number must be 10 digits.');
+      } else {
+        setPhoneError('');
+      }
+    }
+
+    // Validate email address
+    if (name === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation regex
+      if (!emailRegex.test(value)) {
+        setEmailError('Invalid email address.');
+      } else {
+        setEmailError('');
+      }
+    }
   };
 
   const handleSave = async () => {
+    if (phoneError || emailError) {
+      setSnackbar({ open: true, message: 'Please fix the errors before saving.', severity: 'error' });
+      return;
+    }
+
     try {
       await apiService.updateAdminProfile(admin.id, editData);
       setAdmin(editData);
@@ -69,6 +97,8 @@ const AdminProfile = () => {
   const handleCancel = () => {
     setEditData(admin);
     setEditMode(false);
+    setPhoneError(''); // Clear phone error on cancel
+    setEmailError(''); // Clear email error on cancel
   };
 
   const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
@@ -125,6 +155,8 @@ const AdminProfile = () => {
                     onChange={handleChange}
                     fullWidth
                     sx={{ mb: 2 }}
+                    error={!!emailError} // Show error state if emailError exists
+                    helperText={emailError} // Display email error message
                   />
                   <TextField
                     label="Phone"
@@ -133,6 +165,8 @@ const AdminProfile = () => {
                     onChange={handleChange}
                     fullWidth
                     sx={{ mb: 2 }}
+                    error={!!phoneError} // Show error state if phoneError exists
+                    helperText={phoneError} // Display phone error message
                   />
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                     <Button variant="contained" color="primary" onClick={handleSave}>

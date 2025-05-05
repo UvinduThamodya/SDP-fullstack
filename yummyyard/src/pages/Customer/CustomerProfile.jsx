@@ -112,6 +112,28 @@ const CustomerProfile = () => {
   };
 
   const handleSaveClick = async () => {
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formValues.email)) {
+      setNotification({
+        open: true,
+        message: 'Invalid email format.',
+        severity: 'error'
+      });
+      return;
+    }
+  
+    // Phone number validation
+    const phoneRegex = /^\d{10}$/; // Assuming phone number should be 10 digits
+    if (!phoneRegex.test(formValues.phone)) {
+      setNotification({
+        open: true,
+        message: 'Invalid phone number. It should be 10 digits.',
+        severity: 'error'
+      });
+      return;
+    }
+  
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
