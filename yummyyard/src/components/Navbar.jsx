@@ -14,6 +14,7 @@ import HomeIcon from '@mui/icons-material/Home'; // Import the Home icon
 const Navbar = () => {
   const navigate = useNavigate(); // Initialize useNavigate
   const [user, setUser] = useState(null);
+  const [deleteRequest, setDeleteRequest] = useState(false);
   
   // Check if user is logged in
   useEffect(() => {
@@ -21,6 +22,31 @@ const Navbar = () => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+  }, []);
+
+  useEffect(() => {
+    const checkDeleteRequests = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const response = await fetch('http://localhost:5000/api/customers/delete-requests', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setDeleteRequest(data.hasDeleteRequest);
+        }
+      } catch (error) {
+        console.error('Error checking delete requests:', error);
+      }
+    };
+
+    checkDeleteRequests();
+    const interval = setInterval(checkDeleteRequests, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleNavigation = (route) => {
@@ -107,9 +133,25 @@ const Navbar = () => {
           </Tooltip>
           {user && (
             <Tooltip title="My Profile" placement="bottom" sx={{ fontSize: '20px' }}>
-              <IconButton color="inherit" onClick={() => handleNavigation('/profile')}>
-                <AccountCircleIcon sx={{ fontSize: 40 }} />
-              </IconButton>
+              <Box sx={{ position: 'relative' }}>
+                <IconButton color="inherit" onClick={() => handleNavigation('/profile')}>
+                  <AccountCircleIcon sx={{ fontSize: 40 }} />
+                </IconButton>
+                {deleteRequest && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      backgroundColor: 'red',
+                      animation: 'pulse 1.5s infinite'
+                    }}
+                  />
+                )}
+              </Box>
             </Tooltip>
           )}
           {user && (

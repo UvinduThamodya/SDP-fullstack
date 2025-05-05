@@ -211,6 +211,42 @@ const deleteCustomer = async (req, res) => {
   }
 };
 
+const sendDeleteRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if customer exists
+    const [customer] = await db.query(
+      'SELECT * FROM Customers WHERE customer_id = ?',
+      [id]
+    );
+    
+    if (customer.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found'
+      });
+    }
+    
+    // Store the delete request in the database
+    await db.query(
+      'UPDATE Customers SET delete_requested = true WHERE customer_id = ?', 
+      [id]
+    );
+    
+    res.status(200).json({ 
+      success: true,
+      message: 'Delete request sent successfully' 
+    });
+  } catch (error) {
+    console.error('Error sending delete request:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to send delete request' 
+    });
+  }
+};
+
 // Add this to your exports
 module.exports = { 
   registerAdmin,
@@ -218,5 +254,6 @@ module.exports = {
   getAllStaff,
   getAllCustomers,
   deleteStaff,
+  sendDeleteRequest,
   deleteCustomer
 };

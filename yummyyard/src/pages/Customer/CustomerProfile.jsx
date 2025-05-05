@@ -15,7 +15,12 @@ import {
   Card,
   CardContent,
   useTheme,
-  alpha
+  alpha,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -62,6 +67,8 @@ const CustomerProfile = () => {
     severity: 'success'
   });
 
+  const [deleteRequest, setDeleteRequest] = useState(false);
+
   useEffect(() => {
     const fetchCustomerProfile = async () => {
       try {
@@ -104,6 +111,28 @@ const CustomerProfile = () => {
     };
     
     fetchCustomerProfile();
+  }, [navigate]);
+
+  useEffect(() => {
+    const checkDeleteRequests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+        const response = await fetch('http://localhost:5000/api/customers/delete-requests', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDeleteRequest(data.hasDeleteRequest);
+        }
+      } catch (error) {
+        console.error('Error checking delete requests:', error);
+      }
+    };
+    checkDeleteRequests();
   }, [navigate]);
 
   const handleEditClick = () => {
@@ -204,6 +233,43 @@ const CustomerProfile = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');
+  };
+
+  const handleAcceptDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/customers/accept-delete', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error accepting delete request:', error);
+    }
+  };
+
+  const handleRejectDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/customers/reject-delete', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        setDeleteRequest(false);
+        setNotification({
+          open: true,
+          message: 'Delete request rejected',
+          severity: 'success',
+        });
+      }
+    } catch (error) {
+      console.error('Error rejecting delete request:', error);
+    }
   };
 
   return (
@@ -680,6 +746,37 @@ const CustomerProfile = () => {
           {notification.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={deleteRequest}
+        PaperProps={{ sx: { borderRadius: 2, px: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, color: 'error.main' }}>
+          Account Deletion Request
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            An administrator has requested to delete your account. Do you want to accept this request? If accepted, your account will be permanently deleted.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, px: 2 }}>
+          <Button
+            onClick={handleRejectDelete}
+            variant="outlined"
+            sx={{ borderRadius: 6 }}
+          >
+            Reject
+          </Button>
+          <Button
+            onClick={handleAcceptDelete}
+            color="error"
+            variant="contained"
+            sx={{ borderRadius: 6 }}
+          >
+            Accept & Delete My Account
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

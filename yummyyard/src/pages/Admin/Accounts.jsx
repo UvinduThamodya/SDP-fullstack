@@ -148,7 +148,7 @@ const Accounts = () => {
       const { account } = deleteDialog;
       const endpoint = account.role === 'Customer' 
         ? `http://localhost:5000/api/customers/${account.id}`
-        : `http://localhost:5000/api/staff/${account.id}`;
+        :  `http://localhost:5000/api/admin/staff/${account.id}`; // Allow direct deletion for staff
       
       const response = await fetch(endpoint, {
         method: 'DELETE',
@@ -171,6 +171,41 @@ const Accounts = () => {
       setNotification({
         open: true,
         message: 'Failed to delete account',
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialog({ open: false, account: null });
+    }
+  };
+
+  const handleSendDeleteRequest = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const { account } = deleteDialog;
+      
+      // Send delete request instead of deleting
+      const response = await fetch(`http://localhost:5000/api/admin/delete-request/${account.id}`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send delete request');
+      }
+      
+      setNotification({
+        open: true,
+        message: `Delete request sent to ${account.name}`,
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error sending delete request:', err);
+      setNotification({
+        open: true,
+        message: 'Failed to send delete request',
         severity: 'error'
       });
     } finally {
@@ -321,7 +356,7 @@ const Accounts = () => {
                                 color="error"
                                 startIcon={<DeleteIcon />}
                                 onClick={() => handleDeleteClick(account)}
-                                disabled={account.role === 'Admin' || account.role === 'Customer'} // Prevent deletion of Admin and Customer accounts
+                                disabled={account.role === 'Admin'} // Only disable deletion for Admin accounts
                                 size="small"
                                 sx={{ 
                                   borderRadius: 4,
@@ -331,7 +366,7 @@ const Accounts = () => {
                                   }
                                 }}
                               >
-                                Delete
+                                {account.role === 'Customer' ? 'Delete Request' : 'Delete'} {/* Update button text */}
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -354,12 +389,13 @@ const Accounts = () => {
           }}
         >
           <DialogTitle sx={{ fontWeight: 600 }}>
-            Confirm Deletion
+            {deleteDialog.account?.role === 'Customer' ? 'Send Delete Request' : 'Confirm Deletion'}
           </DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Are you sure you want to delete the {deleteDialog.account?.role} account for{' '}
-              <strong>{deleteDialog.account?.name}</strong>? This action cannot be undone.
+              {deleteDialog.account?.role === 'Customer'
+                ? `Instead of immediately deleting ${deleteDialog.account?.name}'s account, a deletion request will be sent to the customer. They can accept or reject this request.`
+                : `Are you sure you want to delete ${deleteDialog.account?.name}'s account? This action cannot be undone.`}
             </DialogContentText>
           </DialogContent>
           <DialogActions sx={{ pb: 2, px: 2 }}>
@@ -371,12 +407,12 @@ const Accounts = () => {
               Cancel
             </Button>
             <Button 
-              onClick={handleDeleteConfirm} 
-              color="error" 
+              onClick={deleteDialog.account?.role === 'Customer' ? handleSendDeleteRequest : handleDeleteConfirm} 
+              color="primary" 
               variant="contained"
               sx={{ borderRadius: 6 }}
             >
-              Delete
+              {deleteDialog.account?.role === 'Customer' ? 'Send Request' : 'Delete'}
             </Button>
           </DialogActions>
         </Dialog>

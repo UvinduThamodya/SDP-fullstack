@@ -412,8 +412,70 @@ const apiService = {
     console.error('Error generating order report:', error);
     throw new Error(error.response?.data?.message || 'Failed to generate order report');
   }
-}
+},
 
+// Admin: Send delete request
+sendDeleteRequest: async (customerId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(
+      `${API_URL}/admin/delete-request/${customerId}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error sending delete request:', error);
+    throw new Error(error.response?.data?.message || 'Failed to send delete request');
+  }
+},
+
+// Customer: Check for delete requests
+checkDeleteRequests: async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(
+      `${API_URL}/customers/delete-requests`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error checking delete requests:', error);
+    throw new Error(error.response?.data?.message || 'Failed to check delete requests');
+  }
+},
+
+// Customer: Accept delete request
+acceptDeleteRequest: async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(
+      `${API_URL}/customers/accept-delete`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error accepting delete request:', error);
+    throw new Error(error.response?.data?.message || 'Failed to accept delete request');
+  }
+},
+
+// Customer: Reject delete request
+rejectDeleteRequest: async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(
+      `${API_URL}/customers/reject-delete`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error rejecting delete request:', error);
+    throw new Error(error.response?.data?.message || 'Failed to reject delete request');
+  }
+}
 
 };
 

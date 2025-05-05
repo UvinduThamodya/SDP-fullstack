@@ -18,4 +18,8 @@ router.delete('/staff/:id', authenticateAdmin, adminController.deleteStaff);
 router.get('/customers', authenticateAdmin, adminController.getAllCustomers);
 router.delete('/customers/:id', authenticateAdmin, adminController.deleteCustomer);
 
+// In adminRoutes.js
+router.post('/delete-request/:id', authenticateAdmin, adminController.sendDeleteRequest);
+
+
 module.exports = router;

@@ -7,4 +7,10 @@ const { authenticateUser } = require('../middleware/authMiddleware');
 router.get('/profile', authenticateUser, customerController.getCustomerProfile);
 router.put('/profile', authenticateUser, customerController.updateCustomerProfile);
 
+// In customerRoutes.js
+router.get('/delete-requests', authenticateUser, customerController.checkDeleteRequests);
+router.post('/accept-delete', authenticateUser, customerController.acceptDeleteRequest);
+router.post('/reject-delete', authenticateUser, customerController.rejectDeleteRequest);
+    
+
 module.exports = router;
