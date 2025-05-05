@@ -9,7 +9,7 @@ CREATE TABLE Customers (
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20) NOT NULL,
     address TEXT,
-    password VARCHAR(255) NOT NULL  
+    password VARCHAR(255) NOT NULL
 );
 
 -- Menu Items Table
@@ -36,6 +36,17 @@ CREATE TABLE Orders (
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE,
     FOREIGN KEY (staff_id) REFERENCES Employees(employee_id)
 );
+SELECT DISTINCT status
+FROM Orders
+WHERE status NOT IN ('Pending', 'Preparing', 'Completed', 'Cancelled', 'Paid');
+
+UPDATE Orders
+SET status = 'Pending'
+WHERE status = 'Ready to Pick up';
+
+ALTER TABLE Orders
+MODIFY status ENUM('Pending', 'Preparing', 'Completed', 'Cancelled', 'Paid', 'Accepted') DEFAULT 'Pending';
+
 
 -- Order Items Table (Many-to-Many Relationship)
 CREATE TABLE OrderItems (
@@ -82,6 +93,19 @@ CREATE TABLE Inventory (
 
 ALTER TABLE Inventory
 MODIFY COLUMN quantity DECIMAL(10,4) NOT NULL;
+
+-- Convert grams to kg
+UPDATE Inventory
+SET quantity = quantity / 1000,
+    unit = 'kg'
+WHERE unit = 'grams';
+
+-- Convert ml to L
+UPDATE Inventory
+SET quantity = quantity / 1000,
+    unit = 'L'
+WHERE unit = 'ml';
+
 
 -- Menu Item Ingredients (Many-to-Many Relationship between Menu Items and Inventory)
 CREATE TABLE MenuItemIngredients (
@@ -360,5 +384,21 @@ ALTER TABLE Orders
 MODIFY status ENUM('Pending', 'Preparing', 'Ready to Pick up', 'Completed', 'Cancelled', 'Paid') 
 DEFAULT 'Pending';
 
+SELECT
+  i.inventory_id,
+  i.item_name,
+  SUM(oi.quantity * mii.quantity_required) AS total_used
+FROM
+  OrderItems oi
+  JOIN Orders o ON oi.order_id = o.order_id
+  JOIN MenuItemIngredients mii ON oi.item_id = mii.item_id
+  JOIN Inventory i ON mii.inventory_id = i.inventory_id
+WHERE
+  o.status = 'Completed'
+GROUP BY
+  i.inventory_id, i.item_name
+ORDER BY
+  total_used DESC
+LIMIT 3;
 
-and under the section All Orders i only need to see the orders placed on that day only
+
