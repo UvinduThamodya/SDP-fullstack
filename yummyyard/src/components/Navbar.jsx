@@ -112,21 +112,13 @@ const Navbar = () => {
               </IconButton>
             </Tooltip>
           )}
-          {user ? (
+          {user && (
             <Button 
               color="inherit" 
               onClick={handleLogout}
               sx={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Logout
-            </Button>
-          ) : (
-            <Button 
-              color="inherit" 
-              onClick={() => navigate('/login')}
-              sx={{ fontFamily: 'Poppins, sans-serif' }}
-            >
-              Login
             </Button>
           )}
         </Box>

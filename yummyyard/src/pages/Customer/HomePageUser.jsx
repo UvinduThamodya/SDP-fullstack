@@ -541,11 +541,13 @@ const Homepage = () => {
               <Box sx={{ position: 'relative' }}>
                 <CardMedia
                   component="img"
-                  image={dish.image || restaurantLogo}
+                  image={dish.image_url || restaurantLogo}
                   alt={dish.name}
                   sx={{
                     height: 220,
                     objectFit: 'cover',
+                    objectPosition: 'center', // Centers the image content
+                    margin: '0 auto', // Centers the image container
                   }}
                 />
                 <PriceTag>{dish.price}</PriceTag>

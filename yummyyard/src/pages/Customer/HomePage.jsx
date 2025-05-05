@@ -239,7 +239,7 @@ const Homepage = () => {
   // Function to handle login button click
   const handleLoginClick = () => {
     console.log("Login button clicked");
-    navigate('/SelectRole'); // Navigate to the login page
+    navigate('/login'); // Navigate to the login page
   };
 
   // Function to handle signup button click
@@ -1094,6 +1094,19 @@ const Homepage = () => {
           >
             <Typography variant="body2" sx={{ opacity: 0.7, fontFamily: 'Runalto, sans-serif' }}>
               &copy; {new Date().getFullYear()} Yummy Yard. All rights reserved.
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                marginTop: 1,
+                fontFamily: 'Runalto, sans-serif',
+                color: '#3ACA82',
+                cursor: 'pointer',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+              onClick={() => navigate('/selectrole')}
+            >
+              Login as a Staff Member
             </Typography>
           </Box>
         </Container>
