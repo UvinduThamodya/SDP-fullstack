@@ -10,7 +10,7 @@ import {
   Alert,
 } from "@mui/material";
 import apiService from '../../services/api';
-import { useNavigate } from "react-router-dom"; // Add this line
+import { useNavigate } from "react-router-dom"; 
 
 const Register = () => {
   const navigate = useNavigate(); // Initialize useNavigate hook
@@ -68,15 +68,15 @@ const Register = () => {
     // Email validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
+      newErrors.email = "Email format is invalid";
     }
     
     // Phone validation
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = "Phone number must be 10 digits";
+    } else if (!/^\+?\d{10,15}$/.test(formData.phone)) {
+      newErrors.phone = "Phone number must be between 10 to 15 digits";
     }
     
     // Address validation
@@ -253,7 +253,7 @@ const Register = () => {
                     error={!!errors.password}
                     helperText={errors.password}
                     required
-                    placeholder="Enter your password"
+                    placeholder="Password must be at least 7 characters"
                     sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
                   />
                 </Grid>

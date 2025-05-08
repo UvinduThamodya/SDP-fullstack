@@ -20,7 +20,10 @@ import StripePayment from '../../components/StripePayment';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement } from '@stripe/react-stripe-js';
 import Navbar from '../../components/Navbar'; 
-import { alpha } from '@mui/material/styles'; // Add this import
+import { alpha } from '@mui/material/styles'; 
+import RecommendationService from '../../services/recommendationService';
+import LocalBarIcon from '@mui/icons-material/LocalBar';
+
 
 
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
@@ -80,6 +83,10 @@ const Menu = () => {
   const [amountGiven, setAmountGiven] = useState('');
   const [balance, setBalance] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
+  const [recommendationDialogOpen, setRecommendationDialogOpen] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
+
+  
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -178,6 +185,16 @@ const Menu = () => {
 
   const handleNotificationClose = () => {
     setNotification(prev => ({ ...prev, open: false }));
+  };
+
+  const fetchRecommendations = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user')) || {};
+      const recs = await RecommendationService.getRecommendations(cart, user.id);
+      setRecommendations(recs);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
   };
 
   return (
@@ -534,7 +551,10 @@ const Menu = () => {
                   fullWidth
                   disableElevation
                   startIcon={<PaymentIcon />}
-                  onClick={() => setCheckoutOpen(true)}
+                  onClick={() => {
+                    fetchRecommendations();
+                    setRecommendationDialogOpen(true);
+                  }}
                   sx={{ 
                     py: 1.5, 
                     borderRadius: 2,
@@ -839,6 +859,142 @@ const Menu = () => {
   </DialogActions>
 </Dialog>
 
+<Dialog 
+  open={recommendationDialogOpen} 
+  onClose={() => setRecommendationDialogOpen(false)} 
+  maxWidth="md" 
+  fullWidth
+  PaperProps={{
+    sx: { borderRadius: 3 }
+  }}
+>
+  <DialogTitle sx={{ pb: 1 }}>
+    <Typography variant="h5" sx={{ fontWeight: 600 }}>Review Your Order</Typography>
+  </DialogTitle>
+  <DialogContent>
+    <Box sx={{ py: 2 }}>
+      <Typography variant="h6" sx={{ mb: 3 }}>
+        Order Summary
+      </Typography>
+      
+      {cart.map(item => (
+        <Box key={item.item_id} sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="body1">
+            {item.name} × {item.quantity}
+          </Typography>
+          <Typography variant="body1">
+            {formatCurrency(item.price * item.quantity)}
+          </Typography>
+        </Box>
+      ))}
+      
+      <Divider sx={{ my: 3 }} />
+      
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+        <Typography variant="h6">Total</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          {formatCurrency(calculateTotal())}
+        </Typography>
+      </Box>
+      
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+          <LocalBarIcon sx={{ mr: 1, color: '#3ACA82' }} />
+          Recommended for you
+        </Box>
+      </Typography>
+      
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {recommendations.map(item => (
+          <Grid item xs={12} sm={4} key={item.item_id}>
+            <Card sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              height: '100%',
+              borderRadius: 2,
+              overflow: 'hidden',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              transition: 'transform 0.3s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }
+            }}>
+              <CardMedia
+                component="img"
+                image={item.image_url}
+                alt={item.name}
+                sx={{ height: 120, objectFit: 'cover', objectPosition: 'center' }}
+              />
+              <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{item.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formatCurrency(item.price)}
+                </Typography>
+                {item.category === 'Beverage' && (
+                  <Box sx={{ 
+                    display: 'inline-block',
+                    mt: 1,
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    backgroundColor: 'rgba(58, 202, 130, 0.1)',
+                    color: '#3ACA82',
+                    fontSize: '0.75rem',
+                  }}>
+                    Beverage
+                  </Box>
+                )}
+              </CardContent>
+              <Button 
+                size="small" 
+                sx={{ 
+                  m: 1,
+                  borderRadius: 1,
+                  color: '#3ACA82',
+                  '&:hover': {
+                    backgroundColor: 'rgba(58, 202, 130, 0.1)',
+                  }
+                }}
+                onClick={() => {
+                  handleAddToCart(item.item_id);
+                  setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
+                }}
+              >
+                Add to Order
+              </Button>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  </DialogContent>
+  <DialogActions sx={{ p: 3 }}>
+    <Button 
+      onClick={() => setRecommendationDialogOpen(false)} 
+      color="inherit"
+    >
+      Back to Cart
+    </Button>
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={() => {
+        setRecommendationDialogOpen(false);
+        setPaymentDialogOpen(true); // Directly open payment dialog
+      }}
+      sx={{
+        px: 3,
+        py: 1,
+        borderRadius: 2,
+        backgroundColor: '#3ACA82',
+        '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
+      }}
+    >
+      Continue to Payment
+    </Button>
+  </DialogActions>
+</Dialog>
 
         {/* Notification Snackbar */}
         <Snackbar

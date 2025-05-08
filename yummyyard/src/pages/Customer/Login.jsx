@@ -8,8 +8,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
   Box,
   Button,
-  Checkbox,
-  FormControlLabel,
   Grid,
   IconButton,
   InputAdornment,
@@ -28,7 +26,6 @@ const Login = () => {
     password: ''
   });
 
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -49,13 +46,6 @@ const Login = () => {
       // Optional: You can add token validation here
       navigate('/HomepageUser');
     }
-    
-    // Load saved email if "remember me" was checked
-    const savedEmail = localStorage.getItem('email');
-    if (savedEmail) {
-      setCredentials(prev => ({ ...prev, email: savedEmail }));
-      setRememberMe(true);
-    }
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -64,10 +54,6 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-  };
-
-  const handleCheckbox = (e) => {
-    setRememberMe(e.target.checked);
   };
 
   const handleSubmit = async (e) => {
@@ -87,12 +73,6 @@ const Login = () => {
           localStorage.setItem('token', response.token);
         } else {
           console.warn('Warning: No token received from server');
-        }
-
-        if (rememberMe) {
-          localStorage.setItem('email', credentials.email);
-        } else {
-          localStorage.removeItem('email');
         }
 
         setAlert({
@@ -231,19 +211,6 @@ const Login = () => {
                   ),
                   sx: { fontSize: '1.2rem' }
                 }}
-              />
-              
-              <FormControlLabel
-                control={
-                  <Checkbox 
-                    checked={rememberMe}
-                    onChange={handleCheckbox}
-                    name="rememberMe" 
-                    color="primary"
-                  />
-                }
-                label="Remember me"
-                sx={{ mt: 1 }}
               />
               
               <Box sx={{ width: "100%", textAlign: "center", marginTop: 2 }}>

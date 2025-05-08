@@ -41,6 +41,39 @@ const StaffRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setAlert({
+        open: true,
+        message: 'Please enter a valid email address.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    // Phone number validation (10 digits)
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      setAlert({
+        open: true,
+        message: 'Please enter a valid 10-digit phone number.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    // Password length validation
+    if (formData.password.length < 7) {
+      setAlert({
+        open: true,
+        message: 'Password must be at least 7 characters long.',
+        severity: 'error',
+      });
+      return;
+    }
+
     setIsLoading(true);
   
     try {
@@ -130,7 +163,7 @@ const StaffRegister = () => {
               />
               <TextField
                 fullWidth
-                label="Password"
+                label="Password (min 7 characters)"
                 name="password"
                 type="password"
                 value={formData.password}
