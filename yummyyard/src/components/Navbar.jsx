@@ -74,8 +74,23 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', height: '80px' }}>
-      <Toolbar sx={{ minHeight: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <AppBar
+      position="static"
+      sx={{
+        background: 'linear-gradient(to right, #11998e, #38ef7d)', // Premium greenish gradient
+        height: '80px',
+        boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.4)', // Enhanced shadow for depth
+      }}
+    >
+      <Toolbar
+        sx={{
+          minHeight: '80px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '0 20px', // Add padding for better spacing
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
             size="large"
@@ -88,54 +103,145 @@ const Navbar = () => {
               src={yummyYard}
               alt="Yummy Yard Logo"
               onClick={handleHomeClick}
-              style={{ height: '60px', marginRight: '9px', borderRadius: '5px' }}
+              style={{
+                height: '60px',
+                marginRight: '9px',
+                borderRadius: '5px',
+                cursor: 'pointer', // Add pointer cursor
+                transition: 'transform 0.3s', // Smooth hover effect
+              }}
+              onMouseEnter={(e) => (e.target.style.transform = 'scale(1.1)')}
+              onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
             />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', fontSize: '30px', fontFamily: 'Poppins, sans-serif' }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '30px',
+              fontFamily: 'Poppins, sans-serif',
+              color: '#fff', // White text for better contrast
+            }}
+          >
             Yummy Yard
           </Typography>
-          <Typography variant="h6" component="div" sx={{ fontSize: '20px', fontFamily: 'Poppins, sans-serif', ml: 4 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontSize: '20px',
+              fontFamily: 'Poppins, sans-serif',
+              ml: 4,
+              color: '#fff', // White text
+            }}
+          >
             +94 76 718 1695
           </Typography>
         </Box>
         
         {user && (
-          <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '16px' }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: '16px',
+              color: '#fff', // White text
+            }}
+          >
             Welcome, {user.name}!
           </Typography>
         )}
         
         <Box sx={{ display: 'flex', gap: 3 }}>
-          <Tooltip title="Home" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={handleHomeClick}>
-              <HomeIcon sx={{ fontSize: 50 }} /> {/* Increase the font size to 40 */}
+          <Tooltip title="Home" placement="bottom">
+            <IconButton
+              color="inherit"
+              onClick={handleHomeClick}
+              sx={{
+                transition: 'transform 0.3s',
+                '&:hover': { transform: 'scale(1.2)' }, // Hover effect
+              }}
+            >
+              <HomeIcon sx={{ fontSize: 50, color: '#fff' }} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Menu" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
-              <img src={menuLogo} alt="Menu" style={{ height: '40px' }} />
+          <Tooltip title="Menu" placement="bottom">
+            <IconButton
+              color="inherit"
+              onClick={() => handleNavigation('/menu')}
+              sx={{
+                transition: 'transform 0.3s',
+                '&:hover': { transform: 'scale(1.2)' },
+              }}
+            >
+              <img
+                src={menuLogo}
+                alt="Menu"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }} // Invert for white color
+              />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Orders" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
-              <img src={ordersLogo} alt="Orders" style={{ height: '40px' }} />
+          <Tooltip title="Orders" placement="bottom">
+            <IconButton
+              color="inherit"
+              onClick={() => handleNavigation('/orderhistory')}
+              sx={{
+                transition: 'transform 0.3s',
+                '&:hover': { transform: 'scale(1.2)' },
+              }}
+            >
+              <img
+                src={ordersLogo}
+                alt="Orders"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+              />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Dashboard" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/dashboardcustomer')}>
-              <img src={dashboardLogo} alt="Dashboard" style={{ height: '40px' }} />
+          <Tooltip title="Dashboard" placement="bottom">
+            <IconButton
+              color="inherit"
+              onClick={() => handleNavigation('/dashboardcustomer')}
+              sx={{
+                transition: 'transform 0.3s',
+                '&:hover': { transform: 'scale(1.2)' },
+              }}
+            >
+              <img
+                src={dashboardLogo}
+                alt="Dashboard"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+              />
             </IconButton>
           </Tooltip>
-          <Tooltip title="About Us" placement="bottom" sx={{ fontSize: '20px' }}>
-            <IconButton color="inherit" onClick={() => handleNavigation('/aboutcontact')}>
-              <img src={aboutLogo} alt="About Us" style={{ height: '40px' }} />
+          <Tooltip title="About Us" placement="bottom">
+            <IconButton
+              color="inherit"
+              onClick={() => handleNavigation('/aboutcontact')}
+              sx={{
+                transition: 'transform 0.3s',
+                '&:hover': { transform: 'scale(1.2)' },
+              }}
+            >
+              <img
+                src={aboutLogo}
+                alt="About Us"
+                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
+              />
             </IconButton>
           </Tooltip>
           {user && (
-            <Tooltip title="My Profile" placement="bottom" sx={{ fontSize: '20px' }}>
+            <Tooltip title="My Profile" placement="bottom">
               <Box sx={{ position: 'relative' }}>
-                <IconButton color="inherit" onClick={() => handleNavigation('/profile')}>
-                  <AccountCircleIcon sx={{ fontSize: 40 }} />
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/profile')}
+                  sx={{
+                    transition: 'transform 0.3s',
+                    '&:hover': { transform: 'scale(1.2)' },
+                  }}
+                >
+                  <AccountCircleIcon sx={{ fontSize: 40, color: '#fff' }} />
                 </IconButton>
                 {deleteRequest && (
                   <Box
@@ -147,7 +253,7 @@ const Navbar = () => {
                       height: 12,
                       borderRadius: '50%',
                       backgroundColor: 'red',
-                      animation: 'pulse 1.5s infinite'
+                      animation: 'pulse 1.5s infinite',
                     }}
                   />
                 )}
@@ -155,10 +261,22 @@ const Navbar = () => {
             </Tooltip>
           )}
           {user && (
-            <Button 
-              color="inherit" 
+            <Button
+              color="inherit"
               onClick={handleLogout}
-              sx={{ fontFamily: 'Poppins, sans-serif' }}
+              sx={{
+                fontFamily: 'Poppins, sans-serif',
+                color: '#fff',
+                border: '1px solid #fff',
+                borderRadius: '20px',
+                padding: '5px 15px',
+                transition: 'background-color 0.3s, transform 0.3s',
+                '&:hover': {
+                  backgroundColor: '#fff',
+                  color: '#ff7e5f',
+                  transform: 'scale(1.1)',
+                },
+              }}
             >
               Logout
             </Button>

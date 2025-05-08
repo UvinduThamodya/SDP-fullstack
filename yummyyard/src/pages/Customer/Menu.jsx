@@ -23,8 +23,7 @@ import Navbar from '../../components/Navbar';
 import { alpha } from '@mui/material/styles'; 
 import RecommendationService from '../../services/recommendationService';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
-
-
+import Slide from '@mui/material/Slide';
 
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
@@ -42,6 +41,10 @@ const theme = createTheme({
       fontWeight: 500,
     },
   },
+});
+
+const SlideTransition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="left" ref={ref} {...props} />;
 });
 
 const Menu = () => {
@@ -395,53 +398,72 @@ const Menu = () => {
         <Dialog
           open={cartOpen}
           onClose={() => setCartOpen(false)}
+          TransitionComponent={SlideTransition}
           PaperProps={{
             sx: {
-              width: 420,
-              maxWidth: '90vw',
+              width: '380px', // Set a fixed width for the cart
+              maxWidth: '100%',
+              height: '100vh', // Full height
               position: 'fixed',
               right: 0,
               top: 0,
-              height: '100%',
-              m: 0,
-              borderRadius: '24px 0 0 24px',
+              margin: 0,
+              borderRadius: 0, // Remove border radius
               boxShadow: '-5px 0 20px rgba(0,0,0,0.1)',
+              overflowY: 'auto',
             }
           }}
-          TransitionProps={{
-            style: {
-              transition: 'all 0.3s ease-out',
+          sx={{
+            '& .MuiDialog-container': {
+              justifyContent: 'flex-end', // Align to right side
             },
           }}
           hideBackdrop={false}
+          transitionDuration={300}
         >
           <Box sx={{ 
-            p: 3, 
+            p: 0, 
             display: 'flex', 
             flexDirection: 'column', 
             height: '100%',
             backgroundColor: '#f8f9fa',
           }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                Your Cart {cart.length > 0 && `(${cart.length})`}
-              </Typography>
-              <IconButton onClick={() => setCartOpen(false)}>
+            {/* Cart Header - Fixed */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              p: 3,
+              borderBottom: '1px solid #eaeaea',
+              backgroundColor: 'white',
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ShoppingCartIcon sx={{ color: '#3ACA82', mr: 1.5 }} />
+                <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                  Your Cart {cart.length > 0 && `(${cart.length})`}
+                </Typography>
+              </Box>
+              <IconButton 
+                onClick={() => setCartOpen(false)}
+                sx={{ 
+                  backgroundColor: 'rgba(0,0,0,0.05)',
+                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.1)' },
+                  transition: 'all 0.2s'
+                }}
+              >
                 <Box sx={{ fontSize: '1.5rem', fontWeight: 300 }}>×</Box>
               </IconButton>
             </Box>
             
+            {/* Cart Items - Scrollable */}
             <Box sx={{ 
               flexGrow: 1, 
               overflowY: 'auto',
-              pr: 2,
-              '&::-webkit-scrollbar': {
-                width: '6px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0,0,0,0.2)',
-                borderRadius: '6px',
-              }
+              px: 3,
+              py: 2,
             }}>
               {cart.length === 0 ? (
                 <Box sx={{ 
@@ -451,99 +473,169 @@ const Menu = () => {
                   justifyContent: 'center',
                   height: '100%',
                   opacity: 0.7,
+                  py: 5
                 }}>
-                  <ShoppingCartIcon sx={{ fontSize: 60, mb: 2, color: 'text.secondary' }} />
-                  <Typography variant="h6" color="text.secondary">Your cart is empty</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
-                    Add delicious items from the menu to get started
+                  <ShoppingCartIcon sx={{ fontSize: 80, mb: 3, color: '#d0d0d0' }} />
+                  <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 500 }}>Your cart is empty</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center', maxWidth: '80%' }}>
+                    Explore our menu and add your favorite items
                   </Typography>
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => setCartOpen(false)} 
+                    sx={{ 
+                      mt: 3, 
+                      borderRadius: 6, 
+                      px: 3, 
+                      borderColor: '#3ACA82', 
+                      color: '#3ACA82',
+                      '&:hover': { borderColor: '#3ACA82', backgroundColor: 'rgba(58, 202, 130, 0.05)' }
+                    }}
+                  >
+                    Browse Menu
+                  </Button>
                 </Box>
               ) : (
-                <>
-                  {cart.map(item => (
-                    <Card key={item.item_id} sx={{ 
-                      mb: 2, 
-                      backgroundColor: 'white',
-                      borderRadius: 3,
-                      boxShadow: 'none',
-                      overflow: 'hidden',
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                      }
-                    }}>
-                      <Box sx={{ display: 'flex', p: 2 }}>
-                        <Box sx={{ 
-                          width: 80, 
-                          height: 80, 
-                          borderRadius: 2, 
-                          overflow: 'hidden',
-                          mr: 2,
-                          flexShrink: 0
-                        }}>
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        </Box>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>{item.name}</Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                            {formatCurrency(item.price)}
-                          </Typography>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              border: '1px solid #e0e0e0',
-                              borderRadius: 1,
-                              overflow: 'hidden'
-                            }}>
-                              <IconButton 
-                                size="small"
-                                onClick={() => handleQuantityChange(item.item_id, item.quantity - 1)}
-                                disabled={item.quantity <= 1}
-                                sx={{ p: 0.5 }}
-                              >
-                                <Box component="span" sx={{ fontSize: '1.2rem', fontWeight: 300, lineHeight: 1 }}>−</Box>
-                              </IconButton>
-                              <Typography sx={{ px: 1, minWidth: 24, textAlign: 'center' }}>
-                                {item.quantity}
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, fontWeight: 500 }}>
+                    ITEMS ({cart.length})
+                  </Typography>
+                  {cart.map((item, index) => (
+                    <React.Fragment key={item.item_id}>
+                      <Card sx={{ 
+                        mb: 2, 
+                        backgroundColor: 'white',
+                        borderRadius: 3,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                          transform: 'translateY(-2px)',
+                        }
+                      }}>
+                        <Box sx={{ display: 'flex', p: 0 }}>
+                          <Box sx={{ 
+                            width: 80, 
+                            height: 80, 
+                            borderRadius: '8px 0 0 8px', 
+                            overflow: 'hidden',
+                            flexShrink: 0
+                          }}>
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </Box>
+                          <Box sx={{ 
+                            flexGrow: 1, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            justifyContent: 'center',
+                            p: 2
+                          }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                {item.name}
                               </Typography>
                               <IconButton 
-                                size="small"
-                                onClick={() => handleQuantityChange(item.item_id, item.quantity + 1)}
-                                sx={{ p: 0.5 }}
+                                size="small" 
+                                color="error" 
+                                onClick={() => handleRemoveFromCart(item.item_id)}
+                                sx={{ 
+                                  p: 0.5, 
+                                  ml: 1, 
+                                  mt: -0.5, 
+                                  color: 'text.secondary',
+                                  '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.1)', color: '#d32f2f' }
+                                }}
                               >
-                                <Box component="span" sx={{ fontSize: '1.2rem', fontWeight: 300, lineHeight: 1 }}>+</Box>
+                                <Box component="span" sx={{ fontSize: '1rem', fontWeight: 400, lineHeight: 1 }}>×</Box>
                               </IconButton>
                             </Box>
-                            <IconButton 
-                              size="small" 
-                              color="error" 
-                              onClick={() => handleRemoveFromCart(item.item_id)}
-                              sx={{ p: 0.5 }}
-                            >
-                              <Box component="span" sx={{ fontSize: '1.2rem', fontWeight: 300, lineHeight: 1 }}>×</Box>
-                            </IconButton>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                              {formatCurrency(item.price)}
+                            </Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                              <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                backgroundColor: 'rgba(0,0,0,0.03)',
+                                borderRadius: 6,
+                                overflow: 'hidden'
+                              }}>
+                                <IconButton 
+                                  size="small"
+                                  onClick={() => handleQuantityChange(item.item_id, item.quantity - 1)}
+                                  disabled={item.quantity <= 1}
+                                  sx={{ 
+                                    p: 0.5,
+                                    color: item.quantity <= 1 ? 'rgba(0,0,0,0.2)' : 'text.secondary',
+                                    '&:hover': { backgroundColor: 'transparent' }
+                                  }}
+                                >
+                                  <Box component="span" sx={{ fontSize: '1.2rem', fontWeight: 400, lineHeight: 1 }}>−</Box>
+                                </IconButton>
+                                <Typography sx={{ 
+                                  px: 1.5, 
+                                  minWidth: 28, 
+                                  textAlign: 'center',
+                                  fontWeight: 500
+                                }}>
+                                  {item.quantity}
+                                </Typography>
+                                <IconButton 
+                                  size="small"
+                                  onClick={() => handleQuantityChange(item.item_id, item.quantity + 1)}
+                                  sx={{ 
+                                    p: 0.5,
+                                    color: 'text.secondary',
+                                    '&:hover': { backgroundColor: 'transparent' }
+                                  }}
+                                >
+                                  <Box component="span" sx={{ fontSize: '1.2rem', fontWeight: 400, lineHeight: 1 }}>+</Box>
+                                </IconButton>
+                              </Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#3ACA82' }}>
+                                {formatCurrency(item.price * item.quantity)}
+                              </Typography>
+                            </Box>
                           </Box>
                         </Box>
-                      </Box>
-                    </Card>
+                      </Card>
+                      {index === cart.length - 1 && (
+                        <Box sx={{ height: 60 }} /> // Extra space at the end for better scrolling
+                      )}
+                    </React.Fragment>
                   ))}
-                </>
+                </Box>
               )}
             </Box>
             
+            {/* Cart Footer - Fixed */}
             {cart.length > 0 && (
-              <Box sx={{ mt: 2 }}>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="subtitle1">Subtotal</Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    {formatCurrency(calculateTotal())}
-                  </Typography>
+              <Box sx={{ 
+                borderTop: '1px solid #eaeaea',
+                p: 3,
+                backgroundColor: 'white',
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 1,
+              }}>
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {formatCurrency(calculateTotal())}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Total</Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#3ACA82' }}>
+                      {formatCurrency(calculateTotal())}
+                    </Typography>
+                  </Box>
                 </Box>
                 <Button
                   variant="contained"
@@ -557,18 +649,38 @@ const Menu = () => {
                   }}
                   sx={{ 
                     py: 1.5, 
-                    borderRadius: 2,
+                    borderRadius: 6,
                     backgroundColor: '#3ACA82',
                     '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
                     transition: 'all 0.3s',
+                    boxShadow: '0 4px 12px rgba(58, 202, 130, 0.25)',
+                    '&:hover': {
+                      backgroundColor: '#2db873',
+                      boxShadow: '0 6px 16px rgba(58, 202, 130, 0.35)',
+                    }
                   }}
                 >
-                  Proceed to Checkout
+                  Checkout
+                </Button>
+                <Button
+                  color="inherit"
+                  size="small"
+                  fullWidth
+                  sx={{ 
+                    mt: 1.5, 
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    '&:hover': { backgroundColor: 'transparent', color: 'text.primary' }
+                  }}
+                  onClick={() => setCartOpen(false)}
+                >
+                  Continue Shopping
                 </Button>
               </Box>
             )}
           </Box>
         </Dialog>
+
         <Dialog 
           open={checkoutOpen} 
           onClose={() => setCheckoutOpen(false)} 

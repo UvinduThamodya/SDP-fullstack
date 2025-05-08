@@ -31,6 +31,8 @@ import restaurantLogo from '../../assets/YummyYard_logo.png';
 // Import Navbar component
 import Navbar from '../../components/Navbar';
 
+import '@fontsource/poppins'; // Import Poppins font
+
 // Styled Components for Reusability
 const StyledButton = styled(Button)(({ theme }) => ({
   backgroundColor: 'black',
@@ -50,7 +52,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
 
 // Style for Runalto Font
 const RunaltoTypography = styled(Typography)({
-  fontFamily: 'Runalto, sans-serif',
+  fontFamily: 'Poppins, sans-serif', // Changed to Poppins
 });
 
 // Gradient Overlay for Images
@@ -143,7 +145,7 @@ const SectionTitle = styled(Box)(({ theme }) => ({
 
 // Footer Styled Components
 const FooterTitle = styled(Typography)(({ theme }) => ({
-  fontFamily: 'Runalto, sans-serif',
+  fontFamily: 'Poppins, sans-serif', // Changed to Poppins
   fontWeight: 'bold',
   marginBottom: theme.spacing(3),
   position: 'relative',
@@ -191,6 +193,14 @@ const TestimonialCard = styled(Paper)(({ theme }) => ({
     boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
   }
 }));
+
+const randomImages = [
+  { src: require('../../assets/cooking1.png'), top: '10%', left: '5%' },
+  { src: require('../../assets/cooking2.png'), top: '30%', left: '5%' },
+  { src: require('../../assets/cooking3.png'), top: '50%', right: '5%' },
+  { src: require('../../assets/cooking4.png'), top: '70%', right: '75%' },
+  { src: require('../../assets/cooking5.png'), top: '20%', right: '5%' },
+];
 
 const Homepage = () => {
   // Initialize useNavigate hook
@@ -385,14 +395,74 @@ const Homepage = () => {
     { day: "Public Holidays", hours: "12:00 PM - 9:00 PM" }
   ];
 
+  // Fetch menu items from the backend
+  const [menuItems, setMenuItems] = useState([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
+
+useEffect(() => {
+  const fetchMenuItems = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/menu-items');
+      if (!response.ok) {
+        throw new Error('Failed to fetch menu items');
+      }
+      const data = await response.json();
+      setMenuItems(data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchMenuItems();
+}, []);
+
+// Slider settings for menu items
+const menuItemsSliderSettings = {
+  dots: true,
+  infinite: true,
+  speed: 500,
+  slidesToShow: isMobile ? 1 : isTablet ? 2 : 3,
+  slidesToScroll: 1,
+  autoplay: true,
+  autoplaySpeed: 3000,
+  arrows: !isMobile,
+  pauseOnHover: true,
+};
+
   return (
     <Box sx={{
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
       position: 'relative',
-      backgroundColor: '#000',
+      background: 'linear-gradient(to bottom, #e6e6e6, #bfbfbf)', // More ash gradient
+      backgroundSize: 'cover', // Ensure the gradient covers the entire page
+      backgroundRepeat: 'no-repeat', // Prevent tiling
+      backgroundPosition: 'center', // Center the gradient
     }}>
+      {/* Random Cooking Images */}
+      {randomImages.map((image, index) => (
+        <Box
+          key={index}
+          sx={{
+            position: 'absolute',
+            top: image.top,
+            left: image.left || 'auto',
+            right: image.right || 'auto',
+            width: '400px', // Increased size
+            height: '400px', // Increased size
+            backgroundImage: `url(${image.src})`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            zIndex: 0,
+            opacity: 0.8,
+          }}
+        />
+      ))}
+
       {/* Facebook SDK root div */}
       <div id="fb-root"></div>
       
@@ -500,9 +570,177 @@ const Homepage = () => {
             </Grid>
           </Container>
         </Box>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '15%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            textAlign: 'center',
+            zIndex: 2,
+          }}
+        >
+          <Typography
+            variant="h4" // Increased size
+            sx={{
+              color: 'white',
+              fontWeight: 'bold',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+              mb: 1,
+            }}
+          >
+            Explore
+          </Typography>
+          <Box
+            sx={{
+              width: 0,
+              height: 0,
+              borderLeft: '15px solid transparent', // Increased size
+              borderRight: '15px solid transparent', // Increased size
+              borderTop: '20px solid white', // Increased size
+              margin: '0 auto',
+            }}
+          />
+        </Box>
       </Box>
 
-      {/* Featured Items with Slider */}
+{/* Features Section */}
+<Container sx={{ py: { xs: 6, md: 10 } }}>
+        <SectionTitle>
+          <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+            sx={{ 
+              fontSize: '1.25rem', 
+              letterSpacing: '2px', 
+              textTransform: 'uppercase',
+              fontWeight: 'bold'
+            }}>
+            Why Choose Us
+          </RunaltoTypography>
+          <RunaltoTypography variant="h3" component="h2" align="center" 
+            sx={{ 
+              fontWeight: 'bold', 
+              color: 'black', // Changed to black
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              margin: '8px 0'
+            }}>
+            Our Features
+          </RunaltoTypography>
+          <div className="underline"></div>
+        </SectionTitle>
+
+        <Grid container spacing={4} sx={{ mt: 4 }}>
+          <Grid item xs={12} sm={4}>
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                borderRadius: '16px', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                backdropFilter: 'blur(10px)', 
+                border: '1px solid rgba(255, 255, 255, 0.1)' 
+              }}
+            >
+              <Box 
+                sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  mx: 'auto', 
+                  mb: 2, 
+                  backgroundColor: '#E8F5E9', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center' 
+                }}
+              >
+                <RestaurantIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'black' }}>
+                Easy To Order
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'black' }}>
+                Place your order effortlessly with our user-friendly platform.
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={4}>
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                borderRadius: '16px', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                backdropFilter: 'blur(10px)', 
+                border: '1px solid rgba(255, 255, 255, 0.1)' 
+              }}
+            >
+              <Box 
+                sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  mx: 'auto', 
+                  mb: 2, 
+                  backgroundColor: '#E8F5E9', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center' 
+                }}
+              >
+                <AccessTimeIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'black' }}>
+                First Priority
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'black' }}>
+                Enjoy your meals delivered to your doorstep in no time.
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} sm={4}>
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                p: 4, 
+                textAlign: 'center', 
+                borderRadius: '16px', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                backdropFilter: 'blur(10px)', 
+                border: '1px solid rgba(255, 255, 255, 0.1)' 
+              }}
+            >
+              <Box 
+                sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  mx: 'auto', 
+                  mb: 2, 
+                  backgroundColor: '#E8F5E9', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center' 
+                }}
+              >
+                <StarIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'black' }}>
+                Best Quality
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'black' }}>
+                Relish the finest quality meals prepared with care.
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
+
+
+      {/* Updated "Our Menu" Section */}
       <Container sx={{ py: { xs: 6, md: 10 } }}>
         <SectionTitle>
           <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
@@ -512,7 +750,7 @@ const Homepage = () => {
               textTransform: 'uppercase',
               fontWeight: 'bold'
             }}>
-            Popular Dishes
+            Our Menu
           </RunaltoTypography>
           <RunaltoTypography variant="h3" component="h2" align="center" 
             sx={{ 
@@ -521,72 +759,75 @@ const Homepage = () => {
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
               margin: '8px 0'
             }}>
-            Your Favorites
+            Explore Our Delicious Dishes
           </RunaltoTypography>
           <div className="underline"></div>
         </SectionTitle>
         
-        {/* Featured Items Slider */}
-        <Box sx={{ my: 6 }}>
-          <Slider {...featuredItemsSettings}>
-            {featuredDishes.map((dish) => (
-              <Box key={dish.id} sx={{ px: 1 }}>
-                <AnimatedCard>
-                  {dish.featured && (
-                    <FeatureTag label="Popular" size="small" />
-                  )}
-                  <Box sx={{ position: 'relative' }}>
-                    <CardMedia
-                      component="img"
-                      image={dish.image}
-                      alt={dish.name}
-                      sx={{ 
-                        height: 220,
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <PriceTag>{dish.price}</PriceTag>
-                  </Box>
-                  <CardContent sx={{ textAlign: 'center', flexGrow: 1 }}>
-                    <RunaltoTypography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-                      {dish.name}
-                    </RunaltoTypography>
-                    <RunaltoTypography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {dish.description}
-                    </RunaltoTypography>
-                    <Button 
-                      variant="outlined" 
-                      color="primary" 
-                      size="small"
-                      sx={{ 
-                        borderRadius: '20px',
-                        borderColor: '#3ACA82',
-                        color: '#3ACA82',
-                        '&:hover': {
-                          backgroundColor: '#3ACA82',
-                          color: 'black'
-                        }
-                      }}
-                    >
-                      Order Now
-                    </Button>
-                  </CardContent>
-                </AnimatedCard>
-              </Box>
-            ))}
-          </Slider>
-        </Box>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <StyledButton 
-            variant="contained" 
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate('/menu')}
-          >
-            View Complete Menu
-          </StyledButton>
+        {/* Display Menu Items in Slider */}
+        <Box sx={{ mt: 4 }}>
+          {loading ? (
+            <Typography variant="h6" color="white" align="center" sx={{ mt: 4 }}>
+              Loading menu items...
+            </Typography>
+          ) : error ? (
+            <Typography variant="h6" color="white" align="center" sx={{ mt: 4 }}>
+              {error}
+            </Typography>
+          ) : menuItems.length > 0 ? (
+            <Slider {...menuItemsSliderSettings}>
+              {menuItems.map((item) => (
+                <Box key={item.item_id} sx={{ px: 2 }}>
+                  <AnimatedCard>
+                    <Box sx={{ position: 'relative' }}>
+                      <CardMedia
+                        component="img"
+                        image={item.image_url}
+                        alt={item.name}
+                        sx={{ 
+                          height: 220,
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                        }}
+                      />
+                      <PriceTag>LKR {Number(item.price).toLocaleString()}</PriceTag>
+                    </Box>
+                    <CardContent sx={{ textAlign: 'center', flexGrow: 1 }}>
+                      <RunaltoTypography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                        {item.name}
+                      </RunaltoTypography>
+                      <RunaltoTypography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {item.description}
+                      </RunaltoTypography>
+                      <Button 
+                        variant="outlined" 
+                        color="primary" 
+                        size="small"
+                        sx={{ 
+                          borderRadius: '20px',
+                          borderColor: '#3ACA82',
+                          color: '#3ACA82',
+                          '&:hover': {
+                            backgroundColor: '#3ACA82',
+                            color: 'black',
+                          }
+                        }}
+                      >
+                        Order Now
+                      </Button>
+                    </CardContent>
+                  </AnimatedCard>
+                </Box>
+              ))}
+            </Slider>
+          ) : (
+            <Typography variant="h6" color="white" align="center" sx={{ mt: 4 }}>
+              No menu items available at the moment. Please check back later.
+            </Typography>
+          )}
         </Box>
       </Container>
+
 
       {/* Opening Hours Section - Moved */}
       <Container sx={{ py: { xs: 6, md: 8 }, textAlign: 'center' }}>
@@ -600,7 +841,8 @@ const Homepage = () => {
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'center' }}>
                 <AccessTimeIcon sx={{ color: '#3ACA82', fontSize: 36, mr: 2 }} />
-                <RunaltoTypography variant="h4" component="h2" color="white" sx={{ fontWeight: 'bold' }}>
+                <RunaltoTypography variant="h4" component="h2" color="black" // Changed to black
+                  sx={{ fontWeight: 'bold' }}>
                   Opening Hours
                 </RunaltoTypography>
               </Box>
@@ -730,114 +972,55 @@ const Homepage = () => {
         </Container>
       </Box>
 
-      {/* Testimonials Section - NEW */}
-      <Box sx={{ 
-        py: { xs: 6, md: 10 }, 
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))',
-      }}>
-        <Container>
-          <SectionTitle>
-            <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
-              sx={{ 
-                fontSize: '1.25rem', 
-                letterSpacing: '2px', 
-                textTransform: 'uppercase',
-                fontWeight: 'bold'
-              }}>
-              What People Say
-            </RunaltoTypography>
-            <RunaltoTypography variant="h3" component="h2" align="center" 
-              sx={{ 
-                fontWeight: 'bold', 
-                color: 'white', 
-                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-                margin: '8px 0'
-              }}>
-        
-              Customer Testimonials
-            </RunaltoTypography>
-            <div className="underline"></div>
-          </SectionTitle>
-          
-          <Box sx={{ my: 6 }}>
-          {/* <Slider {...testimonialSettings}>
-              {testimonials.map((testimonial) => (
-                <Box key={testimonial.id} sx={{ px: 2 }}>
-                  <TestimonialCard>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar 
-                        src={testimonial.avatar} 
-                        sx={{ 
-                          width: 60, 
-                          height: 60, 
-                          mr: 2,
-                          backgroundColor: '#3ACA82',
-                          color: 'black',
-                          fontWeight: 'bold',
-                          fontSize: '1.5rem'
-                        }}
-                      >
-                        {testimonial.name.charAt(0)}
-                      </Avatar>
-                      <Box>
-                        <RunaltoTypography variant="h6" color="white">
-                          {testimonial.name}
-                        </RunaltoTypography>
-                        <RunaltoTypography variant="body2" color="rgba(255,255,255,0.7)">
-                          {testimonial.date}
-                        </RunaltoTypography>
-                      </Box>
-                    </Box>
-                    
-                    <Rating 
-                      value={testimonial.rating} 
-                      precision={0.5} 
-                      readOnly 
-                      sx={{ 
-                        mb: 2,
-                        '& .MuiRating-iconFilled': {
-                          color: '#3ACA82',
-                        }
-                      }} 
-                    />
-                    
-                    <RunaltoTypography 
-                      variant="body1" 
-                      color="white" 
-                      paragraph 
-                      sx={{ 
-                        fontStyle: 'italic',
-                        opacity: 0.9,
-                        flexGrow: 1
-                      }}
-                    >
-                      "{testimonial.comment}"
-                    </RunaltoTypography>
-                  </TestimonialCard>
-                </Box>
-              ))}
-            </Slider> */}
-  <div dangerouslySetInnerHTML={{ __html: `
-    <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-    <div class="elfsight-app-772ca7a5-200d-4386-816a-f3910b2a4e88" data-elfsight-app-lazy></div>
-  ` }} />
+      {/* Testimonials Section */}
+<Box sx={{ 
+  py: { xs: 6, md: 10 }, 
+  backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))',
+}}>
+  <Container>
+    <SectionTitle>
+      <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+        sx={{ 
+          fontSize: '1.25rem', 
+          letterSpacing: '2px', 
+          textTransform: 'uppercase',
+          fontWeight: 'bold'
+        }}>
+        Google Reviews
+      </RunaltoTypography>
+      <RunaltoTypography variant="h3" component="h2" align="center" 
+        sx={{ 
+          fontWeight: 'bold', 
+          color: 'white', 
+          fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+          margin: '8px 0'
+        }}>
+        What Our Customers Say
+      </RunaltoTypography>
+      <div className="underline"></div>
+    </SectionTitle>
+    
+    <Box sx={{ my: 6 }}>
+      <Typography align="center" color="rgba(255, 255, 255, 0.7)">
+        Reviews are powered by Google Maps.
+      </Typography>
+    </Box>
+    
+    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <StyledButton 
+        variant="contained" 
+        component="a" 
+        href="https://maps.app.goo.gl/oUCuGsg6ZQtdSAaZ9" 
+        target="_blank"
+        startIcon={<img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Icon" style={{ width: 20, height: 20 }} />}
+      >
+        Open in Google Maps
+      </StyledButton>
+    </Box>
+  </Container>
 </Box>
 
-          
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <StyledButton 
-              variant="contained" 
-              component="a" 
-              href="https://www.facebook.com/people/Yummy-Yard/61565171879434/" 
-              target="_blank"
-              startIcon={<FacebookIcon />}
-            >
-              Leave a Review
-            </StyledButton>
-          </Box>
-        </Container>
-      </Box>
 
       {/* Social Media Updates */}
       <Container sx={{ py: { xs: 6, md: 10 } }}>
@@ -854,7 +1037,7 @@ const Homepage = () => {
           <RunaltoTypography variant="h3" component="h2" align="center" 
             sx={{ 
               fontWeight: 'bold', 
-              color: 'white', 
+              color: 'black', // Changed to black
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
               margin: '8px 0'
             }}>
@@ -863,7 +1046,7 @@ const Homepage = () => {
           <div className="underline"></div>
         </SectionTitle>
         
-        <RunaltoTypography variant="subtitle1" align="center" color="white" paragraph sx={{ opacity: 0.8, mb: 4 }}>
+        <RunaltoTypography variant="subtitle1" align="center" color="black" paragraph sx={{ opacity: 0.8, mb: 4 }}>
           Follow us on social media for the latest news, promotions, and behind-the-scenes content
         </RunaltoTypography>
         
@@ -903,10 +1086,11 @@ const Homepage = () => {
             textAlign: { xs: 'center', md: 'left' },
             maxWidth: { xs: '100%', md: '400px' }
           }}>
-            <RunaltoTypography variant="h4" component="h3" color="white" sx={{ mb: 2, fontWeight: 'bold' }}>
+            <RunaltoTypography variant="h4" component="h3" color="black" // Changed to black
+              sx={{ mb: 2, fontWeight: 'bold' }}>
               Never Miss an Update
             </RunaltoTypography>
-            <RunaltoTypography variant="body1" color="white" paragraph sx={{ opacity: 0.8 }}>
+            <RunaltoTypography variant="body1" color="black" paragraph sx={{ opacity: 0.8 }}>
               Follow us on Facebook to stay informed about special events, new menu items, and exclusive offers. Join our community of food lovers!
             </RunaltoTypography>
             
@@ -941,7 +1125,8 @@ const Homepage = () => {
         <Container>
           <Grid container spacing={4} alignItems="center" justifyContent="center">
             <Grid item xs={12} md={8} textAlign="center">
-              <RunaltoTypography variant="h4" component="h2" color="white" sx={{ fontWeight: 'bold', mb: 2 }}>
+              <RunaltoTypography variant="h4" component="h2" color="black" // Changed to black
+                sx={{ fontWeight: 'bold', mb: 2 }}>
                 Ready to Experience Our Flavors?
               </RunaltoTypography>
               
@@ -958,7 +1143,7 @@ const Homepage = () => {
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       }
                     }}
-                    onClick={() => navigate('/order')}
+                    // onClick={() => navigate('/order')}
                   >
                     Order Online
                   </StyledButton>
