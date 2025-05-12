@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Container, Grid, Paper, Button, Snackbar, Alert, IconButton,
   TextField, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Tabs, Tab,
-  CssBaseline, ThemeProvider, createTheme
+    CssBaseline, ThemeProvider, createTheme, Chip
 } from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
@@ -131,6 +131,24 @@ const Order = () => {
       }
     };
     fetchMenuItems();
+  }, []);
+
+  useEffect(() => {
+    const fetchLowStockItems = async () => {
+      try {
+        const lowStockItems = await MenuService.getLowStockMenuItems();
+        setMenuItems(prevItems =>
+          prevItems.map(item => ({
+            ...item,
+            lowStock: lowStockItems.some(lowStockItem => lowStockItem.menu_item_id === item.item_id),
+          }))
+        );
+      } catch (error) {
+        console.error('Failed to fetch low stock items:', error);
+      }
+    };
+
+    fetchLowStockItems();
   }, []);
 
   // Extract unique categories from menuItems
@@ -322,9 +340,22 @@ const Order = () => {
                       }
                     }}
                   >
-                    <Typography variant="h6" sx={{ fontSize:30 ,fontWeight: 600, mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontSize: 30, fontWeight: 600, mb: 1 }}>
                       {item.name}
                     </Typography>
+                    {item.lowStock && ( // Check if the item is low stock
+                      <Chip
+                        label="Low Stock"
+                        color="error"
+                        size="small"
+                        sx={{
+                          backgroundColor: '#ff9800',
+                          color: '#fff',
+                          fontWeight: 'bold',
+                          mb: 1,
+                        }}
+                      />
+                    )}
                     <Typography variant="body2" sx={{ mb: 2, color: '#666', flexGrow: 1 }}>
                       {item.description}
                     </Typography>

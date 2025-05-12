@@ -149,3 +149,34 @@ exports.downloadInventoryReport = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to generate inventory report' });
   }
 };
+
+// Get menu items with low stock information
+exports.getMenuItemsWithLowStock = async (req, res) => {
+  try {
+    const [menuItems] = await db.query(`
+      SELECT 
+        m.item_id AS menu_item_id,
+        m.name AS menu_item_name,
+        GROUP_CONCAT(i.item_name SEPARATOR ', ') AS low_stock_ingredients,
+        MIN(i.quantity / mii.quantity_required) AS max_possible_quantity
+      FROM MenuItems m
+      JOIN MenuItemIngredients mii ON m.item_id = mii.item_id
+      JOIN Inventory i ON mii.inventory_id = i.inventory_id
+      GROUP BY m.item_id
+      HAVING max_possible_quantity < 1
+    `);
+
+    console.log('Low stock menu items:', menuItems); // Debugging log
+
+    res.json({
+      success: true,
+      menuItems: menuItems.map(item => ({
+        ...item,
+        lowStock: true // All results from this query are low stock items
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching menu items with low stock:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch low stock items' });
+  }
+};

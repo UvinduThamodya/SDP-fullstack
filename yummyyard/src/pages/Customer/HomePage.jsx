@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Card, CardMedia, 
   CardContent, Link, IconButton, Divider, Avatar, Rating, 
-  Chip, Paper, Grow, useMediaQuery, alpha
+  Chip, Paper, Grow, useMediaQuery, alpha, Drawer
 } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import Slider from 'react-slick';
@@ -15,8 +15,9 @@ import {
   Email as EmailIcon,
   Restaurant as RestaurantIcon,
   AccessTime as AccessTimeIcon,
-  ArrowForward as ArrowForwardIcon,
-  Star as StarIcon
+  ArrowForward as ArrowForwardIcon, 
+  Star as StarIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -211,6 +212,7 @@ const Homepage = () => {
   
   // State for animations
   const [showSpecials, setShowSpecials] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   
   useEffect(() => {
     // Show specials section with slight delay for animation
@@ -429,6 +431,43 @@ const menuItemsSliderSettings = {
   autoplaySpeed: 3000,
   arrows: !isMobile,
   pauseOnHover: true,
+};
+
+// Responsive Typography
+const responsiveTypography = {
+  h2: {
+    fontSize: { xs: '2rem', sm: '3rem', md: '4.5rem' },
+    lineHeight: { xs: 1.2, md: 1.3 },
+  },
+  h6: {
+    fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+  },
+};
+
+// Responsive Slider Settings
+const responsiveSliderSettings = {
+  dots: true,
+  infinite: true,
+  speed: 500,
+  slidesToShow: isMobile ? 1 : isTablet ? 2 : 3,
+  slidesToScroll: 1,
+  autoplay: true,
+  responsive: [
+    {
+      breakpoint: 1024,
+      settings: {
+        slidesToShow: 2,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 600,
+      settings: {
+        slidesToShow: 1,
+        slidesToScroll: 1,
+      },
+    },
+  ],
 };
 
   return (
@@ -775,7 +814,7 @@ const menuItemsSliderSettings = {
               {error}
             </Typography>
           ) : menuItems.length > 0 ? (
-            <Slider {...menuItemsSliderSettings}>
+            <Slider {...responsiveSliderSettings}>
               {menuItems.map((item) => (
                 <Box key={item.item_id} sx={{ px: 2 }}>
                   <AnimatedCard>
@@ -785,7 +824,7 @@ const menuItemsSliderSettings = {
                         image={item.image_url}
                         alt={item.name}
                         sx={{ 
-                          height: 220,
+                          height: { xs: 180, sm: 220, md: 260 },
                           objectFit: 'cover',
                           objectPosition: 'center',
                         }}

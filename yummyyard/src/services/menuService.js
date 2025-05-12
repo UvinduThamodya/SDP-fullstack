@@ -66,6 +66,17 @@ const MenuService = {
     }
   },
 
+  // Fetch low stock menu items
+ getLowStockMenuItems: async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/inventory/menu-items-with-low-stock');
+      return response.data.menuItems; // Assuming the backend returns menuItems in the response
+    } catch (error) {
+      console.error('Error fetching low stock menu items:', error);
+      throw error;
+    }
+  },
+
   // Update menu item
   updateMenuItem: async (id, data) => {
     const token = localStorage.getItem("token");

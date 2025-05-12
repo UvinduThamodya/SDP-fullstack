@@ -8,5 +8,6 @@ router.post('/', inventoryController.addIngredient);
 router.put('/:id', inventoryController.updateIngredient);
 router.delete('/:id', inventoryController.deleteIngredient);
 router.get('/report/pdf', authenticateUser, inventoryController.downloadInventoryReport);
+router.get('/menu-items-with-low-stock', inventoryController.getMenuItemsWithLowStock);
 
 module.exports = router;

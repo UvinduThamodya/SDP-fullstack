@@ -5,7 +5,7 @@ import {
   Box, Typography, Container, Grid, Card, CardMedia, CardContent, Button,
   Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  Snackbar, Alert, TextField, Fab, Divider
+  Snackbar, Alert, TextField, Fab, Divider, Chip
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PaymentIcon from '@mui/icons-material/Payment';
@@ -101,6 +101,26 @@ const Menu = () => {
       }
     };
     fetchMenuItems();
+  }, []);
+
+  useEffect(() => {
+    const fetchLowStockItems = async () => {
+      try {
+        const lowStockItems = await MenuService.getLowStockMenuItems();
+        console.log('Low stock items:', lowStockItems); // Debugging log
+        setMenuItems(prevItems =>
+          prevItems.map(item => ({
+            ...item,
+            lowStock: lowStockItems.some(lowStockItem => lowStockItem.menu_item_id === item.item_id),
+          }))
+        );
+        console.log('Updated menu items:', menuItems); // Debugging log
+      } catch (error) {
+        console.error('Failed to fetch low stock items:', error);
+      }
+    };
+
+    fetchLowStockItems();
   }, []);
 
   const [favoriteIds, setFavoriteIds] = useState([]);
@@ -299,11 +319,26 @@ const Menu = () => {
                       image={item.image_url}
                       alt={item.name}
                       sx={{
-                        width: '100%', // Ensures it spans the card width
-                        height: 200,   // Fixed height for all images
-                        objectFit: 'cover', // Ensures the image maintains its aspect ratio
+                        width: '100%',
+                        height: 200,
+                        objectFit: 'cover',
                       }}
                     />
+                    {item.lowStock && ( // Check if the item is low stock
+                      <Chip
+                        label="Low Stock"
+                        color="error"
+                        size="small"
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 8,
+                          backgroundColor: '#ff9800',
+                          color: '#fff',
+                          fontWeight: 'bold',
+                        }}
+                      />
+                    )}
                     <IconButton
                       sx={{
                         position: 'absolute',
@@ -330,14 +365,18 @@ const Menu = () => {
                         disableElevation
                         startIcon={<ShoppingCartIcon />}
                         onClick={() => handleAddToCart(item.item_id)}
+                        disabled={item.lowStock} // Disable button if item is low stock
                         sx={{ 
                           borderRadius: '24px',
                           px: 2,
-                          backgroundColor: '#3ACA82',
-                          '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
+                          backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
+                          color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
+                          '&:hover': {
+                            backgroundColor: item.lowStock ? '#e0e0e0' : alpha('#3ACA82', 0.8),
+                          },
                         }}
                       >
-                        Add
+                        {item.lowStock ? 'Unavailable' : 'Add'}
                       </Button>
                     </Box>
                   </CardContent>
@@ -1072,8 +1111,18 @@ const Menu = () => {
                   handleAddToCart(item.item_id);
                   setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
                 }}
+                disabled={item.lowStock} // Disable button if item is low stock
+                sx={{ 
+                  borderRadius: '24px',
+                  px: 2,
+                  backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
+                  color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
+                  '&:hover': {
+                    backgroundColor: item.lowStock ? '#e0e0e0' : alpha('#3ACA82', 0.8),
+                  },
+                }}
               >
-                Add to Order
+                {item.lowStock ? 'Unavailable' : 'Add to Order'}
               </Button>
             </Card>
           </Grid>

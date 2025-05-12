@@ -1,22 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Box, Tooltip, Button } from '@mui/material';
-import yummyYard from '../assets/YummyYard_logo.png'; // Import the Yummy Yard logo
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-
-// Import logos for the pages
-import dashboardLogo from '../assets/dashboard (1).png';
-import menuLogo from '../assets/menu (1).png';
-import ordersLogo from '../assets/Order.png';
-import aboutLogo from '../assets/aboutus.png';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import HomeIcon from '@mui/icons-material/Home'; // Import the Home icon
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Box,
+  Tooltip,
+  Button,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
+import { 
+  Menu as MenuIcon,
+  Home as HomeIcon,
+  AccountCircle as AccountCircleIcon,
+  Restaurant as RestaurantIcon,
+  ListAlt as ListAltIcon,
+  Dashboard as DashboardIcon,
+  Info as InfoIcon,
+  Logout as LogoutIcon
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import yummyYard from '../assets/YummyYard_logo.png';
 
 const Navbar = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [user, setUser] = useState(null);
   const [deleteRequest, setDeleteRequest] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   
-  // Check if user is logged in
+  // User and delete request logic (same as previous implementation)
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -44,246 +65,290 @@ const Navbar = () => {
     };
 
     checkDeleteRequests();
-    const interval = setInterval(checkDeleteRequests, 30000); // Check every 30 seconds
-
+    const interval = setInterval(checkDeleteRequests, 30000);
     return () => clearInterval(interval);
   }, []);
 
+  // Navigation handlers
   const handleNavigation = (route) => {
     navigate(route);
+    setMobileOpen(false);
   };
   
-  // Handle home navigation based on authentication status
   const handleHomeClick = () => {
     const token = localStorage.getItem('token');
-    if (token) {
-      // If user is logged in, go to user homepage
-      navigate('/HomepageUser');
-    } else {
-      // If user is not logged in, go to public homepage
-      navigate('/');
-    }
+    navigate(token ? '/HomepageUser' : '/');
+    setMobileOpen(false);
   };
   
-  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     navigate('/');
+    setMobileOpen(false);
   };
 
+  // Mobile drawer menu
+  const drawer = (
+    <List>
+      <ListItem onClick={handleHomeClick}>
+        <ListItemIcon><HomeIcon /></ListItemIcon>
+        <ListItemText primary="Home" />
+      </ListItem>
+      <ListItem onClick={() => handleNavigation('/menu')}>
+        <ListItemIcon><RestaurantIcon /></ListItemIcon>
+        <ListItemText primary="Menu" />
+      </ListItem>
+      <ListItem onClick={() => handleNavigation('/orderhistory')}>
+        <ListItemIcon><ListAltIcon /></ListItemIcon>
+        <ListItemText primary="Orders" />
+      </ListItem>
+      {user && (
+        <ListItem onClick={() => handleNavigation('/dashboardcustomer')}>
+          <ListItemIcon><DashboardIcon /></ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItem>
+      )}
+      <ListItem onClick={() => handleNavigation('/aboutcontact')}>
+        <ListItemIcon><InfoIcon /></ListItemIcon>
+        <ListItemText primary="About Us" />
+      </ListItem>
+      {user && (
+        <>
+          <ListItem onClick={() => handleNavigation('/profile')}>
+            <ListItemIcon><AccountCircleIcon /></ListItemIcon>
+            <ListItemText primary="My Profile" />
+          </ListItem>
+          <ListItem onClick={handleLogout}>
+            <ListItemIcon><LogoutIcon /></ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItem>
+        </>
+      )}
+    </List>
+  );
+
+  // Desktop navigation items
+  const NavItems = () => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Tooltip title="Home" placement="bottom">
+        <IconButton color="inherit" onClick={handleHomeClick}>
+          <HomeIcon sx={{ fontSize: isMobile ? 24 : 50, color: '#fff' }} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Menu" placement="bottom">
+        <IconButton color="inherit" onClick={() => handleNavigation('/menu')}>
+          <RestaurantIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Orders" placement="bottom">
+        <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
+          <ListAltIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
+        </IconButton>
+      </Tooltip>
+      {user && (
+        <Tooltip title="Dashboard" placement="bottom">
+          <IconButton color="inherit" onClick={() => handleNavigation('/dashboardcustomer')}>
+            <DashboardIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
+          </IconButton>
+        </Tooltip>
+      )}
+      <Tooltip title="About Us" placement="bottom">
+        <IconButton color="inherit" onClick={() => handleNavigation('/aboutcontact')}>
+          <InfoIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
+        </IconButton>
+      </Tooltip>
+      {user && (
+        <Tooltip title="My Profile" placement="bottom">
+          <Box sx={{ position: 'relative' }}>
+            <IconButton
+              color="inherit"
+              onClick={() => handleNavigation('/profile')}
+            >
+              <AccountCircleIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
+            </IconButton>
+            {deleteRequest && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  backgroundColor: 'red',
+                  animation: 'pulse 1.5s infinite',
+                }}
+              />
+            )}
+          </Box>
+        </Tooltip>
+      )}
+    </Box>
+  );
+
   return (
-    <AppBar
-      position="static"
-      sx={{
-        background: 'linear-gradient(to right, #11998e, #38ef7d)', // Premium greenish gradient
-        height: '80px',
-        boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.4)', // Enhanced shadow for depth
-      }}
-    >
-      <Toolbar
+    <>
+      <AppBar
+        position="static"
         sx={{
-          minHeight: '80px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '0 20px', // Add padding for better spacing
+          background: 'linear-gradient(to right, #11998e, #38ef7d)',
+          height: { xs: '60px', sm: '70px', md: '80px' },
+          boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.4)',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 4 }}
-          >
-            <img
-              src={yummyYard}
-              alt="Yummy Yard Logo"
-              onClick={handleHomeClick}
-              style={{
-                height: '60px',
-                marginRight: '9px',
-                borderRadius: '5px',
-                cursor: 'pointer', // Add pointer cursor
-                transition: 'transform 0.3s', // Smooth hover effect
-              }}
-              onMouseEnter={(e) => (e.target.style.transform = 'scale(1.1)')}
-              onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
-            />
-          </IconButton>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              fontWeight: 'bold',
-              fontSize: '30px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#fff', // White text for better contrast
-            }}
-          >
-            Yummy Yard
-          </Typography>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              fontSize: '20px',
-              fontFamily: 'Poppins, sans-serif',
-              ml: 4,
-              color: '#fff', // White text
-            }}
-          >
-            +94 76 718 1695
-          </Typography>
-        </Box>
-        
-        {user && (
-          <Typography
-            variant="h6"
-            sx={{
-              fontFamily: 'Poppins, sans-serif',
-              fontSize: '16px',
-              color: '#fff', // White text
-            }}
-          >
-            Welcome, {user.name}!
-          </Typography>
-        )}
-        
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Tooltip title="Home" placement="bottom">
+        <Toolbar
+          sx={{
+            minHeight: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: { xs: '0 10px', sm: '0 20px' },
+          }}
+        >
+          {/* Logo and Title Section */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
+              size="large"
+              edge="start"
               color="inherit"
-              onClick={handleHomeClick}
-              sx={{
-                transition: 'transform 0.3s',
-                '&:hover': { transform: 'scale(1.2)' }, // Hover effect
-              }}
-            >
-              <HomeIcon sx={{ fontSize: 50, color: '#fff' }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Menu" placement="bottom">
-            <IconButton
-              color="inherit"
-              onClick={() => handleNavigation('/menu')}
-              sx={{
-                transition: 'transform 0.3s',
-                '&:hover': { transform: 'scale(1.2)' },
-              }}
+              aria-label="menu"
+              sx={{ mr: { xs: 1, sm: 2, md: 4 } }}
             >
               <img
-                src={menuLogo}
-                alt="Menu"
-                style={{ height: '40px', filter: 'brightness(0) invert(1)' }} // Invert for white color
+                src={yummyYard}
+                alt="Yummy Yard Logo"
+                onClick={handleHomeClick}
+                style={{
+                  height: isMobile ? '40px' : '60px',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  transition: 'transform 0.3s',
+                }}
+                onMouseEnter={(e) => (e.target.style.transform = 'scale(1.1)')}
+                onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
               />
             </IconButton>
-          </Tooltip>
-          <Tooltip title="Orders" placement="bottom">
-            <IconButton
-              color="inherit"
-              onClick={() => handleNavigation('/orderhistory')}
-              sx={{
-                transition: 'transform 0.3s',
-                '&:hover': { transform: 'scale(1.2)' },
-              }}
-            >
-              <img
-                src={ordersLogo}
-                alt="Orders"
-                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
-              />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Dashboard" placement="bottom">
-            <IconButton
-              color="inherit"
-              onClick={() => handleNavigation('/dashboardcustomer')}
-              sx={{
-                transition: 'transform 0.3s',
-                '&:hover': { transform: 'scale(1.2)' },
-              }}
-            >
-              <img
-                src={dashboardLogo}
-                alt="Dashboard"
-                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
-              />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="About Us" placement="bottom">
-            <IconButton
-              color="inherit"
-              onClick={() => handleNavigation('/aboutcontact')}
-              sx={{
-                transition: 'transform 0.3s',
-                '&:hover': { transform: 'scale(1.2)' },
-              }}
-            >
-              <img
-                src={aboutLogo}
-                alt="About Us"
-                style={{ height: '40px', filter: 'brightness(0) invert(1)' }}
-              />
-            </IconButton>
-          </Tooltip>
-          {user && (
-            <Tooltip title="My Profile" placement="bottom">
-              <Box sx={{ position: 'relative' }}>
+            
+            {/* Hide on very small screens */}
+            <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  fontWeight: 'bold',
+                  fontSize: { xs: '20px', md: '30px' },
+                  fontFamily: 'Poppins, sans-serif',
+                  color: '#fff',
+                  mr: 2,
+                }}
+              >
+                Yummy Yard
+              </Typography>
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  fontSize: { xs: '14px', md: '20px' },
+                  fontFamily: 'Poppins, sans-serif',
+                  color: '#fff',
+                  display: { xs: 'none', md: 'block' },
+                }}
+              >
+                +94 76 718 1695
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* User Welcome and Mobile Menu Toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {user && !isMobile && (
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontSize: '16px',
+                  color: '#fff',
+                  mr: 2,
+                }}
+              >
+                Welcome, {user.name}!
+              </Typography>
+            )}
+
+            {/* Desktop Navigation */}
+            {!isMobile ? (
+              <NavItems />
+            ) : (
+              <>
+                {user && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: 'Poppins, sans-serif',
+                      fontSize: '14px',
+                      color: '#fff',
+                      mr: 1,
+                    }}
+                  >
+                    {user.name}
+                  </Typography>
+                )}
                 <IconButton
                   color="inherit"
-                  onClick={() => handleNavigation('/profile')}
-                  sx={{
-                    transition: 'transform 0.3s',
-                    '&:hover': { transform: 'scale(1.2)' },
-                  }}
+                  aria-label="open drawer"
+                  edge="start"
+                  onClick={() => setMobileOpen(!mobileOpen)}
                 >
-                  <AccountCircleIcon sx={{ fontSize: 40, color: '#fff' }} />
+                  <MenuIcon />
                 </IconButton>
-                {deleteRequest && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      width: 12,
-                      height: 12,
-                      borderRadius: '50%',
-                      backgroundColor: 'red',
-                      animation: 'pulse 1.5s infinite',
-                    }}
-                  />
-                )}
-              </Box>
-            </Tooltip>
-          )}
-          {user && (
-            <Button
-              color="inherit"
-              onClick={handleLogout}
-              sx={{
-                fontFamily: 'Poppins, sans-serif',
-                color: '#fff',
-                border: '1px solid #fff',
-                borderRadius: '20px',
-                padding: '5px 15px',
-                transition: 'background-color 0.3s, transform 0.3s',
-                '&:hover': {
-                  backgroundColor: '#fff',
-                  color: '#ff7e5f',
-                  transform: 'scale(1.1)',
-                },
-              }}
-            >
-              Logout
-            </Button>
-          )}
-        </Box>
-      </Toolbar>
-    </AppBar>
+              </>
+            )}
+
+            {/* Logout Button for Desktop */}
+            {user && !isMobile && (
+              <Button
+                color="inherit"
+                onClick={handleLogout}
+                sx={{
+                  fontFamily: 'Poppins, sans-serif',
+                  color: '#fff',
+                  border: '1px solid #fff',
+                  borderRadius: '20px',
+                  padding: '5px 15px',
+                  transition: 'background-color 0.3s, transform 0.3s',
+                  '&:hover': {
+                    backgroundColor: '#fff',
+                    color: '#ff7e5f',
+                    transform: 'scale(1.1)',
+                  },
+                }}
+              >
+                Logout
+              </Button>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        anchor="right"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
+        }}
+      >
+        {drawer}
+      </Drawer>
+    </>
   );
 };
 
