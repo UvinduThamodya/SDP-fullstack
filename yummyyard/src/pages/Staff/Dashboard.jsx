@@ -153,12 +153,50 @@ const getStatusColor = (status) => {
   }
 };
 
+const StyledContainer = styled(Container)(({ theme }) => ({
+  marginTop: theme.spacing(4),
+  marginBottom: theme.spacing(4),
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1),
+  },
+}));
+
+const ResponsiveGrid = styled(Grid)(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    flexDirection: 'column',
+    gap: theme.spacing(2),
+  },
+}));
+
+const ResponsiveTableContainer = styled(TableContainer)(({ theme }) => ({
+  '& .MuiTableCell-root': {
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '0.75rem',
+      padding: theme.spacing(0.5),
+    },
+  },
+  '& .MuiTableRow-root': {
+    [theme.breakpoints.down('sm')]: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      borderBottom: `1px solid ${theme.palette.divider}`,
+      marginBottom: theme.spacing(1),
+    },
+  },
+}));
+
 export default function StaffDashboard() {
   const [orders, setOrders] = useState([]);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusDialog, setStatusDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
   
   // Daily stats counters
   const [dailyStats, setDailyStats] = useState({
@@ -288,17 +326,32 @@ export default function StaffDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
-        <SidebarStaff />
+        <SidebarStaff open={sidebarOpen} toggleSidebar={toggleSidebar} />
         
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+          <Button
+            variant="contained"
+            onClick={toggleSidebar}
+            sx={{
+              display: { sm: 'none' }, // Show button only on mobile view
+              mb: 2,
+              backgroundColor: theme.palette.primary.main,
+              color: '#fff',
+            }}
+          >
+            {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
+          </Button>
+
+          <StyledContainer maxWidth="lg">
             <PageHeader>
               <DashboardIcon />
-              <Typography variant="h4">Staff Dashboard</Typography>
+              <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
+                Staff Dashboard
+              </Typography>
             </PageHeader>
             
             {/* Daily Stats Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            <ResponsiveGrid container spacing={3} sx={{ mb: 4 }}>
               {/* Total Orders */}
               <Grid item xs={12} sm={6} md={3}>
                 <Card>
@@ -354,19 +407,20 @@ export default function StaffDashboard() {
                   </CardContent>
                 </Card>
               </Grid>
-            </Grid>
+            </ResponsiveGrid>
             
-            <Paper sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 0 } }}>
                   <ReceiptLongIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
-                  <Typography variant="h6">All Orders</Typography>
+                  <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem' } }}>All Orders</Typography>
                 </Box>
                 
                 <Button
                   variant="contained"
                   startIcon={<DownloadIcon />}
                   onClick={handleDownloadReport}
+                  sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}
                 >
                   Download Report
                 </Button>
@@ -374,7 +428,7 @@ export default function StaffDashboard() {
               
               <Divider sx={{ mb: 2 }} />
               
-              <StyledTableContainer>
+              <ResponsiveTableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -413,6 +467,7 @@ export default function StaffDashboard() {
                               size="small" 
                               startIcon={<EditIcon />}
                               onClick={() => handleChangeStatus(order)}
+                              sx={{ fontSize: { xs: '0.7rem', sm: '0.9rem' } }}
                             >
                               Change Status
                             </ActionButton>
@@ -422,7 +477,7 @@ export default function StaffDashboard() {
                     )}
                   </TableBody>
                 </Table>
-              </StyledTableContainer>
+              </ResponsiveTableContainer>
             </Paper>
 
             {/* Status Change Dialog */}
@@ -432,7 +487,7 @@ export default function StaffDashboard() {
               PaperProps={{
                 sx: {
                   borderRadius: 2,
-                  width: '400px',
+                  width: { xs: '90%', sm: '400px' },
                   maxWidth: '100%'
                 }
               }}
@@ -499,12 +554,13 @@ export default function StaffDashboard() {
                   fontFamily: 'Poppins, sans-serif',
                   borderRadius: 2,
                   boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                  fontSize: { xs: '0.8rem', sm: '1rem' },
                 }}
               >
                 {notification.message}
               </Alert>
             </Snackbar>
-          </Container>
+          </StyledContainer>
         </Box>
       </Box>
     </ThemeProvider>

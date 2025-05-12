@@ -96,6 +96,11 @@ const Order = () => {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentType, setPaymentType] = useState('');
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   // Calculate balance for cash payments
   useEffect(() => {
@@ -232,8 +237,20 @@ const Order = () => {
       <CssBaseline />
       <style>{poppinsFont}</style>
       <Box sx={{ display: 'flex', backgroundColor: '#f7f7f7', minHeight: '100vh' }}>
-        <SidebarStaff />
+        <SidebarStaff open={sidebarOpen} toggleSidebar={toggleSidebar} />
         <Container maxWidth="lg" sx={{ pt: 4, pb: 6 }}>
+          <Button
+            variant="contained"
+            onClick={toggleSidebar}
+            sx={{
+              display: { xs: 'block', sm: 'none' }, // Show button only on mobile view
+              mb: 2,
+              backgroundColor: '#1976d2',
+              color: '#fff',
+            }}
+          >
+            {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
+          </Button>
           <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
             <Typography variant="h5" sx={{ mb: 2, fontSize: 28, fontWeight: 600, color: '#333' }}>
               Food Menu

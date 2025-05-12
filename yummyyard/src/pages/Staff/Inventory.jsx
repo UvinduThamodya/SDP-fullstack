@@ -95,6 +95,11 @@ const Inventory = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [deleteIngredient, setDeleteIngredient] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
   
   const fetchInventory = async () => {
     try {
@@ -312,7 +317,7 @@ const Inventory = () => {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex' }}>
-        <SidebarStaff />
+        <SidebarStaff open={sidebarOpen} toggleSidebar={toggleSidebar} />
         <Box
           sx={{
             flexGrow: 1,
@@ -322,6 +327,19 @@ const Inventory = () => {
             px: 2,
           }}
         >
+          <Button
+            variant="contained"
+            onClick={toggleSidebar}
+            sx={{
+              display: { xs: 'block', sm: 'none' }, // Show button only on mobile view
+              mb: 2,
+              backgroundColor: '#1976d2',
+              color: '#fff',
+            }}
+          >
+            {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
+          </Button>
+
           <Container maxWidth="lg">
             {/* Page Title */}
             <Typography
