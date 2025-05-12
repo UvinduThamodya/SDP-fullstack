@@ -325,15 +325,15 @@ export default function StaffDashboard() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex', backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         <SidebarStaff open={sidebarOpen} toggleSidebar={toggleSidebar} />
         
-        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+        <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f7fa', p: { xs: 2, sm: 3 } }}>
           <Button
             variant="contained"
             onClick={toggleSidebar}
             sx={{
-              display: { sm: 'none' }, // Show button only on mobile view
+              display: { xs: 'block', sm: 'none' }, // Show button only on mobile view
               mb: 2,
               backgroundColor: theme.palette.primary.main,
               color: '#fff',

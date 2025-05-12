@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Drawer, 
@@ -9,8 +9,7 @@ import {
   ListItemText, 
   Divider,
   Typography,
-  useTheme,
-  Button
+  useTheme
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -20,7 +19,7 @@ import InventoryIcon from '@mui/icons-material/Inventory'; // Import Inventory i
 import { styled } from '@mui/system';
 const drawerWidth = 240;
 
-const Sidebar = ({ open, toggleSidebar }) => {
+const Sidebar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,30 +50,22 @@ const Sidebar = ({ open, toggleSidebar }) => {
   return (
     <Drawer
       sx={{
-        width: { xs: open ? drawerWidth : 0, sm: drawerWidth }, // Always show in desktop view
+        width: drawerWidth,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: { xs: open ? drawerWidth : 0, sm: drawerWidth }, // Always show in desktop view
+          width: drawerWidth,
           boxSizing: 'border-box',
           backgroundColor: '#00E676',
           color: '#000',
-          transition: 'width 0.3s',
         },
       }}
-      variant="persistent"
+      variant="permanent"
       anchor="left"
-      open={open || theme.breakpoints.up('sm')} // Always open in desktop view
     >
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
           Yummy Yard
         </Typography>
-        <Button 
-          onClick={toggleSidebar} 
-          sx={{ color: '#000', minWidth: 'auto', display: { sm: 'none' } }} // Hide button in desktop view
-        >
-          {open ? 'Close' : 'Open'}
-        </Button>
       </Box>
       <Divider />
       <List sx={{ mt: 2 }}>

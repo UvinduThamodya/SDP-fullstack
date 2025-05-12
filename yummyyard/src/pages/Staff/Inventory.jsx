@@ -316,24 +316,17 @@ const Inventory = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         <SidebarStaff open={sidebarOpen} toggleSidebar={toggleSidebar} />
-        <Box
-          sx={{
-            flexGrow: 1,
-            minHeight: '100vh',
-            backgroundColor: '#f9f9f9',
-            py: 4,
-            px: 2,
-          }}
-        >
+
+        <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f7fa', p: { xs: 2, sm: 3 } }}>
           <Button
             variant="contained"
             onClick={toggleSidebar}
             sx={{
               display: { xs: 'block', sm: 'none' }, // Show button only on mobile view
               mb: 2,
-              backgroundColor: '#1976d2',
+              backgroundColor: theme.palette.primary.main,
               color: '#fff',
             }}
           >
