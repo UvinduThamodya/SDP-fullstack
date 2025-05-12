@@ -651,6 +651,35 @@ const Menu = () => {
                 </Box>
               )}
             </Box>
+
+            {/* Cart Notification Widget */}
+            <Box 
+              sx={{ 
+                mt: 3, 
+                mb: 4,
+                p: 2.5, 
+                borderRadius: 2, 
+                border: '1px solid rgba(58, 202, 130, 0.3)',
+                backgroundColor: 'rgba(58, 202, 130, 0.05)',
+                display: 'flex',
+                alignItems: 'center',
+                boxShadow: '0 2px 8px rgba(58, 202, 130, 0.1)',
+              }}
+            >
+              <Box sx={{ mr: 2, color: '#3ACA82' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" fill="currentColor"/>
+                </svg>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#3ACA82', mb: 0.5 }}>
+                  No Hidden Charges & Priority Processing
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Unlike other ordering services, we don't have any hidden fees. Orders placed through this website receive priority processing.
+                </Typography>
+              </Box>
+            </Box>
             
             {/* Cart Footer - Fixed */}
             {cart.length > 0 && (

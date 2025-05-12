@@ -15,8 +15,6 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import EditIcon from '@mui/icons-material/Edit';
 import DownloadIcon from '@mui/icons-material/Download';
 
-// Note: Add this link to your index.html:
-// <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 const SOCKET_URL = 'http://localhost:5000'; // Change to your backend URL
 
