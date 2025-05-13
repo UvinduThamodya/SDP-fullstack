@@ -12,6 +12,10 @@ CREATE TABLE Customers (
     password VARCHAR(255) NOT NULL
 );
 
+ALTER TABLE Customers
+ADD COLUMN delete_requested BOOLEAN DEFAULT false;
+
+
 -- Menu Items Table
 CREATE TABLE MenuItems (
     item_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -402,3 +406,14 @@ ORDER BY
 LIMIT 3;
 
 
+SELECT 
+        m.item_id AS menu_item_id,
+        m.name AS menu_item_name,
+        i.inventory_id,
+        i.item_name AS ingredient_name,
+        i.quantity AS ingredient_quantity,
+        i.threshold AS ingredient_threshold,
+        mii.quantity_required AS quantity_required_per_item
+      FROM MenuItems m
+      JOIN MenuItemIngredients mii ON m.item_id = mii.item_id
+      JOIN Inventory i ON mii.inventory_id = i.inventory_id;

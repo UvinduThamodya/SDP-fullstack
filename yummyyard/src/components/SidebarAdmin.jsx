@@ -43,6 +43,13 @@ const SidebarAdmin = () => {
           </ListItemIcon>
           <ListItemText primary="Menu" />
         </ListItem>
+        {/* Add Inventory link */}
+        <ListItem button onClick={() => handleNavigation('/admininventory')}>
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+          <ListItemText primary="Inventory" />
+        </ListItem>
         <ListItem button onClick={() => handleNavigation('/adminprofile')}>
           <ListItemIcon>
             <AccountCircleIcon />

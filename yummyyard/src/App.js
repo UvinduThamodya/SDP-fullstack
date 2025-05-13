@@ -23,6 +23,7 @@ import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminProfile from './pages/Admin/AdminProfile';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminMenu from './pages/Admin/AdminMenu';
+import AdminInventory from './pages/Admin/adminInventory';
 
 // Protected Route component that checks for authentication
 function ProtectedRoute({ children }) {
@@ -64,6 +65,7 @@ function App() {
         <Route path='/adminprofile' element={<AdminProfile/>} />
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminmenu" element={<AdminMenu />} />
+        <Route path="/admininventory" element={<AdminInventory />} />
 
         {/* Protected customer routes */}
         <Route 

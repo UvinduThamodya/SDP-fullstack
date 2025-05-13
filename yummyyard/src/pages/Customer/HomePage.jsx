@@ -34,6 +34,8 @@ import Navbar from '../../components/Navbar';
 
 import '@fontsource/poppins'; // Import Poppins font
 
+import SidebarAdmin from '../../components/SidebarAdmin'; // Import SidebarAdmin
+
 // Styled Components for Reusability
 const StyledButton = styled(Button)(({ theme }) => ({
   backgroundColor: 'black',
@@ -213,6 +215,9 @@ const Homepage = () => {
   // State for animations
   const [showSpecials, setShowSpecials] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Add sidebar state
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev); // Add toggle function
   
   useEffect(() => {
     // Show specials section with slight delay for animation
@@ -481,6 +486,26 @@ const responsiveSliderSettings = {
       backgroundRepeat: 'no-repeat', // Prevent tiling
       backgroundPosition: 'center', // Center the gradient
     }}>
+      {/* SidebarAdmin for admin navigation */}
+      <SidebarAdmin open={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+      {/* Sidebar toggle button for mobile */}
+      <Button
+        variant="contained"
+        onClick={toggleSidebar}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          position: 'fixed',
+          top: 16,
+          left: 16,
+          zIndex: 10,
+          backgroundColor: 'black',
+          color: 'white',
+        }}
+      >
+        {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
+      </Button>
+
       {/* Random Cooking Images */}
       {randomImages.map((image, index) => (
         <Box
