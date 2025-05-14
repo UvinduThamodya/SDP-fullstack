@@ -19,7 +19,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import StripePayment from '../../components/StripePayment';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement } from '@stripe/react-stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import Navbar from '../../components/Navbar'; 
 import { alpha } from '@mui/material/styles'; 
 import RecommendationService from '../../services/recommendationService';
@@ -243,6 +243,117 @@ const Menu = () => {
       console.error('Error fetching recommendations:', error);
     }
   };
+
+  function CardPaymentForm({ calculateTotal, handlePayment, setPaymentDialogOpen, setNotification }) {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [isProcessing, setIsProcessing] = useState(false);
+  
+    return (
+      <Box sx={{ py: 2 }}>
+        <Typography variant="h6" sx={{ mb: 4, fontWeight: 500, textAlign: 'center' }}>
+          Enter your card details
+        </Typography>
+        <Box sx={{
+          p: 2.5,
+          borderRadius: 2,
+          border: '1px solid #e0e0e0',
+          backgroundColor: 'white',
+          mb: 3,
+          transition: 'all 0.3s',
+          '&:hover': {
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            borderColor: '#3ACA82',
+          },
+        }}>
+          <CardElement options={{
+            style: {
+              base: {
+                color: '#32325d',
+                fontFamily: '"Poppins", sans-serif',
+                fontSmoothing: 'antialiased',
+                fontSize: '16px',
+                '::placeholder': { color: '#aab7c4' },
+              },
+              invalid: { color: '#fa755a', iconColor: '#fa755a' },
+            },
+            hidePostalCode: true,
+          }} />
+        </Box>
+        <Box sx={{
+          py: 2,
+          backgroundColor: alpha('#3ACA82', 0.1),
+          borderRadius: 2,
+          textAlign: 'center',
+          mb: 3,
+        }}>
+          <Typography variant="body2" color="text.secondary">Total Amount</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: '#3ACA82' }}>
+            {formatCurrency(calculateTotal())}
+          </Typography>
+        </Box>
+        <Button
+          onClick={async () => {
+            try {
+              setIsProcessing(true);
+              if (!stripe || !elements) {
+                setNotification({ open: true, message: 'Payment system unavailable', severity: 'error' });
+                setIsProcessing(false);
+                return;
+              }
+              const cardElement = elements.getElement(CardElement);
+              if (!cardElement) {
+                setNotification({ open: true, message: 'Please enter card details', severity: 'error' });
+                setIsProcessing(false);
+                return;
+              }
+              // Create payment intent on your server
+              const response = await fetch('http://localhost:5000/api/payment/create-intent', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ amount: Math.round(calculateTotal() * 100) }) // amount in cents
+              });
+              if (!response.ok) {
+                setNotification({ open: true, message: 'Payment failed. Please try again.', severity: 'error' });
+                setIsProcessing(false);
+                return;
+              }
+              const { clientSecret } = await response.json();
+              // Confirm payment with Stripe
+              const result = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: { card: cardElement }
+              });
+              if (result.error) {
+                setNotification({ open: true, message: result.error.message, severity: 'error' });
+              } else if (result.paymentIntent.status === 'succeeded') {
+                await handlePayment({
+                  method: 'card',
+                  amount: calculateTotal(),
+                  stripeToken: result.paymentIntent.id,
+                });
+                setPaymentDialogOpen(false);
+              }
+            } catch (error) {
+              setNotification({ open: true, message: 'Payment failed. Please try again.', severity: 'error' });
+            } finally {
+              setIsProcessing(false);
+            }
+          }}
+          disabled={isProcessing}
+        >
+          {isProcessing ? 'Processing...' : 'Pay Now'}
+        </Button>
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Typography variant="caption" color="text.secondary">
+            Your payment information is secure. We don't store your card details.
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -950,305 +1061,212 @@ const Menu = () => {
         </Dialog>
 
         <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)} maxWidth="sm" fullWidth>
-  <DialogTitle>
-    <Typography variant="h5" sx={{ fontWeight: 600 }}>Card Payment</Typography>
-  </DialogTitle>
-  <DialogContent>
-    <Elements stripe={stripePromise}>
-      <Box sx={{ py: 2 }}>
-        <Typography variant="h6" sx={{ mb: 4, fontWeight: 500, textAlign: 'center' }}>
-          Enter your card details
-        </Typography>
-        
-        <Box 
-          sx={{ 
-            p: 2.5, 
-            borderRadius: 2, 
-            border: '1px solid #e0e0e0',
-            backgroundColor: 'white',
-            mb: 3,
-            transition: 'all 0.3s',
-            '&:hover': {
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              borderColor: '#3ACA82',
-            },
-          }}
-        >
-          <CardElement options={{
-            style: {
-              base: {
-                color: '#32325d',
-                fontFamily: '"Poppins", sans-serif',
-                fontSmoothing: 'antialiased',
-                fontSize: '16px',
-                '::placeholder': {
-                  color: '#aab7c4',
-                },
-              },
-              invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a',
-              },
-            },
-            hidePostalCode: true,
-          }} />
-        </Box>
-        
-        <Box sx={{ 
-          py: 2,
-          backgroundColor: alpha('#3ACA82', 0.1),
-          borderRadius: 2,
-          textAlign: 'center',
-          mb: 3,
-        }}>
-          <Typography variant="body2" color="text.secondary">Total Amount</Typography>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#3ACA82' }}>
-            {formatCurrency(calculateTotal())}
-          </Typography>
-        </Box>
-        
-        <Button
-          onClick={async () => {
-            try {
-              const stripe = await stripePromise;
-              const elements = document.querySelector('.StripeElement');
-              
-              if (!stripe || !elements) return;
-              
-              // Simulate a successful payment
-              setTimeout(async () => {
-                const mockPaymentIntent = {
-                  id: `pi_${Math.random().toString(36).substring(2, 15)}`,
-                  amount: calculateTotal() * 100,
-                  status: 'succeeded',
-                };
-                
-                await handlePayment({
-                  method: 'card',
-                  amount: calculateTotal(),
-                  stripeToken: mockPaymentIntent.id,
-                });
-                setPaymentDialogOpen(false);
-              }, 1500);
-            } catch (error) {
-              setNotification({ open: true, message: 'Payment failed. Please try again.', severity: 'error' });
-            }
-          }}
-          variant="contained"
-          fullWidth
-          size="large"
-          sx={{ 
-            py: 1.5, 
-            borderRadius: 2,
-            backgroundColor: '#3ACA82',
-            '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
-            transition: 'all 0.3s',
-          }}
-        >
-          Pay Now
-        </Button>
-        
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Typography variant="caption" color="text.secondary">
-            Your payment information is secure. We don't store your card details.
-          </Typography>
-        </Box>
-      </Box>
-    </Elements>
-  </DialogContent>
-  <DialogActions sx={{ p: 3, pt: 0 }}>
-    <Button onClick={() => setPaymentDialogOpen(false)} color="inherit" sx={{ textTransform: 'none' }}>
-      Cancel
-    </Button>
-  </DialogActions>
-</Dialog>
-
-<Dialog 
-  open={recommendationDialogOpen} 
-  onClose={() => setRecommendationDialogOpen(false)} 
-  maxWidth="md" 
-  fullWidth
-  PaperProps={{
-    sx: { borderRadius: 3 }
-  }}
->
-  <DialogTitle sx={{ pb: 1 }}>
-    <Typography variant="h5" sx={{ fontWeight: 600 }}>Review Your Order</Typography>
-  </DialogTitle>
-  <DialogContent>
-    <Box sx={{ py: 2 }}>
-      <Typography variant="h6" sx={{ mb: 3 }}>
-        Order Summary
-      </Typography>
-      
-      {cart.map(item => (
-        <Box key={item.item_id} sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="body1">
-            {item.name} × {item.quantity}
-          </Typography>
-          <Typography variant="body1">
-            {formatCurrency(item.price * item.quantity)}
-          </Typography>
-        </Box>
-      ))}
-      
-      <Divider sx={{ my: 3 }} />
-      
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-        <Typography variant="h6">Total</Typography>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          {formatCurrency(calculateTotal())}
-        </Typography>
-      </Box>
-      
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
-          <LocalBarIcon sx={{ mr: 1, color: '#3ACA82' }} />
-          Recommended for you
-        </Box>
-      </Typography>
-      
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {recommendations.map(item => (
-          <Grid item xs={12} sm={4} key={item.item_id}>
-            <Card sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              height: '100%',
-              borderRadius: 2,
-              overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              transition: 'transform 0.3s',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              }
-            }}>
-              <CardMedia
-                component="img"
-                image={item.image_url}
-                alt={item.name}
-                sx={{ height: 120, objectFit: 'cover', objectPosition: 'center' }}
+          <DialogTitle>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>Card Payment</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Elements stripe={stripePromise}>
+              <CardPaymentForm
+                calculateTotal={calculateTotal}
+                handlePayment={handlePayment}
+                setPaymentDialogOpen={setPaymentDialogOpen}
+                setNotification={setNotification}
               />
-              <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{item.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {formatCurrency(item.price)}
+            </Elements>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 0 }}>
+            <Button onClick={() => setPaymentDialogOpen(false)} color="inherit" sx={{ textTransform: 'none' }}>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog 
+          open={recommendationDialogOpen} 
+          onClose={() => setRecommendationDialogOpen(false)} 
+          maxWidth="md" 
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: 3 }
+          }}
+        >
+          <DialogTitle sx={{ pb: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>Review Your Order</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ py: 2 }}>
+              <Typography variant="h6" sx={{ mb: 3 }}>
+                Order Summary
+              </Typography>
+              
+              {cart.map(item => (
+                <Box key={item.item_id} sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="body1">
+                    {item.name} × {item.quantity}
+                  </Typography>
+                  <Typography variant="body1">
+                    {formatCurrency(item.price * item.quantity)}
+                  </Typography>
+                </Box>
+              ))}
+              
+              <Divider sx={{ my: 3 }} />
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+                <Typography variant="h6">Total</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {formatCurrency(calculateTotal())}
                 </Typography>
-                {item.category === 'Beverage' && (
-                  <Box sx={{ 
-                    display: 'inline-block',
-                    mt: 1,
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: 'rgba(58, 202, 130, 0.1)',
-                    color: '#3ACA82',
-                    fontSize: '0.75rem',
-                  }}>
-                    Beverage
-                  </Box>
-                )}
-              </CardContent>
-              <Button 
-                size="small" 
-                onClick={() => {
-                  handleAddToCart(item.item_id);
-                  setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
-                }}
-                disabled={item.lowStock} // Disable button if item is low stock
-                sx={{ 
-                  m: 1,
-                  borderRadius: '24px',
-                  px: 2,
-                  backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
-                  color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
-                  '&:hover': {
-                    backgroundColor: item.lowStock
-                      ? '#e0e0e0'
-                      : alpha('#3ACA82', 0.8),
-                    boxShadow: item.lowStock
-                      ? undefined
-                      : '0 2px 8px rgba(58, 202, 130, 0.1)',
-                  },
-                }}
-              >
-                {item.lowStock ? 'Unavailable' : 'Add to Order'}
-              </Button>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  </DialogContent>
-  <DialogActions sx={{ p: 3 }}>
-    <Button 
-      onClick={() => setRecommendationDialogOpen(false)} 
-      color="inherit"
-    >
-      Back to Cart
-    </Button>
-    <Button
-      variant="contained"
-      color="primary"
-      onClick={async () => {
-        setRecommendationDialogOpen(false);
-        setProcessingDialogOpen(true);
+              </Box>
+              
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <LocalBarIcon sx={{ mr: 1, color: '#3ACA82' }} />
+                  Recommended for you
+                </Box>
+              </Typography>
+              
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                {recommendations.map(item => (
+                  <Grid item xs={12} sm={4} key={item.item_id}>
+                    <Card sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      height: '100%',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      transition: 'transform 0.3s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      }
+                    }}>
+                      <CardMedia
+                        component="img"
+                        image={item.image_url}
+                        alt={item.name}
+                        sx={{ height: 120, objectFit: 'cover', objectPosition: 'center' }}
+                      />
+                      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{item.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {formatCurrency(item.price)}
+                        </Typography>
+                        {item.category === 'Beverage' && (
+                          <Box sx={{ 
+                            display: 'inline-block',
+                            mt: 1,
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                            backgroundColor: 'rgba(58, 202, 130, 0.1)',
+                            color: '#3ACA82',
+                            fontSize: '0.75rem',
+                          }}>
+                            Beverage
+                          </Box>
+                        )}
+                      </CardContent>
+                      <Button 
+                        size="small" 
+                        onClick={() => {
+                          handleAddToCart(item.item_id);
+                          setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
+                        }}
+                        disabled={item.lowStock} // Disable button if item is low stock
+                        sx={{ 
+                          m: 1,
+                          borderRadius: '24px',
+                          px: 2,
+                          backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
+                          color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
+                          '&:hover': {
+                            backgroundColor: item.lowStock
+                              ? '#e0e0e0'
+                              : alpha('#3ACA82', 0.8),
+                            boxShadow: item.lowStock
+                              ? undefined
+                              : '0 2px 8px rgba(58, 202, 130, 0.1)',
+                          },
+                        }}
+                      >
+                        {item.lowStock ? 'Unavailable' : 'Add to Order'}
+                      </Button>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button 
+              onClick={() => setRecommendationDialogOpen(false)} 
+              color="inherit"
+            >
+              Back to Cart
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={async () => {
+                setRecommendationDialogOpen(false);
+                setProcessingDialogOpen(true);
 
-        // Prepare order data
-        const orderItems = cart.map(item => ({
-          item_id: item.item_id,
-          quantity: item.quantity,
-          price: item.price,
-        }));
-        const orderData = {
-          items: orderItems,
-          payment: { method: 'pending', amount: calculateTotal() },
-        };
-        try {
-          // Create order and get orderId
-          const res = await apiService.createOrder(orderData);
-          setCurrentOrderId(res.orderId || res.order_id || res.id || res._id);
-        } catch (err) {
-          setProcessingDialogOpen(false);
-          setNotification({ open: true, message: 'Failed to create order', severity: 'error' });
-        }
-      }}
-      sx={{
-        px: 3,
-        py: 1,
-        borderRadius: 2,
-        backgroundColor: '#3ACA82',
-        '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
-      }}
-    >
-      Continue to Payment
-    </Button>
-  </DialogActions>
-</Dialog>
+                // Prepare order data
+                const orderItems = cart.map(item => ({
+                  item_id: item.item_id,
+                  quantity: item.quantity,
+                  price: item.price,
+                }));
+                const orderData = {
+                  items: orderItems,
+                 payment: { method: 'pending', amount: calculateTotal() },
+                };
+                try {
+                  // Create order and get orderId
+                  const res = await apiService.createOrder(orderData);
+                  setCurrentOrderId(res.orderId || res.order_id || res.id || res._id);
+                } catch (err) {
+                  setProcessingDialogOpen(false);
+                  setNotification({ open: true, message: 'Failed to create order', severity: 'error' });
+                }
+              }}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                backgroundColor: '#3ACA82',
+                '&:hover': { backgroundColor: alpha('#3ACA82', 0.8) },
+              }}
+            >
+              Continue to Payment
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-<Dialog 
-  open={processingDialogOpen} 
-  disableEscapeKeyDown
-  PaperProps={{
-    sx: { borderRadius: 3, p: 2, maxWidth: 400 }
-  }}
->
-  <DialogTitle sx={{ textAlign: 'center' }}>
-    <Typography variant="h5" sx={{ fontWeight: 600 }}>Processing Your Order</Typography>
-  </DialogTitle>
-  <DialogContent>
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-      <CircularProgress size={60} sx={{ color: '#3ACA82', mb: 3 }} />
-      <Typography variant="body1" sx={{ textAlign: 'center', mb: 2 }}>
-        Please wait while staff reviews your order...
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-        You'll be redirected to payment once your order is accepted.
-      </Typography>
-    </Box>
-  </DialogContent>
-</Dialog>
+        <Dialog 
+          open={processingDialogOpen} 
+          disableEscapeKeyDown
+          PaperProps={{
+            sx: { borderRadius: 3, p: 2, maxWidth: 400 }
+          }}
+        >
+          <DialogTitle sx={{ textAlign: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>Processing Your Order</Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
+              <CircularProgress size={60} sx={{ color: '#3ACA82', mb: 3 }} />
+              <Typography variant="body1" sx={{ textAlign: 'center', mb: 2 }}>
+                Please wait while staff reviews your order...
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                You'll be redirected to payment once your order is accepted.
+              </Typography>
+            </Box>
+          </DialogContent>
+        </Dialog>
 
         {/* Notification Snackbar */}
         <Snackbar

@@ -89,11 +89,13 @@ const StatusChip = styled(Chip)(({ theme, status }) => ({
     status === 'Completed' ? theme.palette.success.light :
     status === 'Pending' ? theme.palette.warning.light :
     status === 'Preparing' ? theme.palette.info.light :
+    status === 'Accepted' ? theme.palette.primary.light : // Add this line
     theme.palette.error.light,
   color: 
     status === 'Completed' ? theme.palette.success.dark :
     status === 'Pending' ? theme.palette.warning.dark :
     status === 'Preparing' ? theme.palette.info.dark :
+    status === 'Accepted' ? theme.palette.primary.dark : // Add this line
     theme.palette.error.dark,
 }));
 
@@ -151,6 +153,7 @@ const OrderHistory = () => {
         }
 
         const data = await response.json();
+        console.log("Fetched orders:", data); // Debug log
         setOrders(data);
       } catch (err) {
         setError(err.message);

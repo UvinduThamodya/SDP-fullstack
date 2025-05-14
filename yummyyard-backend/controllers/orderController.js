@@ -1,5 +1,3 @@
-
-
 const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 const PDFDocument = require('pdfkit');
@@ -13,6 +11,7 @@ const createOrder = async (req, res) => {
     // 1. Get user info from JWT
     const userRole = req.user.role;
     const userId = req.user.id;
+    console.log('createOrder - user:', req.user); // Debug log
     const { items, payment } = req.body;
 
     // 2. Validate input
@@ -26,16 +25,22 @@ const createOrder = async (req, res) => {
     }
 
     // Normalize payment method
-    const paymentMethod = payment.method.toLowerCase();
+    const paymentMethod = payment.method;
 
     // 3. Create order record
+    const isCustomer = userRole && userRole.toLowerCase() === 'customer';
+    const isStaff = userRole && userRole.toLowerCase() === 'staff';
+    const isAdmin = userRole && userRole.toLowerCase() === 'admin';
+
+    console.log('createOrder - isCustomer:', isCustomer, 'userId:', userId);
+
     const [orderResult] = await connection.query(
       `INSERT INTO Orders 
       (customer_id, staff_id, total_amount, status) 
       VALUES (?, ?, ?, ?)`,
       [
-        userRole === 'customer' ? userId : null,
-        (userRole === 'Staff' || userRole === 'Admin') ? userId : null,
+        isCustomer ? userId : null,
+        (isStaff || isAdmin) ? userId : null,
         payment.amount,
         'Pending'
       ]
@@ -76,7 +81,7 @@ const createOrder = async (req, res) => {
     );
 
     // 7. Clear cart only for customers
-    if (userRole === 'customer') {
+    if (isCustomer) {
       const [cartResult] = await connection.query(
         'SELECT cart_id FROM Cart WHERE customer_id = ?',
         [userId]
@@ -134,6 +139,7 @@ const createOrder = async (req, res) => {
 // New function: Get order history for logged-in customer
 const getCustomerOrders = async (req, res) => {
   try {
+    console.log('getCustomerOrders - user:', req.user); // Debug log
     const customerId = req.user.id;
     
     const [orders] = await db.query(
