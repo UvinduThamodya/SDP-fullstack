@@ -480,6 +480,7 @@ const responsiveSliderSettings = {
       backgroundSize: 'cover', // Ensure the gradient covers the entire page
       backgroundRepeat: 'no-repeat', // Prevent tiling
       backgroundPosition: 'center', // Center the gradient
+      overflowX: 'hidden', // Prevent horizontal scroll on mobile
     }}>
       {/* Random Cooking Images */}
       {randomImages.map((image, index) => (
@@ -490,14 +491,15 @@ const responsiveSliderSettings = {
             top: image.top,
             left: image.left || 'auto',
             right: image.right || 'auto',
-            width: '400px', // Increased size
-            height: '400px', // Increased size
+            width: { xs: '120px', sm: '200px', md: '400px' },
+            height: { xs: '120px', sm: '200px', md: '400px' },
             backgroundImage: `url(${image.src})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             zIndex: 0,
-            opacity: 0.8,
+            opacity: { xs: 0.3, sm: 0.5, md: 0.8 },
+            display: { xs: 'none', sm: 'block' }, // Hide on extra small screens
           }}
         />
       ))}
@@ -512,10 +514,10 @@ const responsiveSliderSettings = {
 
       {/* Hero Section with Background Slider */}
       <Box sx={{
-        height: '100vh',
+        height: { xs: '70vh', sm: '100vh' },
         position: 'relative',
         overflow: 'hidden',
-        marginTop: '84px', // Add space below navbar
+        marginTop: { xs: '60px', sm: '84px' }, // Responsive space below navbar
       }}>
         {/* Background Image Slider */}
         <Slider {...backgroundSliderSettings} style={{
@@ -546,12 +548,12 @@ const responsiveSliderSettings = {
 
         {/* Hero Section Content */}
         <Box sx={{
-          py: 10,
+          py: { xs: 4, sm: 10 },
           color: 'white',
           textAlign: 'center',
           position: 'relative',
           zIndex: 1,
-          height: 'calc(100vh - 84px)',
+          height: { xs: 'calc(70vh - 60px)', sm: 'calc(100vh - 84px)' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -612,7 +614,7 @@ const responsiveSliderSettings = {
         <Box
           sx={{
             position: 'absolute',
-            bottom: '15%',
+            bottom: { xs: '10%', sm: '15%' },
             left: '50%',
             transform: 'translateX(-50%)',
             textAlign: 'center',
@@ -626,6 +628,7 @@ const responsiveSliderSettings = {
               fontWeight: 'bold',
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
               mb: 1,
+              fontSize: { xs: '1.1rem', sm: '1.5rem' }
             }}
           >
             Explore
@@ -634,9 +637,9 @@ const responsiveSliderSettings = {
             sx={{
               width: 0,
               height: 0,
-              borderLeft: '15px solid transparent', // Increased size
-              borderRight: '15px solid transparent', // Increased size
-              borderTop: '20px solid white', // Increased size
+              borderLeft: { xs: '10px solid transparent', sm: '15px solid transparent' }, // Increased size
+              borderRight: { xs: '10px solid transparent', sm: '15px solid transparent' }, // Increased size
+              borderTop: { xs: '14px solid white', sm: '20px solid white' }, // Increased size
               margin: '0 auto',
             }}
           />
@@ -875,7 +878,7 @@ const responsiveSliderSettings = {
             <Box sx={{ 
               backgroundColor: 'rgba(58, 202, 130, 0.1)', 
               borderRadius: '16px',
-              p: 4,
+              p: { xs: 2, sm: 4 },
               border: '1px solid rgba(58, 202, 130, 0.3)',
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'center' }}>
@@ -1104,9 +1107,10 @@ const responsiveSliderSettings = {
             border: '1px solid rgba(255, 255, 255, 0.1)',
             overflow: 'hidden',
             width: { xs: '100%', md: '500px' },
-            height: { xs: 'auto', md: '500px' },
+            height: { xs: '300px', md: '500px' },
             backdropFilter: 'blur(10px)',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            mb: { xs: 2, md: 0 }
           }}>
             <iframe 
               src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fpeople%2FYummy-Yard%2F61565171879434%2F&show_posts=true&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=true" 
@@ -1197,7 +1201,7 @@ const responsiveSliderSettings = {
       <Box sx={{ 
         backgroundColor: '#121212',
         color: '#fff',
-        padding: { xs: '40px 0 24px', md: '60px 0 32px' },
+        padding: { xs: '32px 0 16px', md: '60px 0 32px' },
         position: 'relative',
         zIndex: 1,
         fontFamily: 'Runalto, sans-serif',

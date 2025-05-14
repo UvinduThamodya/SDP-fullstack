@@ -419,6 +419,8 @@ const Homepage = () => {
       backgroundSize: 'cover', // Ensure the gradient covers the entire page
       backgroundRepeat: 'no-repeat', // Prevent tiling
       backgroundPosition: 'center', // Center the gradient
+      // Responsive fix for mobile overflow
+      overflowX: 'hidden',
     }}>
       {/* Random Cooking Images */}
       {randomImages.map((image, index) => (
@@ -429,14 +431,15 @@ const Homepage = () => {
             top: image.top,
             left: image.left || 'auto',
             right: image.right || 'auto',
-            width: '400px', // Increased size
-            height: '400px', // Increased size
+            width: { xs: '120px', sm: '200px', md: '400px' },
+            height: { xs: '120px', sm: '200px', md: '400px' },
             backgroundImage: `url(${image.src})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             zIndex: 0,
-            opacity: 0.8,
+            opacity: { xs: 0.3, sm: 0.5, md: 0.8 },
+            display: { xs: 'none', sm: 'block' }, // Hide on extra small screens
           }}
         />
       ))}
@@ -451,10 +454,10 @@ const Homepage = () => {
 
       {/* Hero Section with Background Slider */}
       <Box sx={{
-        height: '100vh',
+        height: { xs: '70vh', sm: '100vh' },
         position: 'relative',
         overflow: 'hidden',
-        marginTop: '84px', // Add space below navbar
+        marginTop: { xs: '60px', sm: '84px' }, // Responsive space below navbar
       }}>
         {/* Background Image Slider */}
         <Slider {...backgroundSliderSettings} style={{
@@ -470,7 +473,7 @@ const Homepage = () => {
               <Box
                 sx={{
                   width: '100%',
-                  height: '100vh',
+                  height: { xs: '70vh', sm: '100vh' },
                   backgroundImage: `url(${image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -485,12 +488,12 @@ const Homepage = () => {
 
         {/* Hero Section Content */}
         <Box sx={{
-          py: 10,
+          py: { xs: 4, sm: 10 },
           color: 'white',
           textAlign: 'center',
           position: 'relative',
           zIndex: 1,
-          height: 'calc(100vh - 84px)',
+          height: { xs: 'calc(70vh - 60px)', sm: 'calc(100vh - 84px)' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -503,7 +506,7 @@ const Homepage = () => {
                     <RunaltoTypography variant="h2" component="h1" gutterBottom 
                       sx={{ 
                         fontWeight: 'bold', 
-                        fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem' },
+                        fontSize: { xs: '2rem', sm: '3.5rem', md: '4.5rem' },
                         textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                         letterSpacing: '1px',
                       }}>
@@ -511,7 +514,7 @@ const Homepage = () => {
                     </RunaltoTypography>
                     <RunaltoTypography variant="h6" paragraph 
                       sx={{ 
-                        fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' },
+                        fontSize: { xs: '1rem', sm: '1.3rem', md: '1.5rem' },
                         maxWidth: '800px',
                         margin: '0 auto',
                         marginBottom: 4,
@@ -531,7 +534,6 @@ const Homepage = () => {
                           Explore Our Menu
                         </StyledButton>
                       </Grid>
-                      {/* Removed "Reserve a Table" button */}
                     </Grid>
                   </Box>
                 </Grow>
@@ -542,7 +544,7 @@ const Homepage = () => {
         <Box
           sx={{
             position: 'absolute',
-            bottom: '20%',
+            bottom: { xs: '10%', sm: '20%' },
             left: '50%',
             transform: 'translateX(-50%)',
             textAlign: 'center',
@@ -550,12 +552,13 @@ const Homepage = () => {
           }}
         >
           <Typography
-            variant="h5" // Increased size
+            variant="h5"
             sx={{
               color: 'white',
               fontWeight: 'bold',
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
               mb: 1,
+              fontSize: { xs: '1.1rem', sm: '1.5rem' }
             }}
           >
             Explore
@@ -564,9 +567,9 @@ const Homepage = () => {
             sx={{
               width: 0,
               height: 0,
-              borderLeft: '15px solid transparent', // Increased size
-              borderRight: '15px solid transparent', // Increased size
-              borderTop: '20px solid white', // Increased size
+              borderLeft: { xs: '10px solid transparent', sm: '15px solid transparent' },
+              borderRight: { xs: '10px solid transparent', sm: '15px solid transparent' },
+              borderTop: { xs: '14px solid white', sm: '20px solid white' },
               margin: '0 auto',
             }}
           />
@@ -831,7 +834,7 @@ const Homepage = () => {
 
       {/* Chef's Recommendations */}
       <Box sx={{ 
-        py: { xs: 6, md: 10 }, 
+        py: { xs: 4, md: 10 }, 
         backgroundColor: 'rgba(0, 0, 0, 0.7)', 
         color: 'white',
         backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9))',
@@ -935,7 +938,7 @@ const Homepage = () => {
 
       {/* Testimonials Section */}
       <Box sx={{ 
-        py: { xs: 6, md: 10 }, 
+        py: { xs: 4, md: 10 }, 
         backgroundColor: 'rgba(0, 0, 0, 0.5)', 
         backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))',
       }}>
@@ -1037,7 +1040,7 @@ const Homepage = () => {
       </Box>
 
       {/* Social Media Updates */}
-      <Container sx={{ py: { xs: 6, md: 10 } }}>
+      <Container sx={{ py: { xs: 4, md: 10 } }}>
         <SectionTitle>
           <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
             sx={{ 
@@ -1079,9 +1082,10 @@ const Homepage = () => {
             border: '1px solid rgba(255, 255, 255, 0.1)',
             overflow: 'hidden',
             width: { xs: '100%', md: '500px' },
-            height: { xs: 'auto', md: '500px' },
+            height: { xs: '300px', md: '500px' },
             backdropFilter: 'blur(10px)',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            mb: { xs: 2, md: 0 }
           }}>
             <iframe 
               src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fpeople%2FYummy-Yard%2F61565171879434%2F&show_posts=true&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=true" 
@@ -1131,7 +1135,7 @@ const Homepage = () => {
 
       {/* Call to Action Section - NEW */}
       <Box sx={{ 
-        py: { xs: 6, md: 8 }, 
+        py: { xs: 4, md: 8 }, 
         backgroundColor: 'rgba(58, 202, 130, 0.1)',
         borderTop: '1px solid rgba(58, 202, 130, 0.2)',
         borderBottom: '1px solid rgba(58, 202, 130, 0.2)',

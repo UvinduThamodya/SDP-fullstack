@@ -89,46 +89,6 @@ const Navbar = () => {
     setMobileOpen(false);
   };
 
-  // Mobile drawer menu
-  const drawer = (
-    <List>
-      <ListItem onClick={handleHomeClick}>
-        <ListItemIcon><HomeIcon /></ListItemIcon>
-        <ListItemText primary="Home" />
-      </ListItem>
-      <ListItem onClick={() => handleNavigation('/menu')}>
-        <ListItemIcon><RestaurantIcon /></ListItemIcon>
-        <ListItemText primary="Menu" />
-      </ListItem>
-      <ListItem onClick={() => handleNavigation('/orderhistory')}>
-        <ListItemIcon><ListAltIcon /></ListItemIcon>
-        <ListItemText primary="Orders" />
-      </ListItem>
-      {user && (
-        <ListItem onClick={() => handleNavigation('/dashboardcustomer')}>
-          <ListItemIcon><DashboardIcon /></ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItem>
-      )}
-      <ListItem onClick={() => handleNavigation('/aboutcontact')}>
-        <ListItemIcon><InfoIcon /></ListItemIcon>
-        <ListItemText primary="About Us" />
-      </ListItem>
-      {user && (
-        <>
-          <ListItem onClick={() => handleNavigation('/profile')}>
-            <ListItemIcon><AccountCircleIcon /></ListItemIcon>
-            <ListItemText primary="My Profile" />
-          </ListItem>
-          <ListItem onClick={handleLogout}>
-            <ListItemIcon><LogoutIcon /></ListItemIcon>
-            <ListItemText primary="Logout" />
-          </ListItem>
-        </>
-      )}
-    </List>
-  );
-
   // Desktop navigation items
   const NavItems = () => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -172,20 +132,96 @@ const Navbar = () => {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  width: 12,
-                  height: 12,
+                  top: -2,
+                  right: -2,
+                  width: 16,
+                  height: 16,
                   borderRadius: '50%',
-                  backgroundColor: 'red',
-                  animation: 'pulse 1.5s infinite',
+                  background: 'radial-gradient(circle at 40% 40%, #ff1744 60%, #fff 100%)',
+                  border: '2px solid #fff',
+                  boxShadow: '0 0 8px 2px #ff1744, 0 0 0 4px rgba(255,23,68,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 2,
+                  animation: 'ping 1.2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                  '@keyframes ping': {
+                    '0%': { boxShadow: '0 0 8px 2px #ff1744, 0 0 0 4px rgba(255,23,68,0.2)' },
+                    '70%': { boxShadow: '0 0 16px 8px #ff1744, 0 0 0 16px rgba(255,23,68,0.1)' },
+                    '100%': { boxShadow: '0 0 8px 2px #ff1744, 0 0 0 4px rgba(255,23,68,0.2)' },
+                  }
                 }}
-              />
+              >
+                <span style={{
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 10,
+                  lineHeight: 1,
+                  textShadow: '0 0 2px #ff1744',
+                }}>!</span>
+              </Box>
             )}
           </Box>
         </Tooltip>
       )}
     </Box>
+  );
+
+  // Mobile drawer menu
+  const drawer = (
+    <List>
+      <ListItem onClick={handleHomeClick}>
+        <ListItemIcon><HomeIcon /></ListItemIcon>
+        <ListItemText primary="Home" />
+      </ListItem>
+      <ListItem onClick={() => handleNavigation('/menu')}>
+        <ListItemIcon><RestaurantIcon /></ListItemIcon>
+        <ListItemText primary="Menu" />
+      </ListItem>
+      <ListItem onClick={() => handleNavigation('/orderhistory')}>
+        <ListItemIcon><ListAltIcon /></ListItemIcon>
+        <ListItemText primary="Orders" />
+      </ListItem>
+      {user && (
+        <ListItem onClick={() => handleNavigation('/dashboardcustomer')}>
+          <ListItemIcon><DashboardIcon /></ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItem>
+      )}
+      <ListItem onClick={() => handleNavigation('/aboutcontact')}>
+        <ListItemIcon><InfoIcon /></ListItemIcon>
+        <ListItemText primary="About Us" />
+      </ListItem>
+      {user && (
+        <>
+          <ListItem onClick={() => handleNavigation('/profile')}>
+            <ListItemIcon sx={{ position: 'relative' }}>
+              <AccountCircleIcon />
+              {/* Show delete request popup on mobile drawer */}
+              {deleteRequest && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    backgroundColor: 'red',
+                    animation: 'pulse 1.5s infinite',
+                  }}
+                />
+              )}
+            </ListItemIcon>
+            <ListItemText primary="My Profile" />
+          </ListItem>
+          <ListItem onClick={handleLogout}>
+            <ListItemIcon><LogoutIcon /></ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItem>
+        </>
+      )}
+    </List>
   );
 
   return (
@@ -283,17 +319,49 @@ const Navbar = () => {
             ) : (
               <>
                 {user && (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: 'Poppins, sans-serif',
-                      fontSize: '14px',
-                      color: '#fff',
-                      mr: 1,
-                    }}
-                  >
-                    {user.name}
-                  </Typography>
+                  <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <IconButton
+                      color="inherit"
+                      onClick={() => handleNavigation('/profile')}
+                      sx={{ mr: 1 }}
+                    >
+                      <AccountCircleIcon sx={{ fontSize: 24, color: '#fff' }} />
+                    </IconButton>
+                    {/* Show delete request popup near profile icon in mobile navbar */}
+                    {deleteRequest && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -2,
+                          right: -2,
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          background: 'radial-gradient(circle at 40% 40%, #ff1744 60%, #fff 100%)',
+                          border: '2px solid #fff',
+                          boxShadow: '0 0 8px 2px #ff1744, 0 0 0 4px rgba(255,23,68,0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 2,
+                          animation: 'ping 1.2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                          '@keyframes ping': {
+                            '0%': { boxShadow: '0 0 8px 2px #ff1744, 0 0 0 4px rgba(255,23,68,0.2)' },
+                            '70%': { boxShadow: '0 0 16px 8px #ff1744, 0 0 0 16px rgba(255,23,68,0.1)' },
+                            '100%': { boxShadow: '0 0 8px 2px #ff1744, 0 0 0 4px rgba(255,23,68,0.2)' },
+                          }
+                        }}
+                      >
+                        <span style={{
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: 10,
+                          lineHeight: 1,
+                          textShadow: '0 0 2px #ff1744',
+                        }}>!</span>
+                      </Box>
+                    )}
+                  </Box>
                 )}
                 <IconButton
                   color="inherit"

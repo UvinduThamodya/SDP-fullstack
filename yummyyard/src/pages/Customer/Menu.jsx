@@ -1128,26 +1128,24 @@ const Menu = () => {
               </CardContent>
               <Button 
                 size="small" 
-                sx={{ 
-                  m: 1,
-                  borderRadius: 1,
-                  color: '#3ACA82',
-                  '&:hover': {
-                    backgroundColor: 'rgba(58, 202, 130, 0.1)',
-                  }
-                }}
                 onClick={() => {
                   handleAddToCart(item.item_id);
                   setNotification({ open: true, message: `${item.name} added to cart`, severity: 'success' });
                 }}
                 disabled={item.lowStock} // Disable button if item is low stock
                 sx={{ 
+                  m: 1,
                   borderRadius: '24px',
                   px: 2,
                   backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
                   color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
                   '&:hover': {
-                    backgroundColor: item.lowStock ? '#e0e0e0' : alpha('#3ACA82', 0.8),
+                    backgroundColor: item.lowStock
+                      ? '#e0e0e0'
+                      : alpha('#3ACA82', 0.8),
+                    boxShadow: item.lowStock
+                      ? undefined
+                      : '0 2px 8px rgba(58, 202, 130, 0.1)',
                   },
                 }}
               >
