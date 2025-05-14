@@ -400,10 +400,33 @@ const AdminInventory = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <SidebarAdmin open={sidebarOpen} toggleSidebar={toggleSidebar} />
-
-        <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f7fa', p: { xs: 2, sm: 3 } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          minHeight: '100vh',
+          height: 'auto',
+          background: 'linear-gradient(120deg, #f5f7fa 0%, #e3f0ff 100%)',
+        }}
+      >
+        <SidebarAdmin
+          open={sidebarOpen}
+          toggleSidebar={toggleSidebar}
+          sx={{
+            minHeight: '100vh',
+            height: '100vh',
+            borderRight: 0, // Remove any border/shadow if present
+          }}
+        />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            background: 'transparent',
+            p: { xs: 2, sm: 3 },
+            minHeight: '100vh',
+            height: 'auto',
+          }}
+        >
           <Button
             variant="contained"
             onClick={toggleSidebar}

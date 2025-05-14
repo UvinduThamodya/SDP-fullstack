@@ -1,9 +1,86 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Container, Paper, Avatar, CircularProgress, Alert, Button, TextField, Snackbar, Divider } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Container,
+  Paper,
+  Avatar,
+  CircularProgress,
+  Alert,
+  Button,
+  TextField,
+  Snackbar,
+  Divider
+} from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Sidebar from '../../components/SidebarAdmin';
 import apiService from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
+
+// Custom theme with Poppins font and enhanced design
+const theme = createTheme({
+  typography: {
+    fontFamily: 'Poppins, Arial, sans-serif',
+    h4: { fontWeight: 700 },
+    h5: { fontWeight: 600 },
+    button: { fontFamily: 'Poppins, Arial, sans-serif', textTransform: 'none' }
+  },
+  shape: { borderRadius: 16 },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 20,
+          boxShadow: '0 8px 32px rgba(25, 118, 210, 0.08)',
+        }
+      }
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          fontWeight: 600,
+          boxShadow: 'none',
+          transition: 'all 0.2s',
+          '&:hover': {
+            boxShadow: '0 4px 16px rgba(25, 118, 210, 0.12)',
+            transform: 'translateY(-2px)'
+          }
+        }
+      }
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+          }
+        }
+      }
+    }
+  }
+});
+
+// Styled Paper for profile card
+const ProfilePaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(7, 6), // Increased padding
+  borderRadius: 32, // More rounded
+  background: '#fff',
+  boxShadow: '0 8px 32px rgba(25, 118, 210, 0.08)',
+  marginTop: theme.spacing(1),
+  marginBottom: theme.spacing(28),
+  minWidth: 480,
+  maxWidth: 600,
+  minHeight: 420,
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(3, 2),
+    borderRadius: 18,
+    minWidth: 'unset',
+    maxWidth: '100%',
+    minHeight: 320,
+  },
+}));
 
 const AdminProfile = () => {
   const [admin, setAdmin] = useState(null);
@@ -104,113 +181,136 @@ const AdminProfile = () => {
   const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Sidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          backgroundColor: '#f5f5f5',
-          minHeight: '100vh',
-        }}
-      >
-        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center', color: '#1976d2' }}>
-            Admin Profile
-          </Typography>
-          <Divider sx={{ mb: 4 }} />
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : error ? (
-            <Alert severity="error">{error}</Alert>
-          ) : admin ? (
-            <Paper elevation={3} sx={{ p: 4, mt: 3, borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Avatar sx={{ width: 80, height: 80, bgcolor: '#1976d2', fontSize: 36, mr: 3 }}>
-                  <AdminPanelSettingsIcon fontSize="large" />
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{admin.name}</Typography>
-                  <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>{admin.role}</Typography>
-                </Box>
-              </Box>
-              <Divider sx={{ mb: 3 }} />
-              {editMode ? (
-                <>
-                  <TextField
-                    label="Name"
-                    name="name"
-                    value={editData.name}
-                    onChange={handleChange}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                  />
-                  <TextField
-                    label="Email"
-                    name="email"
-                    value={editData.email}
-                    onChange={handleChange}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                    error={!!emailError} // Show error state if emailError exists
-                    helperText={emailError} // Display email error message
-                  />
-                  <TextField
-                    label="Phone"
-                    name="phone"
-                    value={editData.phone}
-                    onChange={handleChange}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                    error={!!phoneError} // Show error state if phoneError exists
-                    helperText={phoneError} // Display phone error message
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                    <Button variant="contained" color="primary" onClick={handleSave}>
-                      Save
-                    </Button>
-                    <Button variant="outlined" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                  </Box>
-                </>
-              ) : (
-                <>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>Email:</strong> {admin.email}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>Phone:</strong> {admin.phone}
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-                    <Button variant="contained" onClick={handleEdit}>
-                      Edit Profile
-                    </Button>
-                    <Button variant="outlined" color="error" onClick={handleLogout}>
-                      Logout
-                    </Button>
-                  </Box>
-                </>
-              )}
-            </Paper>
-          ) : (
-            <Typography>No admin data found.</Typography>
-          )}
-        </Container>
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={handleSnackbarClose}
+    <ThemeProvider theme={theme}>
+      <Box sx={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: 'linear-gradient(120deg, #f5f7fa 0%, #e3f0ff 100%)'
+      }}>
+        <Sidebar />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, sm: 6 },
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          <Alert severity={snackbar.severity} onClose={handleSnackbarClose}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+          <Container maxWidth={false} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              {/* Make the profile card larger */}
+              <ProfilePaper elevation={4}>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Alert severity="error">{error}</Alert>
+                ) : admin ? (
+                  <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                      <Avatar
+                        sx={{
+                          width: 90,
+                          height: 90,
+                          bgcolor: '#1976d2',
+                          fontSize: 40,
+                          mr: 3,
+                          boxShadow: '0 4px 16px rgba(25, 118, 210, 0.18)'
+                        }}
+                      >
+                        <AdminPanelSettingsIcon fontSize="large" />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1976d2', fontFamily: 'Poppins, Arial, sans-serif' }}>
+                          {admin.name}
+                        </Typography>
+                        <Typography color="text.secondary" sx={{ fontStyle: 'italic', fontSize: 16 }}>
+                          {admin.role}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Divider sx={{ mb: 3 }} />
+                    {editMode ? (
+                      <>
+                        <TextField
+                          label="Name"
+                          name="name"
+                          value={editData.name}
+                          onChange={handleChange}
+                          fullWidth
+                          sx={{ mb: 2 }}
+                        />
+                        <TextField
+                          label="Email"
+                          name="email"
+                          value={editData.email}
+                          onChange={handleChange}
+                          fullWidth
+                          sx={{ mb: 2 }}
+                          error={!!emailError}
+                          helperText={emailError}
+                        />
+                        <TextField
+                          label="Phone"
+                          name="phone"
+                          value={editData.phone}
+                          onChange={handleChange}
+                          fullWidth
+                          sx={{ mb: 2 }}
+                          error={!!phoneError}
+                          helperText={phoneError}
+                        />
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                          <Button variant="contained" color="primary" onClick={handleSave}>
+                            Save
+                          </Button>
+                          <Button variant="outlined" onClick={handleCancel}>
+                            Cancel
+                          </Button>
+                        </Box>
+                      </>
+                    ) : (
+                      <>
+                        <Typography variant="body1" sx={{ mb: 1.5, fontSize: 17 }}>
+                          <strong>Email:</strong> <span style={{ color: '#1976d2' }}>{admin.email}</span>
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 1.5, fontSize: 17 }}>
+                          <strong>Phone:</strong> <span style={{ color: '#1976d2' }}>{admin.phone}</span>
+                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+                          <Button variant="contained" onClick={handleEdit}>
+                            Edit Profile
+                          </Button>
+                          <Button variant="outlined" color="error" onClick={handleLogout}>
+                            Logout
+                          </Button>
+                        </Box>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <Typography>No admin data found.</Typography>
+                )}
+              </ProfilePaper>
+            </Box>
+          </Container>
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={4000}
+            onClose={handleSnackbarClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Alert severity={snackbar.severity} onClose={handleSnackbarClose} sx={{ fontFamily: 'Poppins, Arial, sans-serif' }}>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Box>
       </Box>
-    </Box>
+    </ThemeProvider>
   );
 };
 

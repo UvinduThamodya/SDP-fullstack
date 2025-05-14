@@ -11,8 +11,62 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
+import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Logo from '../../assets/YummyYard_logo.png';
+import '@fontsource/poppins';
+
+// Custom theme with Poppins font
+const theme = createTheme({
+  typography: {
+    fontFamily: 'Poppins, sans-serif',
+    h4: { fontWeight: 700 },
+    button: { fontFamily: 'Poppins, sans-serif', textTransform: 'none' },
+  },
+});
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  borderRadius: 24,
+  overflow: 'hidden',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+  fontFamily: 'Poppins, sans-serif',
+}));
+
+const LeftPanel = styled(Grid)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #00E676 0%, #00C853 100%)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: theme.spacing(4),
+  borderTopLeftRadius: 24,
+  borderBottomLeftRadius: 24,
+  minHeight: 420,
+}));
+
+const RightPanel = styled(Grid)(({ theme }) => ({
+  backgroundColor: '#fff',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: theme.spacing(4),
+  borderTopRightRadius: 24,
+  borderBottomRightRadius: 24,
+  minHeight: 420,
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  fontWeight: 600,
+  fontFamily: 'Poppins, sans-serif',
+  borderRadius: 12,
+  fontSize: '1.1rem',
+  background: 'linear-gradient(90deg, #00E676 0%, #00C853 100%)',
+  color: '#fff',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+  '&:hover': {
+    background: 'linear-gradient(90deg, #00C853 0%, #00E676 100%)',
+    color: '#fff',
+  },
+}));
 
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -65,100 +119,130 @@ const AdminLogin = () => {
   };
 
   return (
-    <Box sx={{ 
-      height: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f5f5f5'
-    }}>
-      <Paper elevation={3} sx={{ width: '90%', maxWidth: 1000, borderRadius: 3 }}>
-        <Grid container>
-          {/* Left Side - Form */}
-          <Grid item xs={12} md={6} sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <AdminPanelSettingsIcon sx={{ fontSize: 40, mr: 1, color: 'primary.main' }} />
-              <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
-                Admin Portal
-              </Typography>
-            </Box>
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Enter your credentials to access the admin dashboard
-            </Typography>
-            
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                value={credentials.email}
-                onChange={handleChange}
-                sx={{ mb: 3 }}
-                required
-              />
-              
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                name="password"
-                value={credentials.password}
-                onChange={handleChange}
-                sx={{ mb: 3 }}
-                required
-              />
-              
-              <Button 
-                type="submit" 
-                fullWidth 
-                variant="contained" 
-                disabled={loading}
-                sx={{ py: 2, backgroundColor: 'black' }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Login as Admin'}
-              </Button>
-              
-              <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Not an admin? <Button 
-                    variant="text" 
-                    size="small" 
-                    onClick={() => navigate('/staffLogin')}
-                  >
-                    Staff Login
-                  </Button>
+    <ThemeProvider theme={theme}>
+      <Box sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #e0ffe7 0%, #f5f5f5 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Poppins, sans-serif'
+      }}>
+        <StyledPaper elevation={6} sx={{ width: '95%', maxWidth: 950 }}>
+          <Grid container>
+            {/* Left Panel - Logo & Welcome */}
+            <LeftPanel item xs={12} md={5}>
+              <Box sx={{ textAlign: 'center', width: '100%' }}>
+                <img
+                  src={Logo}
+                  alt="Yummy Yard Logo"
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: '50%',
+                    marginBottom: 24,
+                    marginLeft: 105,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                    background: '#fff'
+                  }}
+                />
+                <Typography variant="h4" sx={{
+                  color: '#fff',
+                  fontWeight: 700,
+                  mb: 2,
+                  letterSpacing: 1,
+                  fontFamily: 'Poppins, sans-serif',
+                  textShadow: '1px 1px 6px rgba(0,0,0,0.10)'
+                }}>
+                  Welcome Admin
                 </Typography>
+
               </Box>
-            </form>
+            </LeftPanel>
+
+            {/* Right Panel - Login Form */}
+            <RightPanel item xs={12} md={7}>
+              <Box sx={{ width: '100%', maxWidth: 370, mx: 'auto' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <AdminPanelSettingsIcon sx={{ fontSize: 38, mr: 1, color: '#00C853' }} />
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#00C853', fontFamily: 'Poppins, sans-serif' }}>
+                    Admin Portal
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontFamily: 'Poppins, sans-serif' }}>
+                  Enter your credentials to access the admin dashboard
+                </Typography>
+                <form onSubmit={handleSubmit}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    value={credentials.email}
+                    onChange={handleChange}
+                    sx={{ mb: 3 }}
+                    required
+                    InputProps={{
+                      style: { fontFamily: 'Poppins, sans-serif' }
+                    }}
+                    InputLabelProps={{
+                      style: { fontFamily: 'Poppins, sans-serif' }
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    type="password"
+                    name="password"
+                    value={credentials.password}
+                    onChange={handleChange}
+                    sx={{ mb: 3 }}
+                    required
+                    InputProps={{
+                      style: { fontFamily: 'Poppins, sans-serif' }
+                    }}
+                    InputLabelProps={{
+                      style: { fontFamily: 'Poppins, sans-serif' }
+                    }}
+                  />
+                  <StyledButton
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    disabled={loading}
+                    sx={{ py: 1.5, mb: 2 }}
+                  >
+                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Login as Admin'}
+                  </StyledButton>
+                  <Box sx={{ mt: 1, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Poppins, sans-serif' }}>
+                      Not an admin?{' '}
+                      <Button
+                        variant="text"
+                        size="small"
+                        sx={{ color: '#00C853', fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}
+                        onClick={() => navigate('/staffLogin')}
+                      >
+                        Staff Login
+                      </Button>
+                    </Typography>
+                  </Box>
+                </form>
+              </Box>
+            </RightPanel>
           </Grid>
-          
-          {/* Right Side - Logo */}
-          <Grid item xs={12} md={6} sx={{ 
-            backgroundColor: '#00E676',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 4,
-            borderTopRightRadius: 12,
-            borderBottomRightRadius: 12
-          }}>
-            <img src={Logo} alt="YummyYard Logo" style={{ maxWidth: '100%' }} />
-          </Grid>
-        </Grid>
-      </Paper>
-      
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
-        onClose={() => setError('')}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity="error" onClose={() => setError('')} sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-    </Box>
+        </StyledPaper>
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={() => setError('')}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert severity="error" onClose={() => setError('')} sx={{ width: '100%', fontFamily: 'Poppins, sans-serif' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </ThemeProvider>
   );
 };
 
