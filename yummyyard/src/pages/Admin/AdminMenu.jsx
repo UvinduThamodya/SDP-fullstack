@@ -11,7 +11,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import MenuService from "../../services/menuService";
 import AdminSidebar from "../../components/SidebarAdmin";
 import DeleteIcon from "@mui/icons-material/Delete";
-
+import MenuIcon from "@mui/icons-material/Menu";
 
 // Create a custom theme with Poppins font
 const theme = createTheme({
@@ -113,6 +113,7 @@ export default function AdminMenu() {
   const [imageUploading, setImageUploading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [notificationSeverity, setNotificationSeverity] = useState("info");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchMenu();
@@ -259,15 +260,62 @@ export default function AdminMenu() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: "flex" }}>
-        <AdminSidebar />
+      <Box sx={{ display: "flex", minHeight: "100vh", position: "relative", background: theme.palette.background.default }}>
+        {/* Sidebar for desktop, Drawer-style for mobile */}
+        <Box
+          sx={{
+            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+            position: { xs: 'fixed', sm: 'relative' },
+            zIndex: 1200,
+            height: '100vh',
+            minHeight: '100vh',
+            width: { xs: 240, sm: 'auto' },
+            background: { xs: '#fff', sm: 'none' },
+            boxShadow: { xs: 3, sm: 'none' },
+            transition: 'left 0.3s',
+            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+            top: 0,
+          }}
+        >
+          <AdminSidebar
+            open={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
+            sx={{
+              height: '100vh',
+              minHeight: '100vh',
+              borderRight: 0,
+            }}
+          />
+        </Box>
+        {/* Mobile menu button */}
+        <Button
+          variant="contained"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{
+            display: { xs: 'flex', sm: 'none' },
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            minWidth: 'auto',
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            boxShadow: 3,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MenuIcon />
+        </Button>
         <Box 
           component="main" 
           sx={{ 
             flexGrow: 1, 
-            p: 3,
+            p: { xs: 1, sm: 3 },
             backgroundColor: "background.default",
-            minHeight: "100vh"
+            minHeight: "100vh",
+            width: '100%',
           }}
         >
           <Container maxWidth="lg" sx={{ py: 4 }}>

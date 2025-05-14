@@ -32,6 +32,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import SidebarAdmin from '../../components/SidebarAdmin';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import MenuService from '../../services/menuService';
+import MenuIcon from '@mui/icons-material/Menu';
 
 // Custom theme with Poppins font
 const theme = createTheme({
@@ -406,41 +407,79 @@ const AdminInventory = () => {
           minHeight: '100vh',
           height: 'auto',
           background: 'linear-gradient(120deg, #f5f7fa 0%, #e3f0ff 100%)',
+          position: 'relative',
         }}
       >
-        <SidebarAdmin
-          open={sidebarOpen}
-          toggleSidebar={toggleSidebar}
+        {/* Sidebar for desktop, Drawer-style for mobile */}
+        <Box
           sx={{
-            minHeight: '100vh',
+            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+            position: { xs: 'fixed', sm: 'relative' },
+            zIndex: 1200,
             height: '100vh',
-            borderRight: 0, // Remove any border/shadow if present
+            minHeight: '100vh',
+            width: { xs: 220, sm: 'auto' },
+            background: { xs: '#fff', sm: 'none' },
+            boxShadow: { xs: 3, sm: 'none' },
+            transition: 'left 0.3s',
+            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+            top: 0,
           }}
-        />
+        >
+          <SidebarAdmin
+            open={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
+            sx={{
+              minHeight: '100vh',
+              height: '100vh',
+              borderRight: 0,
+            }}
+          />
+        </Box>
+        {/* Mobile menu button */}
+        <Button
+          variant="contained"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{
+            display: { xs: 'flex', sm: 'none' },
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            minWidth: 'auto',
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            boxShadow: 3,
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 0,
+          }}
+        >
+          <MenuIcon />
+        </Button>
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             background: 'transparent',
-            p: { xs: 2, sm: 3 },
+            p: { xs: 0.5, sm: 3 },
             minHeight: '100vh',
             height: 'auto',
+            width: '100%',
+            overflowX: 'auto',
           }}
         >
-          <Button
-            variant="contained"
-            onClick={toggleSidebar}
+          {/* Responsive container for mobile */}
+          <Container
+            maxWidth="lg"
             sx={{
-              display: { xs: 'block', sm: 'none' }, // Show button only on mobile view
-              mb: 2,
-              backgroundColor: theme.palette.primary.main,
-              color: '#fff',
+              px: { xs: 0.5, sm: 2 },
+              py: { xs: 1, sm: 3 },
+              width: '100%',
+              minWidth: 0,
             }}
           >
-            {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
-          </Button>
-
-          <Container maxWidth="lg">
             {/* Page Title */}
             <Typography
               variant="h4"
@@ -451,19 +490,45 @@ const AdminInventory = () => {
                 textAlign: 'center',
                 mb: 4,
                 letterSpacing: '0.5px',
+                fontSize: { xs: '1.4rem', sm: '2.125rem' },
+                mt: { xs: 2, sm: 0 },
               }}
             >
               Inventory Management
             </Typography>
 
             {/* Actions Row */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                mb: 4,
+                flexWrap: 'wrap',
+                gap: 2,
+                alignItems: { xs: 'stretch', sm: 'center' },
+              }}
+            >
               {/* Left side: Filter Buttons */}
-              <Paper elevation={1} sx={{ p: 1, borderRadius: 2, display: 'flex', gap: 1, flexGrow: 1, maxWidth: 350 }}>
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  display: 'flex',
+                  gap: 1,
+                  flexGrow: 1,
+                  maxWidth: { xs: '100%', sm: 350 },
+                  mb: { xs: 1, sm: 0 },
+                  minWidth: 0,
+                  overflowX: 'auto',
+                }}
+              >
                 <Button
                   variant={filter === 'All' ? 'contained' : 'outlined'}
                   onClick={() => handleFilterChange('All')}
                   size="small"
+                  sx={{ minWidth: 80 }}
                 >
                   All
                 </Button>
@@ -472,6 +537,7 @@ const AdminInventory = () => {
                   onClick={() => handleFilterChange('In Stock')}
                   size="small"
                   color="success"
+                  sx={{ minWidth: 80 }}
                 >
                   In Stock
                 </Button>
@@ -480,13 +546,23 @@ const AdminInventory = () => {
                   onClick={() => handleFilterChange('Out of Stock')}
                   size="small"
                   color="warning"
+                  sx={{ minWidth: 80 }}
                 >
                   Low Stock
                 </Button>
               </Paper>
 
               {/* Right side: Search Bar */}
-              <Paper elevation={1} sx={{ p: 1, borderRadius: 2, flexGrow: 1, maxWidth: { xs: '100%', sm: 400 } }}>
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  flexGrow: 1,
+                  maxWidth: { xs: '100%', sm: 400 },
+                  minWidth: 0,
+                }}
+              >
                 <TextField
                   fullWidth
                   placeholder="Search ingredients..."
@@ -497,37 +573,66 @@ const AdminInventory = () => {
                   InputProps={{
                     startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
                   }}
+                  sx={{
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                  }}
                 />
               </Paper>
             </Box>
 
             {/* Action Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                mb: 3,
+                flexWrap: 'wrap',
+                gap: 2,
+                alignItems: { xs: 'stretch', sm: 'center' },
+              }}
+            >
               <Button
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
                 onClick={handleOpenAddDialog}
-                sx={{ fontWeight: 600 }}
+                sx={{
+                  fontWeight: 600,
+                  width: { xs: '100%', sm: 'auto' },
+                  mb: { xs: 1, sm: 0 },
+                }}
               >
                 Add Ingredient
               </Button>
-              
+
               <Button
                 variant="contained"
                 color="secondary"
                 startIcon={<PictureAsPdfIcon />}
                 onClick={downloadInventoryReport}
-                sx={{ fontWeight: 600 }}
+                sx={{
+                  fontWeight: 600,
+                  width: { xs: '100%', sm: 'auto' },
+                }}
               >
                 Download Report
               </Button>
             </Box>
 
             {/* Inventory Table */}
-            <Paper elevation={2} sx={{ overflow: 'hidden', mb: 4 }}>
-              <TableContainer>
-                <Table>
+            <Paper
+              elevation={2}
+              sx={{
+                overflow: 'auto',
+                mb: 4,
+                width: '100%',
+                minWidth: 0,
+                boxShadow: { xs: '0 2px 12px rgba(25,118,210,0.07)', sm: 'none' },
+              }}
+            >
+              <TableContainer sx={{ minWidth: 600 }}>
+                <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell onClick={() => handleSort('item_name')} sx={{ cursor: 'pointer', fontWeight: 600 }}>

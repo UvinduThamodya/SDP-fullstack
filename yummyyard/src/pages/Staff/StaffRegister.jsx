@@ -12,6 +12,7 @@ import {
   Alert
 } from '@mui/material';
 import Logo from '../../assets/YummyYard_logo.png'; // Replace with your logo path
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const StaffRegister = () => {
   const [formData, setFormData] = useState({
@@ -128,8 +129,28 @@ const StaffRegister = () => {
       >
         <Grid container>
           {/* Left Column - Registration Form */}
-          <Grid item xs={12} md={6} sx={{ p: 4 }}>
-            <Typography variant="h4" gutterBottom>
+          <Grid item xs={12} md={6} sx={{ p: 4, position: 'relative' }}>
+            {/* Back Button */}
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/accounts')}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                left: 0,
+                mb: 2,
+                minWidth: 0,
+                px: 2,
+                color: 'primary.main',
+                fontWeight: 600,
+                background: 'none',
+                boxShadow: 'none',
+                '&:hover': { background: 'rgba(25, 118, 210, 0.04)' }
+              }}
+            >
+              Back
+            </Button>
+            <Typography variant="h4" gutterBottom sx={{ mt: 5 }}>
               Staff Registration
             </Typography>
             <form onSubmit={handleSubmit}>

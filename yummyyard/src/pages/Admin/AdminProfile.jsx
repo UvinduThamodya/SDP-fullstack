@@ -17,6 +17,7 @@ import Sidebar from '../../components/SidebarAdmin';
 import apiService from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
+import MenuIcon from '@mui/icons-material/Menu';
 
 // Custom theme with Poppins font and enhanced design
 const theme = createTheme({
@@ -91,6 +92,7 @@ const AdminProfile = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [phoneError, setPhoneError] = useState(''); // State for phone validation error
   const [emailError, setEmailError] = useState(''); // State for email validation error
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -185,24 +187,80 @@ const AdminProfile = () => {
       <Box sx={{
         display: 'flex',
         minHeight: '100vh',
-        background: 'linear-gradient(120deg, #f5f7fa 0%, #e3f0ff 100%)'
+        background: 'linear-gradient(120deg, #f5f7fa 0%, #e3f0ff 100%)',
+        position: 'relative'
       }}>
-        <Sidebar />
+        {/* Sidebar for desktop, Drawer-style for mobile */}
+        <Box
+          sx={{
+            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+            position: { xs: 'fixed', sm: 'relative' },
+            zIndex: 1200,
+            height: '100vh',
+            minHeight: '100vh',
+            width: { xs: 220, sm: 'auto' },
+            background: { xs: '#fff', sm: 'none' },
+            boxShadow: { xs: 3, sm: 'none' },
+            transition: 'left 0.3s',
+            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+            top: 0,
+          }}
+        >
+          <Sidebar
+            open={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
+            sx={{
+              minHeight: '100vh',
+              height: '100vh',
+              borderRight: 0,
+            }}
+          />
+        </Box>
+        {/* Mobile menu button */}
+        <Button
+          variant="contained"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{
+            display: { xs: 'flex', sm: 'none' },
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            minWidth: 'auto',
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            boxShadow: 3,
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 0,
+          }}
+        >
+          <MenuIcon />
+        </Button>
         <Box
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, sm: 6 },
+            p: { xs: 1, sm: 6 },
             minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            width: '100%',
           }}
         >
-          <Container maxWidth={false} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Container maxWidth={false} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', px: { xs: 0.5, sm: 2 } }}>
             <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               {/* Make the profile card larger */}
-              <ProfilePaper elevation={4}>
+              <ProfilePaper elevation={4} sx={{
+                minWidth: { xs: '90vw', sm: 480 },
+                maxWidth: { xs: '98vw', sm: 600 },
+                minHeight: { xs: 320, sm: 420 },
+                marginTop: { xs: 2, sm: 1 },
+                marginBottom: { xs: 4, sm: 28 },
+                p: { xs: 2, sm: 7 },
+              }}>
                 {loading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                     <CircularProgress />

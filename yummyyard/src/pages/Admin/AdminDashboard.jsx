@@ -15,7 +15,8 @@ import {
   TrendingDown as TrendingDownIcon,
   Inventory as InventoryIcon,
   Receipt as ReceiptIcon,
-  ShoppingCart as ShoppingCartIcon
+  ShoppingCart as ShoppingCartIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import apiService from '../../services/api';
@@ -138,6 +139,7 @@ export default function AdminDashboard() {
   // Add this state variable
   const [graphType, setGraphType] = useState("bar");
   
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch dashboard data on component mount
   useEffect(() => {
@@ -363,9 +365,70 @@ export default function AdminDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', minHeight: '100vh', background: '#f5f5f5' }}>
-        <SidebarAdmin />
-        <DashboardCenter>
+      <Box
+        sx={{
+          display: 'flex',
+          minHeight: '100vh',
+          background: '#f5f5f5',
+          position: 'relative',
+        }}
+      >
+        {/* Sidebar for desktop, Drawer-style for mobile */}
+        <Box
+          sx={{
+            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+            position: { xs: 'fixed', sm: 'relative' },
+            zIndex: 1200,
+            height: '100vh',
+            minHeight: '100vh',
+            width: { xs: 240, sm: 'auto' },
+            background: { xs: '#fff', sm: 'none' },
+            boxShadow: { xs: 3, sm: 'none' },
+            transition: 'left 0.3s',
+            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+            top: 0,
+          }}
+        >
+          <SidebarAdmin
+            open={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
+            sx={{
+              height: '100vh',
+              minHeight: '100vh',
+              borderRight: 0,
+            }}
+          />
+        </Box>
+        {/* Mobile menu button */}
+        <Button
+          variant="contained"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{
+            display: { xs: 'flex', sm: 'none' },
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            minWidth: 'auto',
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            boxShadow: 3,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MenuIcon />
+        </Button>
+        <DashboardCenter
+          sx={{
+            width: '100%',
+            ml: { sm: 0 },
+            pl: { sm: 0 },
+            minHeight: '100vh',
+            background: '#f5f5f5',
+          }}
+        >
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4, ml: 0 }}>
             <CurvedPaper>
               <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

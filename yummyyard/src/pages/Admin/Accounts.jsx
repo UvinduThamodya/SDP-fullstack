@@ -14,6 +14,7 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import BadgeIcon from '@mui/icons-material/Badge';
 import SidebarAdmin from '../../components/SidebarAdmin';
 import { useNavigate } from 'react-router-dom';
+import MenuIcon from '@mui/icons-material/Menu';
 
 // Create custom theme with Poppins font
 const theme = createTheme({
@@ -78,6 +79,7 @@ const Accounts = () => {
   const [deleteDialog, setDeleteDialog] = useState({ open: false, account: null });
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -235,147 +237,262 @@ const Accounts = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <SidebarAdmin />
-
-        <Box sx={{ flexGrow: 1, p: 3 }}>
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Paper elevation={0} sx={{ p: 3, mb: 4, backgroundColor: '#fff', borderRadius: 2 }}>
-              <Typography variant="h4" sx={{ mb: 3, color: '#333', textAlign: 'center' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative', background: theme.palette.background.default }}>
+        {/* Sidebar for desktop, Drawer-style for mobile */}
+        <Box
+          sx={{
+            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+            position: { xs: 'fixed', sm: 'relative' },
+            zIndex: 1200,
+            height: '100vh',
+            minHeight: '100vh',
+            width: { xs: 240, sm: 'auto' },
+            background: { xs: '#fff', sm: 'none' },
+            boxShadow: { xs: 3, sm: 'none' },
+            transition: 'left 0.3s',
+            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+            top: 0,
+          }}
+        >
+          <SidebarAdmin
+            open={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
+            sx={{
+              height: '100vh',
+              minHeight: '100vh',
+              borderRight: 0,
+            }}
+          />
+        </Box>
+        {/* Mobile menu button */}
+        <Button
+          variant="contained"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{
+            display: { xs: 'flex', sm: 'none' },
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            minWidth: 'auto',
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            boxShadow: 3,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MenuIcon />
+        </Button>
+        <Box sx={{ flexGrow: 1, p: { xs: 1, sm: 3 }, width: '100%' }}>
+          <Container
+            maxWidth="lg"
+            sx={{
+              mt: 4,
+              mb: 4,
+              px: { xs: 0.5, sm: 0 },
+              // Remove ugly horizontal scroll, use responsive table wrapper instead
+              overflowX: 'unset',
+            }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 1.5, sm: 3 },
+                mb: 4,
+                backgroundColor: '#fff',
+                borderRadius: 3,
+                boxShadow: { xs: '0 2px 12px rgba(25,118,210,0.07)', sm: 'none' },
+                minHeight: 200,
+              }}
+            >
+              <Typography
+                variant="h4"
+                sx={{
+                  mb: 3,
+                  color: '#1976d2',
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  fontFamily: 'Poppins, Arial, sans-serif',
+                }}
+              >
                 Accounts Management
               </Typography>
-            
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                mb: 3,
-                borderBottom: '1px solid #e0e0e0',
-                pb: 1
-              }}>
-                <Tabs 
-                  value={tab} 
-                  onChange={handleTabChange} 
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  mb: 3,
+                  borderBottom: '1px solid #e0e0e0',
+                  pb: 1,
+                  gap: { xs: 2, sm: 0 },
+                }}
+              >
+                <Tabs
+                  value={tab}
+                  onChange={handleTabChange}
                   textColor="primary"
                   indicatorColor="primary"
-                  sx={{ 
-                    '& .MuiTab-root': { 
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{
+                    '& .MuiTab-root': {
                       fontWeight: 500,
                       fontSize: '1rem',
-                      px: 3
-                    } 
+                      px: 3,
+                      minHeight: 48,
+                    },
                   }}
                 >
-                  <Tab 
-                    icon={<BadgeIcon sx={{ mr: 1 }} />} 
-                    iconPosition="start" 
-                    label="Staff" 
-                    value="staff" 
+                  <Tab
+                    icon={<BadgeIcon sx={{ mr: 1 }} />}
+                    iconPosition="start"
+                    label="Staff"
+                    value="staff"
                   />
-                  <Tab 
-                    icon={<PeopleAltIcon sx={{ mr: 1 }} />} 
-                    iconPosition="start" 
-                    label="Customers" 
-                    value="customers" 
+                  <Tab
+                    icon={<PeopleAltIcon sx={{ mr: 1 }} />}
+                    iconPosition="start"
+                    label="Customers"
+                    value="customers"
                   />
                 </Tabs>
                 {tab === 'staff' && (
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    startIcon={<AddIcon />} 
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
                     onClick={handleAddStaff}
-                    sx={{ py: 1, px: 2 }}
+                    sx={{
+                      py: 1,
+                      px: 2,
+                      borderRadius: 3,
+                      fontWeight: 600,
+                      boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
+                      mt: { xs: 1, sm: 0 },
+                      alignSelf: { xs: 'flex-end', sm: 'auto' },
+                    }}
                   >
                     Add Staff
                   </Button>
                 )}
               </Box>
-              
-              {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 4 }}>
-                  <CircularProgress size={40} thickness={4} />
-                </Box>
-              ) : error ? (
-                <Alert severity="error" sx={{ mt: 2, mb: 2 }}>{error}</Alert>
-              ) : (
-                <TableContainer component={Paper} sx={{ boxShadow: 2, borderRadius: 2, overflow: 'hidden' }}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>ID</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Phone</TableCell>
-                        <TableCell>Role</TableCell>
-                        {tab === 'customers' && <TableCell>Address</TableCell>}
-                        <TableCell align="center">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredAccounts.length === 0 ? (
+              {/* Responsive Table Wrapper */}
+              <Box
+                sx={{
+                  width: '100%',
+                  overflowX: { xs: 'auto', sm: 'visible' },
+                  borderRadius: 3,
+                  boxShadow: { xs: '0 2px 12px rgba(25,118,210,0.07)', sm: 'none' },
+                  background: { xs: '#f9fafb', sm: 'transparent' },
+                  p: { xs: 1, sm: 0 },
+                }}
+              >
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 4 }}>
+                    <CircularProgress size={40} thickness={4} />
+                  </Box>
+                ) : error ? (
+                  <Alert severity="error" sx={{ mt: 2, mb: 2 }}>{error}</Alert>
+                ) : (
+                  <TableContainer
+                    component={Paper}
+                    sx={{
+                      boxShadow: 2,
+                      borderRadius: 2,
+                      minWidth: 600,
+                      background: '#fff',
+                      overflowX: 'auto',
+                    }}
+                  >
+                    <Table size="small">
+                      <TableHead>
                         <TableRow>
-                          <TableCell colSpan={tab === 'customers' ? 7 : 6} align="center">
-                            <Typography variant="body1" sx={{ py: 4, color: '#666' }}>
-                              No accounts found
-                            </Typography>
-                          </TableCell>
+                          <TableCell>ID</TableCell>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Email</TableCell>
+                          <TableCell>Phone</TableCell>
+                          <TableCell>Role</TableCell>
+                          {tab === 'customers' && <TableCell>Address</TableCell>}
+                          <TableCell align="center">Actions</TableCell>
                         </TableRow>
-                      ) : (
-                        filteredAccounts.map((account) => (
-                          <TableRow 
-                            key={`${account.role}-${account.id}`}
-                            hover
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                          >
-                            <TableCell>{account.id}</TableCell>
-                            <TableCell sx={{ fontWeight: 500 }}>{account.name}</TableCell>
-                            <TableCell>{account.email}</TableCell>
-                            <TableCell>{account.phone}</TableCell>
-                            <TableCell>
-                              <Box sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                color: account.role === 'Admin' ? theme.palette.primary.main : 
-                                       account.role === 'Staff' ? theme.palette.secondary.main : '#666'
-                              }}>
-                                {account.role === 'Admin' ? (
-                                  <AdminPanelSettingsIcon sx={{ mr: 1 }} />
-                                ) : account.role === 'Staff' ? (
-                                  <BadgeIcon sx={{ mr: 1 }} />
-                                ) : (
-                                  <PersonIcon sx={{ mr: 1 }} />
-                                )}
-                                {account.role}
-                              </Box>
-                            </TableCell>
-                            {tab === 'customers' && <TableCell>{account.address || 'N/A'}</TableCell>}
-                            <TableCell align="center">
-                              <Button 
-                                variant="outlined" 
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                                onClick={() => handleDeleteClick(account)}
-                                disabled={account.role === 'Admin'} // Only disable deletion for Admin accounts
-                                size="small"
-                                sx={{ 
-                                  borderRadius: 4,
-                                  minWidth: '100px',
-                                  '&.Mui-disabled': {
-                                    opacity: 0.5,
-                                  }
-                                }}
-                              >
-                                {account.role === 'Customer' ? 'Delete Request' : 'Delete'} {/* Update button text */}
-                              </Button>
+                      </TableHead>
+                      <TableBody>
+                        {filteredAccounts.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={tab === 'customers' ? 7 : 6} align="center">
+                              <Typography variant="body1" sx={{ py: 4, color: '#666' }}>
+                                No accounts found
+                              </Typography>
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
+                        ) : (
+                          filteredAccounts.map((account) => (
+                            <TableRow
+                              key={`${account.role}-${account.id}`}
+                              hover
+                              sx={{
+                                '&:last-child td, &:last-child th': { border: 0 },
+                                background: { xs: '#fff', sm: 'inherit' },
+                              }}
+                            >
+                              <TableCell>{account.id}</TableCell>
+                              <TableCell sx={{ fontWeight: 500 }}>{account.name}</TableCell>
+                              <TableCell>{account.email}</TableCell>
+                              <TableCell>{account.phone}</TableCell>
+                              <TableCell>
+                                <Box sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  color: account.role === 'Admin'
+                                    ? theme.palette.primary.main
+                                    : account.role === 'Staff'
+                                      ? theme.palette.secondary.main
+                                      : '#666'
+                                }}>
+                                  {account.role === 'Admin' ? (
+                                    <AdminPanelSettingsIcon sx={{ mr: 1 }} />
+                                  ) : account.role === 'Staff' ? (
+                                    <BadgeIcon sx={{ mr: 1 }} />
+                                  ) : (
+                                    <PersonIcon sx={{ mr: 1 }} />
+                                  )}
+                                  {account.role}
+                                </Box>
+                              </TableCell>
+                              {tab === 'customers' && <TableCell>{account.address || 'N/A'}</TableCell>}
+                              <TableCell align="center">
+                                <Button
+                                  variant="outlined"
+                                  color="error"
+                                  startIcon={<DeleteIcon />}
+                                  onClick={() => handleDeleteClick(account)}
+                                  disabled={account.role === 'Admin'}
+                                  size="small"
+                                  sx={{
+                                    borderRadius: 4,
+                                    minWidth: '100px',
+                                    fontWeight: 600,
+                                    '&.Mui-disabled': {
+                                      opacity: 0.5,
+                                    }
+                                  }}
+                                >
+                                  {account.role === 'Customer' ? 'Delete Request' : 'Delete'}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Box>
             </Paper>
           </Container>
         </Box>

@@ -15,6 +15,7 @@ import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Logo from '../../assets/YummyYard_logo.png';
 import '@fontsource/poppins';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // Custom theme with Poppins font
 const theme = createTheme({
@@ -131,7 +132,27 @@ const AdminLogin = () => {
         <StyledPaper elevation={6} sx={{ width: '95%', maxWidth: 950 }}>
           <Grid container>
             {/* Left Panel - Logo & Welcome */}
-            <LeftPanel item xs={12} md={5}>
+            <LeftPanel item xs={12} md={5} sx={{ position: 'relative' }}>
+              {/* Back Button */}
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate('/selectrole')}
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  left: 16,
+                  minWidth: 0,
+                  px: 2,
+                  color: '#fff',
+                  fontWeight: 600,
+                  background: 'none',
+                  boxShadow: 'none',
+                  zIndex: 2,
+                  '&:hover': { background: 'rgba(25, 118, 210, 0.08)' }
+                }}
+              >
+                Back
+              </Button>
               <Box sx={{ textAlign: 'center', width: '100%' }}>
                 <img
                   src={Logo}
