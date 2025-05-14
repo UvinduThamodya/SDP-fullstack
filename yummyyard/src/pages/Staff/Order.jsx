@@ -16,6 +16,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '../../components/StripePayment';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import MenuIcon from '@mui/icons-material/Menu';
 
 // Import Poppins font
 const poppinsFont = `
@@ -254,21 +255,56 @@ const Order = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <style>{poppinsFont}</style>
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <SidebarStaff open={sidebarOpen} toggleSidebar={toggleSidebar} />
-        <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f7fa', p: { xs: 2, sm: 3 } }}>
-          <Button
-            variant="contained"
-            onClick={toggleSidebar}
+      <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
+        {/* Sidebar for desktop, Drawer-style for mobile */}
+        <Box
+          sx={{
+            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+            position: { xs: 'fixed', sm: 'relative' },
+            zIndex: 1200,
+            height: '100vh',
+            minHeight: '100vh',
+            width: { xs: 220, sm: 'auto' },
+            background: { xs: '#fff', sm: 'none' },
+            boxShadow: { xs: 3, sm: 'none' },
+            transition: 'left 0.3s',
+            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+            top: 0,
+          }}
+        >
+          <SidebarStaff
+            open={sidebarOpen}
+            toggleSidebar={() => setSidebarOpen(false)}
             sx={{
-              display: { xs: 'block', sm: 'none' }, // Show button only on mobile view
-              mb: 2,
-              backgroundColor: theme.palette.primary.main,
-              color: '#fff',
+              minHeight: '100vh',
+              height: '100vh',
+              borderRight: 0,
             }}
-          >
-            {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
-          </Button>
+          />
+        </Box>
+        {/* Mobile menu button */}
+        <Button
+          variant="contained"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{
+            display: { xs: 'flex', sm: 'none' },
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            minWidth: 'auto',
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            boxShadow: 3,
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 0,
+          }}
+        >
+          <MenuIcon />
+        </Button>
+        <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f5f5', p: { xs: 2, sm: 3 }, width: '100%' }}>
           <Container maxWidth="lg" sx={{ pt: 4, pb: 6 }}>
             <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
               <Typography variant="h5" sx={{ mb: 2, fontSize: 28, fontWeight: 600, color: '#333' }}>

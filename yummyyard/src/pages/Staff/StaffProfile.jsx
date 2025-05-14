@@ -3,6 +3,7 @@ import { Box, Typography, Container, Paper, Avatar, CircularProgress, Alert, But
 import Sidebar from '../../components/SidebarStaff';
 import apiService from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const Profile = () => {
   const [staff, setStaff] = useState(null);
@@ -11,6 +12,7 @@ const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,16 +79,68 @@ const Profile = () => {
 
   const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Sidebar />
+    <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
+      {/* Sidebar for desktop, Drawer-style for mobile */}
+      <Box
+        sx={{
+          display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
+          position: { xs: 'fixed', sm: 'relative' },
+          zIndex: 1200,
+          height: '100vh',
+          minHeight: '100vh',
+          width: { xs: 220, sm: 'auto' },
+          background: { xs: '#fff', sm: 'none' },
+          boxShadow: { xs: 3, sm: 'none' },
+          transition: 'left 0.3s',
+          left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
+          top: 0,
+        }}
+      >
+        <Sidebar
+          open={sidebarOpen}
+          toggleSidebar={() => setSidebarOpen(false)}
+          sx={{
+            minHeight: '100vh',
+            height: '100vh',
+            borderRight: 0,
+          }}
+        />
+      </Box>
+      {/* Mobile menu button */}
+      <Button
+        variant="contained"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        sx={{
+          display: { xs: 'flex', sm: 'none' },
+          position: 'fixed',
+          top: 16,
+          left: 16,
+          zIndex: 1300,
+          minWidth: 'auto',
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          boxShadow: 3,
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 0,
+        }}
+      >
+        <MenuIcon />
+      </Button>
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 1, sm: 3 },
           backgroundColor: '#f5f5f5',
           minHeight: '100vh',
+          width: '100%',
         }}
       >
         <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
