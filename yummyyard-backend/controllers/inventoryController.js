@@ -180,3 +180,66 @@ exports.getMenuItemsWithLowStock = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch low stock items' });
   }
 };
+
+// --- Menu Item Ingredients Management ---
+
+exports.getMenuItemIngredients = async (req, res) => {
+  try {
+    const { menuItemId } = req.params;
+    const [rows] = await db.query(
+      `SELECT mii.menu_item_ingredient_id, mii.inventory_id, mii.quantity_required, i.item_name
+       FROM MenuItemIngredients mii
+       JOIN Inventory i ON mii.inventory_id = i.inventory_id
+       WHERE mii.item_id = ?`,
+      [menuItemId]
+    );
+    res.json({ ingredients: rows });
+  } catch (error) {
+    console.error('Error fetching menu item ingredients:', error);
+    res.status(500).json({ error: 'Failed to fetch menu item ingredients' });
+  }
+};
+
+exports.addMenuItemIngredient = async (req, res) => {
+  try {
+    const { menuItemId } = req.params;
+    const { inventory_id, quantity_required } = req.body;
+    await db.query(
+      `INSERT INTO MenuItemIngredients (item_id, inventory_id, quantity_required) VALUES (?, ?, ?)`,
+      [menuItemId, inventory_id, quantity_required]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error adding menu item ingredient:', error);
+    res.status(500).json({ error: 'Failed to add menu item ingredient' });
+  }
+};
+
+exports.editMenuItemIngredient = async (req, res) => {
+  try {
+    const { menuItemId, menuItemIngredientId } = req.params;
+    const { inventory_id, quantity_required } = req.body;
+    await db.query(
+      `UPDATE MenuItemIngredients SET inventory_id = ?, quantity_required = ? WHERE menu_item_ingredient_id = ? AND item_id = ?`,
+      [inventory_id, quantity_required, menuItemIngredientId, menuItemId]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error editing menu item ingredient:', error);
+    res.status(500).json({ error: 'Failed to edit menu item ingredient' });
+  }
+};
+
+exports.deleteMenuItemIngredient = async (req, res) => {
+  try {
+    const { menuItemId, menuItemIngredientId } = req.params;
+    await db.query(
+      `DELETE FROM MenuItemIngredients WHERE menu_item_ingredient_id = ? AND item_id = ?`,
+      [menuItemIngredientId, menuItemId]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting menu item ingredient:', error);
+    res.status(500).json({ error: 'Failed to delete menu item ingredient' });
+  }
+};

@@ -34,8 +34,6 @@ import Navbar from '../../components/Navbar';
 
 import '@fontsource/poppins'; // Import Poppins font
 
-import SidebarAdmin from '../../components/SidebarAdmin'; // Import SidebarAdmin
-
 // Styled Components for Reusability
 const StyledButton = styled(Button)(({ theme }) => ({
   backgroundColor: 'black',
@@ -215,9 +213,6 @@ const Homepage = () => {
   // State for animations
   const [showSpecials, setShowSpecials] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Add sidebar state
-
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev); // Add toggle function
   
   useEffect(() => {
     // Show specials section with slight delay for animation
@@ -427,7 +422,7 @@ useEffect(() => {
 
 // Slider settings for menu items
 const menuItemsSliderSettings = {
-  dots: true,
+  dots: false,
   infinite: true,
   speed: 500,
   slidesToShow: isMobile ? 1 : isTablet ? 2 : 3,
@@ -486,26 +481,6 @@ const responsiveSliderSettings = {
       backgroundRepeat: 'no-repeat', // Prevent tiling
       backgroundPosition: 'center', // Center the gradient
     }}>
-      {/* SidebarAdmin for admin navigation */}
-      <SidebarAdmin open={sidebarOpen} toggleSidebar={toggleSidebar} />
-
-      {/* Sidebar toggle button for mobile */}
-      <Button
-        variant="contained"
-        onClick={toggleSidebar}
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          position: 'fixed',
-          top: 16,
-          left: 16,
-          zIndex: 10,
-          backgroundColor: 'black',
-          color: 'white',
-        }}
-      >
-        {sidebarOpen ? 'Hide Menu' : 'Show Menu'}
-      </Button>
-
       {/* Random Cooking Images */}
       {randomImages.map((image, index) => (
         <Box
@@ -915,7 +890,7 @@ const responsiveSliderSettings = {
               
               {openingHours.map((schedule, index) => (
                 <Box key={index} sx={{ mb: 2 }}>
-                  <RunaltoTypography variant="h6" color="white" sx={{ fontWeight: 'bold' }}>
+                  <RunaltoTypography variant="h6" color="black" sx={{ fontWeight: 'bold' }}>
                     {schedule.day}
                   </RunaltoTypography>
                   <RunaltoTypography variant="body1" color="#3ACA82">

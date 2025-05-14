@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/menu-items'; // Full URL with your backend's port
+const INVENTORY_API_URL = 'http://localhost:5000/api/inventory';
 
 const CLOUDINARY_UPLOAD_PRESET = "menuitem_upload_preset";
 const CLOUDINARY_CLOUD_NAME = "ddly9e3qr";
@@ -111,7 +112,77 @@ const MenuService = {
     }
   },
 
-  deleteMenuItem, // <-- add this line
+  // --- Menu Item Ingredient Management (Inventory endpoints) ---
+
+  getMenuItemIngredients: async (menuItemId) => {
+    try {
+      const response = await axios.get(`${INVENTORY_API_URL}/menu-item/${menuItemId}/ingredients`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching menu item ingredients:', error);
+      throw error;
+    }
+  },
+
+  addMenuItemIngredient: async (menuItemId, data) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${INVENTORY_API_URL}/menu-item/${menuItemId}/ingredients`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error adding menu item ingredient:', error);
+      throw error;
+    }
+  },
+
+  editMenuItemIngredient: async (menuItemId, menuItemIngredientId, data) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${INVENTORY_API_URL}/menu-item/${menuItemId}/ingredients/${menuItemIngredientId}`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error editing menu item ingredient:', error);
+      throw error;
+    }
+  },
+
+  deleteMenuItemIngredient: async (menuItemId, menuItemIngredientId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(
+        `${INVENTORY_API_URL}/menu-item/${menuItemId}/ingredients/${menuItemIngredientId}`,
+        {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting menu item ingredient:', error);
+      throw error;
+    }
+  },
+
+  deleteMenuItem,
 };
 
 export default MenuService;

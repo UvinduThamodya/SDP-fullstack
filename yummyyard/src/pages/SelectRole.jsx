@@ -16,19 +16,25 @@ import BadgeIcon from '@mui/icons-material/Badge';
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import YummyYardLogo from '../assets/YummyYard_logo.png'; // Adjust path if needed
 
 const SelectRole = () => {
   const navigate = useNavigate();
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
-  
+
   const handleRoleSelect = (path) => {
     navigate(path);
   };
-  
+
   const handleCustomerClick = () => {
     setCustomerDropdownOpen(!customerDropdownOpen);
   };
-  
+
+  // --- Add logo click handler ---
+  const handleLogoClick = () => {
+    navigate('/'); // Go to homepage.jsx ("/" route)
+  };
+
   return (
     <Box
       sx={{
@@ -42,6 +48,29 @@ const SelectRole = () => {
         fontFamily: '"Poppins", sans-serif',
       }}
     >
+      {/* Logo at top left */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 24,
+          left: 24,
+          zIndex: 10,
+          cursor: 'pointer',
+        }}
+        onClick={handleLogoClick}
+      >
+        <img
+          src={YummyYardLogo}
+          alt="Yummy Yard Logo"
+          style={{
+            width: 70,
+            height: 70,
+            borderRadius: '50%',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            background: '#fff'
+          }}
+        />
+      </Box>
       {/* Main content */}
       <Container 
         maxWidth="sm" 
