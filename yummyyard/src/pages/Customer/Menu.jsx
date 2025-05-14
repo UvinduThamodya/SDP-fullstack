@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CircularProgress } from '@mui/material';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,6 +25,7 @@ import { alpha } from '@mui/material/styles';
 import RecommendationService from '../../services/recommendationService';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import Slide from '@mui/material/Slide';
+import io from 'socket.io-client';
 
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
@@ -88,8 +90,30 @@ const Menu = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [recommendationDialogOpen, setRecommendationDialogOpen] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState(null);
+  const [socket, setSocket] = useState(null);
 
-  
+  // Setup socket connection for order status updates
+  useEffect(() => {
+    if (!currentOrderId) return;
+    const s = io('http://localhost:5000');
+    setSocket(s);
+
+    const handleOrderUpdated = (order) => {
+      if (order.order_id === currentOrderId && order.status === 'Accepted') {
+        setProcessingDialogOpen(false);
+        setPaymentDialogOpen(true);
+        setCurrentOrderId(null);
+      }
+    };
+    s.on('orderUpdated', handleOrderUpdated);
+
+    return () => {
+      s.off('orderUpdated', handleOrderUpdated);
+      s.disconnect();
+    };
+  }, [currentOrderId]);
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -1167,9 +1191,28 @@ const Menu = () => {
     <Button
       variant="contained"
       color="primary"
-      onClick={() => {
+      onClick={async () => {
         setRecommendationDialogOpen(false);
-        setPaymentDialogOpen(true); // Directly open payment dialog
+        setProcessingDialogOpen(true);
+
+        // Prepare order data
+        const orderItems = cart.map(item => ({
+          item_id: item.item_id,
+          quantity: item.quantity,
+          price: item.price,
+        }));
+        const orderData = {
+          items: orderItems,
+          payment: { method: 'pending', amount: calculateTotal() },
+        };
+        try {
+          // Create order and get orderId
+          const res = await apiService.createOrder(orderData);
+          setCurrentOrderId(res.orderId || res.order_id || res.id || res._id);
+        } catch (err) {
+          setProcessingDialogOpen(false);
+          setNotification({ open: true, message: 'Failed to create order', severity: 'error' });
+        }
       }}
       sx={{
         px: 3,
@@ -1182,6 +1225,29 @@ const Menu = () => {
       Continue to Payment
     </Button>
   </DialogActions>
+</Dialog>
+
+<Dialog 
+  open={processingDialogOpen} 
+  disableEscapeKeyDown
+  PaperProps={{
+    sx: { borderRadius: 3, p: 2, maxWidth: 400 }
+  }}
+>
+  <DialogTitle sx={{ textAlign: 'center' }}>
+    <Typography variant="h5" sx={{ fontWeight: 600 }}>Processing Your Order</Typography>
+  </DialogTitle>
+  <DialogContent>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
+      <CircularProgress size={60} sx={{ color: '#3ACA82', mb: 3 }} />
+      <Typography variant="body1" sx={{ textAlign: 'center', mb: 2 }}>
+        Please wait while staff reviews your order...
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+        You'll be redirected to payment once your order is accepted.
+      </Typography>
+    </Box>
+  </DialogContent>
 </Dialog>
 
         {/* Notification Snackbar */}

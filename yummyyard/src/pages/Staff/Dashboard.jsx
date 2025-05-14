@@ -140,7 +140,7 @@ const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   }).format(price);
 };
 
-const statusOptions = ['Pending', 'Completed', 'Cancelled'];
+const statusOptions = ['Pending', 'Accepted', 'Completed', 'Cancelled'];
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -215,6 +215,7 @@ export default function StaffDashboard() {
     const pendingOrders = dailyOrders.filter(order => order.status === 'Pending').length;
     const completedOrders = dailyOrders.filter(order => order.status === 'Completed').length;
     const cancelledOrders = dailyOrders.filter(order => order.status === 'Cancelled').length;
+    const acceptedOrders = dailyOrders.filter(order => order.status === 'Accepted').length;
 
     setDailyStats({
       totalOrders,
@@ -234,16 +235,53 @@ export default function StaffDashboard() {
   // Function to show notification for new orders
   const showNewOrderAlert = (orderData) => {
     Swal.fire({
-      title: 'New Order!',
-      text: `Order #${orderData.order_id} has been placed`,
+      title: 'New Order Request!',
+      text: `New order placed with ${orderData.items ? orderData.items.length : 0} items. Total: ${formatCurrency(orderData.totalAmount || orderData.total_amount)}`,
       icon: 'info',
-      confirmButtonText: 'View Details'
+      showCancelButton: true,
+      confirmButtonText: 'Accept',
+      cancelButtonText: 'Review Details',
+      confirmButtonColor: '#3ACA82',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Example: Navigate to order details or update UI
-        // navigate(`/orders/${orderData.order_id}`);
+        handleAcceptOrder(orderData);
+      } else {
+        // Optionally select or highlight this order in the table
       }
     });
+  };
+
+  // Function to handle accepting orders directly from notification
+  const handleAcceptOrder = (orderData) => {
+    // Broadcast status update via WebSocket
+    const socket = new WebSocket('ws://localhost:5000/orders');
+    socket.onopen = () => {
+      socket.send(JSON.stringify({
+        type: 'order_status_update',
+        orderId: orderData.orderId || orderData.order_id,
+        status: 'Accepted'
+      }));
+
+      // Update in database
+      apiService.updateOrderStatus(orderData.orderId || orderData.order_id, 'Accepted')
+        .then(() => {
+          setNotification({ 
+            open: true, 
+            message: `Order #${orderData.orderId || orderData.order_id} accepted!`, 
+            severity: 'success' 
+          });
+        })
+        .catch(error => {
+          console.error('Error accepting order:', error);
+          setNotification({ 
+            open: true, 
+            message: 'Failed to update order status', 
+            severity: 'error' 
+          });
+        });
+
+      socket.close();
+    };
   };
 
   // Connect to Socket.IO and fetch orders on mount
@@ -253,6 +291,7 @@ export default function StaffDashboard() {
     socket.on('orderCreated', (order) => {
       setOrders(prev => [order, ...prev]);
       setNotification({ open: true, message: `New order #${order.order_id} placed!`, severity: 'info' });
+      showNewOrderAlert(order); // <-- Show popup immediately when order is created
     });
 
     socket.on('orderUpdated', (order) => {
@@ -280,6 +319,45 @@ export default function StaffDashboard() {
     return () => socket.close();
   }, []);
 
+  useEffect(() => {
+    // Socket.IO for backend events
+    const socketIO = io(SOCKET_URL);
+  
+    socketIO.on('orderCreated', (order) => {
+      setOrders(prev => [order, ...prev]);
+      setNotification({ open: true, message: `New order #${order.order_id} placed!`, severity: 'info' });
+      // Only show alert for pending orders
+      if (order.status === 'Pending') showNewOrderAlert(order);
+    });
+  
+    socketIO.on('orderUpdated', (order) => {
+      setOrders(prev => prev.map(o => o.order_id === order.order_id ? order : o));
+      setNotification({ open: true, message: `Order #${order.order_id} updated!`, severity: 'success' });
+    });
+  
+    // WebSocket for custom events (new order requests, status updates)
+    const ws = new WebSocket('ws://localhost:5000/orders');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_order_request') {
+        showNewOrderAlert(data);
+        fetchOrders();
+      } else if (data.type === 'order_status_update') {
+        setOrders(prev => prev.map(order => 
+          order.order_id === data.orderId ? {...order, status: data.status} : order
+        ));
+      }
+    };
+  
+    // Initial fetch using apiService
+    fetchOrders();
+  
+    return () => {
+      socketIO.disconnect();
+      ws.close();
+    };
+  }, []);
+
   const fetchOrders = async () => {
     try {
       const response = await apiService.getAllOrders();
@@ -293,11 +371,32 @@ export default function StaffDashboard() {
   const handleStatusUpdate = async () => {
     try {
       await apiService.updateOrderStatus(selectedOrder.order_id, newStatus);
+
+      // Broadcast status update via WebSocket
+      const socket = new WebSocket('ws://localhost:5000/orders');
+      socket.onopen = () => {
+        socket.send(JSON.stringify({
+          type: 'order_status_update',
+          orderId: selectedOrder.order_id,
+          status: newStatus
+        }));
+        socket.close();
+      };
+
       setStatusDialog(false);
       setSelectedOrder(null);
-      // No need to refetch; socket will update state
+      setNotification({ 
+        open: true, 
+        message: `Order status updated to ${newStatus}!`, 
+        severity: 'success' 
+      });
     } catch (error) {
-      setNotification({ open: true, message: 'Failed to update status', severity: 'error' });
+      console.error('Error updating status:', error);
+      setNotification({ 
+        open: true, 
+        message: 'Failed to update status', 
+        severity: 'error' 
+      });
     }
   };
 
