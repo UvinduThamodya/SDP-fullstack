@@ -107,13 +107,13 @@ const Navbar = () => {
           <ListAltIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
         </IconButton>
       </Tooltip>
-      {user && (
+      {/* {user && (
         <Tooltip title="Dashboard" placement="bottom">
           <IconButton color="inherit" onClick={() => handleNavigation('/dashboardcustomer')}>
             <DashboardIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
           </IconButton>
         </Tooltip>
-      )}
+      )} */}
       <Tooltip title="About Us" placement="bottom">
         <IconButton color="inherit" onClick={() => handleNavigation('/aboutcontact')}>
           <InfoIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
@@ -182,12 +182,12 @@ const Navbar = () => {
         <ListItemIcon><ListAltIcon /></ListItemIcon>
         <ListItemText primary="Orders" />
       </ListItem>
-      {user && (
+      {/* {user && (
         <ListItem onClick={() => handleNavigation('/dashboardcustomer')}>
           <ListItemIcon><DashboardIcon /></ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItem>
-      )}
+      )} */}
       <ListItem onClick={() => handleNavigation('/aboutcontact')}>
         <ListItemIcon><InfoIcon /></ListItemIcon>
         <ListItemText primary="About Us" />

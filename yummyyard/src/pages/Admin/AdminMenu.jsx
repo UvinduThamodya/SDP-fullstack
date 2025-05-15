@@ -3,7 +3,7 @@ import {
   Box, Typography, Container, Grid, Card, CardMedia, CardContent, CardActions,
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, 
   Snackbar, Alert, FormControl, InputLabel, Select, MenuItem, Paper, Divider,
-  ThemeProvider, createTheme, CssBaseline
+  ThemeProvider, createTheme, CssBaseline, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
@@ -12,6 +12,10 @@ import MenuService from "../../services/menuService";
 import AdminSidebar from "../../components/SidebarAdmin";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import WarningIcon from "@mui/icons-material/Warning";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 // Create a custom theme with Poppins font
 const theme = createTheme({
@@ -115,8 +119,18 @@ export default function AdminMenu() {
   const [notificationSeverity, setNotificationSeverity] = useState("info");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // --- Menu Item Ingredient Management State ---
+  const [ingredients, setIngredients] = useState([]);
+  const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+  const [menuItemIngredients, setMenuItemIngredients] = useState([]);
+  const [ingredientDialogOpen, setIngredientDialogOpen] = useState(false);
+  const [ingredientEdit, setIngredientEdit] = useState(null);
+  const [ingredientDelete, setIngredientDelete] = useState(null);
+  const [ingredientForm, setIngredientForm] = useState({ inventory_id: '', quantity_required: '' });
+
   useEffect(() => {
     fetchMenu();
+    fetchIngredients();
   }, []);
 
   const fetchMenu = async () => {
@@ -131,9 +145,81 @@ export default function AdminMenu() {
     }
   };
 
+  const fetchIngredients = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/inventory');
+      const data = await response.json();
+      setIngredients(data.ingredients || []);
+    } catch (error) {
+      showNotification('Failed to fetch ingredients', 'error');
+    }
+  };
+
   const showNotification = (message, severity = "info") => {
     setNotification(message);
     setNotificationSeverity(severity);
+  };
+
+  // Fetch ingredients for a menu item
+  const fetchMenuItemIngredients = async (menuItemId) => {
+    try {
+      const data = await MenuService.getMenuItemIngredients(menuItemId);
+      setMenuItemIngredients(data.ingredients || []);
+    } catch (error) {
+      showNotification('Failed to fetch menu item ingredients', 'error');
+    }
+  };
+
+  // Open ingredient dialog for a menu item
+  const handleOpenIngredientDialog = async (menuItem) => {
+    setSelectedMenuItem(menuItem);
+    await fetchMenuItemIngredients(menuItem.item_id);
+    setIngredientDialogOpen(true);
+  };
+
+  const handleCloseIngredientDialog = () => {
+    setIngredientDialogOpen(false);
+    setSelectedMenuItem(null);
+    setMenuItemIngredients([]);
+    setIngredientEdit(null);
+    setIngredientDelete(null);
+    setIngredientForm({ inventory_id: '', quantity_required: '' });
+  };
+
+  // Add ingredient to menu item
+  const handleAddMenuItemIngredient = async () => {
+    try {
+      await MenuService.addMenuItemIngredient(selectedMenuItem.item_id, ingredientForm);
+      showNotification('Ingredient added to menu item!', 'success');
+      await fetchMenuItemIngredients(selectedMenuItem.item_id);
+      setIngredientForm({ inventory_id: '', quantity_required: '' });
+    } catch (error) {
+      showNotification('Failed to add ingredient', 'error');
+    }
+  };
+
+  // Edit ingredient for menu item
+  const handleEditMenuItemIngredient = async () => {
+    try {
+      await MenuService.editMenuItemIngredient(selectedMenuItem.item_id, ingredientEdit.menu_item_ingredient_id, ingredientEdit);
+      showNotification('Ingredient updated!', 'success');
+      await fetchMenuItemIngredients(selectedMenuItem.item_id);
+      setIngredientEdit(null);
+    } catch (error) {
+      showNotification('Failed to update ingredient', 'error');
+    }
+  };
+
+  // Delete ingredient from menu item
+  const handleDeleteMenuItemIngredient = async () => {
+    try {
+      await MenuService.deleteMenuItemIngredient(selectedMenuItem.item_id, ingredientDelete.menu_item_ingredient_id);
+      showNotification('Ingredient deleted!', 'success');
+      await fetchMenuItemIngredients(selectedMenuItem.item_id);
+      setIngredientDelete(null);
+    } catch (error) {
+      showNotification('Failed to delete ingredient', 'error');
+    }
   };
 
   // --- Edit ---
@@ -399,6 +485,143 @@ export default function AdminMenu() {
               </Grid>
             </Paper>
           </Container>
+
+          {/* --- Menu Item Ingredients Section --- */}
+          <Box sx={{ mt: 6 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+              Menu Item Ingredients Management
+            </Typography>
+            <Paper sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                Select a menu item to view and manage its ingredients:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+                {menuItems.map((item) => (
+                  <Button
+                    key={item.item_id}
+                    variant={selectedMenuItem && selectedMenuItem.item_id === item.item_id ? 'contained' : 'outlined'}
+                    onClick={() => handleOpenIngredientDialog(item)}
+                  >
+                    {item.name}
+                  </Button>
+                ))}
+              </Box>
+            </Paper>
+          </Box>
+
+          {/* Dialog for viewing and editing menu item ingredients */}
+          <Dialog open={ingredientDialogOpen} onClose={handleCloseIngredientDialog} maxWidth="md" fullWidth>
+            <DialogTitle>
+              Ingredients for: {selectedMenuItem?.name}
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Add Ingredient</Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <TextField
+                    select
+                    label="Ingredient"
+                    value={ingredientForm.inventory_id}
+                    onChange={e => setIngredientForm(f => ({ ...f, inventory_id: e.target.value }))}
+                    SelectProps={{ native: true }}
+                    sx={{ minWidth: 180 }}
+                  >
+                    <option value="">Select Ingredient</option>
+                    {ingredients.map((ing) => (
+                      <option key={ing.inventory_id} value={ing.inventory_id}>{ing.item_name}</option>
+                    ))}
+                  </TextField>
+                  <TextField
+                    label="Quantity Required"
+                    type="number"
+                    value={ingredientForm.quantity_required}
+                    onChange={e => setIngredientForm(f => ({ ...f, quantity_required: e.target.value }))}
+                    sx={{ minWidth: 140 }}
+                  />
+                  <Button variant="contained" onClick={handleAddMenuItemIngredient}>Add</Button>
+                </Box>
+              </Box>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Ingredient</TableCell>
+                      <TableCell>Quantity Required</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {menuItemIngredients.map((ing) => (
+                      <TableRow key={ing.menu_item_ingredient_id}>
+                        <TableCell>
+                          {ingredientEdit && ingredientEdit.menu_item_ingredient_id === ing.menu_item_ingredient_id ? (
+                            <TextField
+                              select
+                              value={ingredientEdit.inventory_id}
+                              onChange={e => setIngredientEdit(edit => ({ ...edit, inventory_id: e.target.value }))}
+                              SelectProps={{ native: true }}
+                            >
+                              {ingredients.map((i) => (
+                                <option key={i.inventory_id} value={i.inventory_id}>{i.item_name}</option>
+                              ))}
+                            </TextField>
+                          ) : (
+                            ing.item_name
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {ingredientEdit && ingredientEdit.menu_item_ingredient_id === ing.menu_item_ingredient_id ? (
+                            <TextField
+                              type="number"
+                              value={ingredientEdit.quantity_required}
+                              onChange={e => setIngredientEdit(edit => ({ ...edit, quantity_required: e.target.value }))}
+                            />
+                          ) : (
+                            ing.quantity_required
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {ingredientEdit && ingredientEdit.menu_item_ingredient_id === ing.menu_item_ingredient_id ? (
+                            <>
+                              <Button size="small" onClick={handleEditMenuItemIngredient} variant="contained" color="primary">Save</Button>
+                              <Button size="small" onClick={() => setIngredientEdit(null)} sx={{ ml: 1 }}>Cancel</Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button size="small" onClick={() => setIngredientEdit({ ...ing })} variant="outlined">Edit</Button>
+                              <Button size="small" color="error" sx={{ ml: 1 }} onClick={() => setIngredientDelete(ing)}>Delete</Button>
+                            </>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {menuItemIngredients.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} align="center">No ingredients for this menu item.</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseIngredientDialog}>Close</Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Confirm Delete Ingredient Dialog */}
+          <Dialog open={!!ingredientDelete} onClose={() => setIngredientDelete(null)}>
+            <DialogTitle>Delete Ingredient</DialogTitle>
+            <DialogContent>
+              <Typography>
+                Are you sure you want to remove this ingredient from the menu item?
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setIngredientDelete(null)}>Cancel</Button>
+              <Button color="error" variant="contained" onClick={handleDeleteMenuItemIngredient}>Delete</Button>
+            </DialogActions>
+          </Dialog>
 
           {/* Edit Dialog */}
           <Dialog 

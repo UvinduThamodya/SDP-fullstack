@@ -141,7 +141,7 @@ const Sidebar = ({ children }) => {
               </NavButton>
             </ListItem>
 
-            <ListItem disablePadding sx={{ mb: 1.5 }}>
+            {/* <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton
                 active={location.pathname === '/dashboard'}
                 component={Link}
@@ -156,7 +156,7 @@ const Sidebar = ({ children }) => {
                   </Box>
                 )}
               </NavButton>
-            </ListItem>
+            </ListItem> */}
 
             {/* <ListItem disablePadding sx={{ mb: 1.5 }}>
               <NavButton

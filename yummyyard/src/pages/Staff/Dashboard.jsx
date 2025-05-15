@@ -380,6 +380,16 @@ export default function StaffDashboard() {
           orderId: selectedOrder.order_id,
           status: newStatus
         }));
+
+        // NEW: If cancelled, emit a cancellation reason
+        if (newStatus === 'Cancelled') {
+          socket.send(JSON.stringify({
+            type: 'order_cancelled',
+            orderId: selectedOrder.order_id,
+            reason: 'Order was cancelled due to staff being busy. Sorry for the inconvenience.'
+          }));
+        }
+
         socket.close();
       };
 

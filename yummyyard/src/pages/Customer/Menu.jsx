@@ -93,6 +93,8 @@ const Menu = () => {
   const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState(null);
   const [socket, setSocket] = useState(null);
+  const [orderCancelledDialogOpen, setOrderCancelledDialogOpen] = useState(false);
+  const [orderCancelledMessage, setOrderCancelledMessage] = useState('');
 
   // Setup socket connection for order status updates
   useEffect(() => {
@@ -106,11 +108,29 @@ const Menu = () => {
         setPaymentDialogOpen(true);
         setCurrentOrderId(null);
       }
+      // Handle cancellation
+      if (order.order_id === currentOrderId && order.status === 'Cancelled') {
+        setProcessingDialogOpen(false);
+        setOrderCancelledMessage('We regret to inform you that your order has been cancelled due to high demand at this time. We apologize for any inconvenience caused and appreciate your understanding.');
+        setOrderCancelledDialogOpen(true);
+        setCurrentOrderId(null);
+      }
     };
+
+    // Listen for custom cancellation event
     s.on('orderUpdated', handleOrderUpdated);
+    s.on('order_cancelled', (data) => {
+      if (data.orderId === currentOrderId) {
+        setProcessingDialogOpen(false);
+        setOrderCancelledMessage(data.reason || 'We regret to inform you that your order has been cancelled due to high demand at this time. We apologize for any inconvenience caused and appreciate your understanding.');
+        setOrderCancelledDialogOpen(true);
+        setCurrentOrderId(null);
+      }
+    });
 
     return () => {
       s.off('orderUpdated', handleOrderUpdated);
+      s.off('order_cancelled');
       s.disconnect();
     };
   }, [currentOrderId]);
@@ -1266,6 +1286,36 @@ const Menu = () => {
               </Typography>
             </Box>
           </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={orderCancelledDialogOpen}
+          onClose={() => setOrderCancelledDialogOpen(false)}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
+        >
+          <DialogTitle>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f' }}>
+              Order Cancelled
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ py: 2 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {orderCancelledMessage}
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setOrderCancelledDialogOpen(false)}
+              color="primary"
+              variant="contained"
+            >
+              OK
+            </Button>
+          </DialogActions>
         </Dialog>
 
         {/* Notification Snackbar */}

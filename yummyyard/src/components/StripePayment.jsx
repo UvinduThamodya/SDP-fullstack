@@ -76,7 +76,7 @@ function StripePayment({ amount, onSuccess }) {
       </Typography>
       
       <Box sx={{ border: '1px solid #e0e0e0', padding: 2, borderRadius: 1, mb: 2 }}>
-        <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+        <CardElement options={{ hidePostalCode: true }} />
       </Box>
       
       {error && (
