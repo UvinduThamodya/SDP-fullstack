@@ -69,6 +69,23 @@ const Navbar = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const updateUser = () => {
+      const storedUser = localStorage.getItem('user');
+      setUser(storedUser ? JSON.parse(storedUser) : null);
+    };
+
+    updateUser(); // Initial check
+
+    window.addEventListener('storage', updateUser);
+    window.addEventListener('user-logout', updateUser);
+
+    return () => {
+      window.removeEventListener('storage', updateUser);
+      window.removeEventListener('user-logout', updateUser);
+    };
+  }, []);
+
   // Navigation handlers
   const handleNavigation = (route) => {
     navigate(route);
@@ -82,9 +99,14 @@ const Navbar = () => {
   };
   
   const handleLogout = () => {
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('staff');
+    localStorage.removeItem('admin');
+    localStorage.removeItem('token');
+    window.dispatchEvent(new Event('user-logout'));
+    
     setUser(null);
+    window.dispatchEvent(new Event('user-logout'));
     navigate('/');
     setMobileOpen(false);
   };

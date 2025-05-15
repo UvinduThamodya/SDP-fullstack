@@ -125,8 +125,13 @@ const AdminProfile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('staffId');
     localStorage.removeItem('adminId');
+    localStorage.removeItem('user');
+localStorage.removeItem('staff');
+localStorage.removeItem('admin');
+localStorage.removeItem('token');
+    window.dispatchEvent(new Event('user-logout'));
     navigate('/selectrole');
   };
 

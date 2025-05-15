@@ -38,6 +38,9 @@ const Profile = () => {
     localStorage.removeItem('staffId');
     localStorage.removeItem('token');
     localStorage.removeItem('staff');
+    localStorage.removeItem('user');
+    localStorage.removeItem('admin');
+    window.dispatchEvent(new Event('user-logout'));
     navigate('/selectrole');
   };
 
