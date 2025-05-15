@@ -101,8 +101,20 @@ const rejectDeleteRequest = async (req, res) => {
   }
 };
 
+const deleteCustomerProfile = async (req, res) => {
+  try {
+    const customerId = req.user.id;
+    await db.query('DELETE FROM Customers WHERE customer_id = ?', [customerId]);
+    res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting customer profile:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+};
+
 module.exports = { getCustomerProfile,
   updateCustomerProfile, 
   checkDeleteRequests, 
   acceptDeleteRequest, 
-  rejectDeleteRequest };
+  rejectDeleteRequest,
+  deleteCustomerProfile };

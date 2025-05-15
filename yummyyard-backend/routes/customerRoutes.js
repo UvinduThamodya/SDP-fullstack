@@ -6,6 +6,7 @@ const { authenticateUser } = require('../middleware/authMiddleware');
 // Protected routes - require authentication
 router.get('/profile', authenticateUser, customerController.getCustomerProfile);
 router.put('/profile', authenticateUser, customerController.updateCustomerProfile);
+router.delete('/profile', authenticateUser, customerController.deleteCustomerProfile);
 
 // In customerRoutes.js
 router.get('/delete-requests', authenticateUser, customerController.checkDeleteRequests);

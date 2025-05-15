@@ -651,7 +651,7 @@ const Homepage = () => {
         ))}
       </Grid>
     ) : (
-      <Typography color="text.secondary" align="center">
+      <Typography color="text.secondary" align="center" fontSize="1.5rem" sx={{ mt: 4 }} fontWeight={'bold'}>
         You have not added any favorites yet.
       </Typography>
     )}

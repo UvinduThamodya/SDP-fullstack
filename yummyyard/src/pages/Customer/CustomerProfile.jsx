@@ -32,6 +32,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import HomeIcon from '@mui/icons-material/Home';
 import BadgeIcon from '@mui/icons-material/Badge';
 import SecurityIcon from '@mui/icons-material/Security';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Navbar from '../../components/Navbar';
 import { useNavigate } from 'react-router-dom';
 
@@ -68,6 +69,7 @@ const CustomerProfile = () => {
   });
 
   const [deleteRequest, setDeleteRequest] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchCustomerProfile = async () => {
@@ -272,6 +274,36 @@ const CustomerProfile = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+      const response = await fetch('http://localhost:5000/api/customers/profile', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setDeleteDialogOpen(false);
+      navigate('/');
+    } catch (error) {
+      setNotification({
+        open: true,
+        message: 'Failed to delete account: ' + error.message,
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -430,6 +462,26 @@ const CustomerProfile = () => {
                             }}
                           >
                             Logout
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => setDeleteDialogOpen(true)}
+                            sx={{
+                              borderColor: 'white',
+                              color: 'white',
+                              borderRadius: 3,
+                              borderWidth: 2,
+                              px: 3,
+                              '&:hover': {
+                                borderColor: theme.palette.error.main,
+                                bgcolor: alpha(theme.palette.error.main, 0.1),
+                                boxShadow: 2
+                              }
+                            }}
+                          >
+                            Delete Account
                           </Button>
                         </>
                       ) : (
@@ -774,6 +826,40 @@ const CustomerProfile = () => {
             sx={{ borderRadius: 6 }}
           >
             Accept & Delete My Account
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{ sx: { borderRadius: 2, px: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, color: 'error.main' }}>
+          Delete Account
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete your account? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, px: 2 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            variant="outlined"
+            sx={{ borderRadius: 6 }}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteAccount}
+            color="error"
+            variant="contained"
+            sx={{ borderRadius: 6 }}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
