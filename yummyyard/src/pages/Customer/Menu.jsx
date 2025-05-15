@@ -106,7 +106,7 @@ const Menu = () => {
       if (order.order_id === currentOrderId && order.status === 'Accepted') {
         setProcessingDialogOpen(false);
         setPaymentDialogOpen(true);
-        setCurrentOrderId(null);
+        // DO NOT setCurrentOrderId(null) here!
       }
       // Handle cancellation
       if (order.order_id === currentOrderId && order.status === 'Cancelled') {
@@ -175,19 +175,38 @@ const Menu = () => {
 
   const handlePayment = async (paymentData) => {
     try {
-      // Prepare cart items for order
-      const orderItems = cart.map(item => ({
-        item_id: item.item_id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
+      if (currentOrderId) {
+        // Attach payment to existing order
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `http://localhost:5000/api/orders/${currentOrderId}/pay`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ payment: paymentData })
+          }
+        );
+        if (!response.ok) throw new Error('Payment failed');
+        setCurrentOrderId(null); // Only set to null after payment is successful
+      } else {
+        // Fallback: create order (should not happen after staff acceptance)
+        // Prepare cart items for order
+        const orderItems = cart.map(item => ({
+          item_id: item.item_id,
+          quantity: item.quantity,
+          price: item.price,
+        }));
 
-      const orderData = {
-        items: orderItems,
-        payment: paymentData,
-      };
+        const orderData = {
+          items: orderItems,
+          payment: paymentData,
+        };
 
-      await apiService.createOrder(orderData);
+        await apiService.createOrder(orderData);
+      }
 
       setNotification({ open: true, message: 'Order placed successfully!', severity: 'success' });
       setCart([]);

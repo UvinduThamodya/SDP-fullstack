@@ -62,23 +62,24 @@ const createOrder = async (req, res) => {
       );
     }
 
-    // 5. Generate payment ID (Stripe ID for cards, UUID for cash)
-    const paymentId = paymentMethod === 'card'
-      ? payment.stripeToken
-      : `cash-${uuidv4()}`;
+    // 5. Only record payment if paymentMethod is not 'pending'
+    if (paymentMethod && paymentMethod !== 'pending') {
+      const paymentId = paymentMethod === 'card'
+        ? payment.stripeToken
+        : `cash-${uuidv4()}`;
 
-    // 6. Record payment
-    await connection.query(
-      `INSERT INTO Payments 
-      (order_id, amount, method, payment_id) 
-      VALUES (?, ?, ?, ?)`,
-      [
-        orderId,
-        payment.amount,
-        paymentMethod,
-        paymentId
-      ]
-    );
+      await connection.query(
+        `INSERT INTO Payments 
+        (order_id, amount, method, payment_id) 
+        VALUES (?, ?, ?, ?)`,
+        [
+          orderId,
+          payment.amount,
+          paymentMethod,
+          paymentId
+        ]
+      );
+    }
 
     // 7. Clear cart only for customers
     if (isCustomer) {
@@ -462,6 +463,68 @@ const generateOrderReport = async (req, res) => {
   }
 };
 
+// Attach payment to an existing order (after staff accepts)
+const payForOrder = async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const { orderId } = req.params;
+    const { payment } = req.body;
+
+    // Validate payment info
+    if (!payment || !payment.method || payment.amount === undefined) {
+      await connection.rollback();
+      return res.status(400).json({ error: 'Invalid payment information' });
+    }
+
+    // Check if order exists and is in 'Accepted' status
+    const [orderRows] = await connection.query('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+    if (!orderRows.length) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const order = orderRows[0];
+    if (order.status !== 'Accepted') {
+      await connection.rollback();
+      return res.status(400).json({ error: 'Order is not ready for payment' });
+    }
+
+    // Insert payment record
+    const paymentId = payment.method === 'card'
+      ? payment.stripeToken
+      : `cash-${uuidv4()}`;
+    await connection.query(
+      `INSERT INTO Payments (order_id, amount, method, payment_id) VALUES (?, ?, ?, ?)`,
+      [orderId, payment.amount, payment.method, paymentId]
+    );
+
+    // Update order status to 'Paid'
+    await connection.query(
+      `UPDATE Orders SET status = 'Paid' WHERE order_id = ?`,
+      [orderId]
+    );
+
+    await connection.commit();
+
+    // Emit order update
+    try {
+      const [updatedOrderRows] = await connection.query('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+      req.app.get('io').emit('orderUpdated', updatedOrderRows[0]);
+    } catch (emitError) {
+      // Log but don't block
+      console.error('Socket emit error:', emitError);
+    }
+
+    res.json({ success: true, message: 'Payment successful', orderId });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error paying for order:', error);
+    res.status(500).json({ error: 'Failed to process payment' });
+  } finally {
+    connection.release();
+  }
+};
 
 module.exports = {
   createOrder,
@@ -470,5 +533,6 @@ module.exports = {
   generateOrderReceipt,
   getAllOrders,
   generateOrderReport,
-  updateOrderStatus
+  updateOrderStatus,
+  payForOrder
 };
