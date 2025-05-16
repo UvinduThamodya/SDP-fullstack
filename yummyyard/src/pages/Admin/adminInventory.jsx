@@ -20,7 +20,9 @@ import {
   Alert,
   createTheme,
   ThemeProvider,
-  DialogContentText
+  DialogContentText,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -78,6 +80,8 @@ const theme = createTheme({
     },
   },
 });
+
+const allowedUnits = ['kg', 'L', 'packets', 'pieces', 'bottles'];
 
 const AdminInventory = () => {
   const [ingredients, setIngredients] = useState([]);
@@ -726,14 +730,12 @@ const AdminInventory = () => {
                   value={newIngredient.unit}
                   onChange={handleInputChange}
                   SelectProps={{
-                    native: true,
+                    native: false,
                   }}
                 >
-                  <option value="kg">kg</option>
-                  <option value="L">L</option>
-                  <option value="packets">packets</option>
-                  <option value="pieces">pieces</option>
-                  <option value="bottles">bottles</option>
+                  {allowedUnits.map((unit) => (
+                    <MenuItem key={unit} value={unit}>{unit}</MenuItem>
+                  ))}
                 </TextField>
                 <TextField
                   name="unit_price"
@@ -797,11 +799,19 @@ const AdminInventory = () => {
                     <TextField
                       name="unit"
                       label="Unit"
+                      select
                       fullWidth
                       margin="dense"
                       value={editIngredient.unit}
                       onChange={handleEditInputChange}
-                    />
+                      SelectProps={{
+                        native: false,
+                      }}
+                    >
+                      {allowedUnits.map((unit) => (
+                        <MenuItem key={unit} value={unit}>{unit}</MenuItem>
+                      ))}
+                    </TextField>
                     <TextField
                       name="unit_price"
                       label="Unit Price"

@@ -20,7 +20,9 @@ import {
   Alert,
   createTheme,
   ThemeProvider,
-  DialogContentText
+  DialogContentText,
+  Select,
+  MenuItem
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -79,6 +81,8 @@ const theme = createTheme({
   },
 });
 
+const allowedUnits = ['kg', 'L', 'packets', 'pieces', 'bottles'];
+
 const Inventory = () => {
   const [ingredients, setIngredients] = useState([]);
   const [filteredIngredients, setFilteredIngredients] = useState([]);
@@ -110,6 +114,8 @@ const Inventory = () => {
   const [ingredientEdit, setIngredientEdit] = useState(null);
   const [ingredientDelete, setIngredientDelete] = useState(null);
   const [ingredientForm, setIngredientForm] = useState({ inventory_id: '', quantity_required: '' });
+  const [ingredientFormError, setIngredientFormError] = useState('');
+  const [ingredientEditError, setIngredientEditError] = useState('');
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -407,6 +413,11 @@ const Inventory = () => {
   };
 
   const handleAddMenuItemIngredient = async () => {
+    if (ingredientForm.quantity_required !== '' && Number(ingredientForm.quantity_required) < 0) {
+      setIngredientFormError('Value cannot be negative');
+      return;
+    }
+    setIngredientFormError('');
     try {
       await MenuService.addMenuItemIngredient(selectedMenuItem.item_id, ingredientForm);
       setSnackbar({ open: true, message: 'Ingredient added to menu item!', severity: 'success' });
@@ -418,6 +429,11 @@ const Inventory = () => {
   };
 
   const handleEditMenuItemIngredient = async () => {
+    if (ingredientEdit.quantity_required !== '' && Number(ingredientEdit.quantity_required) < 0) {
+      setIngredientEditError('Value cannot be negative');
+      return;
+    }
+    setIngredientEditError('');
     try {
       await MenuService.editMenuItemIngredient(selectedMenuItem.item_id, ingredientEdit.menu_item_ingredient_id, ingredientEdit);
       setSnackbar({ open: true, message: 'Ingredient updated!', severity: 'success' });
@@ -709,14 +725,12 @@ const Inventory = () => {
                   value={newIngredient.unit}
                   onChange={handleInputChange}
                   SelectProps={{
-                    native: true,
+                    native: false,
                   }}
                 >
-                  <option value="kg">kg</option>
-                  <option value="L">L</option>
-                  <option value="packets">packets</option>
-                  <option value="pieces">pieces</option>
-                  <option value="bottles">bottles</option>
+                  {allowedUnits.map((unit) => (
+                    <MenuItem key={unit} value={unit}>{unit}</MenuItem>
+                  ))}
                 </TextField>
                 <TextField
                   name="unit_price"
@@ -780,11 +794,19 @@ const Inventory = () => {
                     <TextField
                       name="unit"
                       label="Unit"
+                      select
                       fullWidth
                       margin="dense"
                       value={editIngredient.unit}
                       onChange={handleEditInputChange}
-                    />
+                      SelectProps={{
+                        native: false,
+                      }}
+                    >
+                      {allowedUnits.map((unit) => (
+                        <MenuItem key={unit} value={unit}>{unit}</MenuItem>
+                      ))}
+                    </TextField>
                     <TextField
                       name="unit_price"
                       label="Unit Price"
@@ -894,8 +916,18 @@ const Inventory = () => {
                       label="Quantity Required"
                       type="number"
                       value={ingredientForm.quantity_required}
-                      onChange={e => setIngredientForm(f => ({ ...f, quantity_required: e.target.value }))}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setIngredientFormError('');
+                        if (val !== '' && Number(val) < 0) {
+                          setIngredientFormError('Value cannot be negative');
+                        }
+                        setIngredientForm(f => ({ ...f, quantity_required: val }));
+                      }}
                       sx={{ minWidth: 140 }}
+                      inputProps={{ min: 0 }}
+                      error={!!ingredientFormError}
+                      helperText={ingredientFormError}
                     />
                     <Button variant="contained" onClick={handleAddMenuItemIngredient}>Add</Button>
                   </Box>
@@ -933,7 +965,17 @@ const Inventory = () => {
                               <TextField
                                 type="number"
                                 value={ingredientEdit.quantity_required}
-                                onChange={e => setIngredientEdit(edit => ({ ...edit, quantity_required: e.target.value }))}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setIngredientEditError('');
+                                  if (val !== '' && Number(val) < 0) {
+                                    setIngredientEditError('Value cannot be negative');
+                                  }
+                                  setIngredientEdit(edit => ({ ...edit, quantity_required: val }));
+                                }}
+                                inputProps={{ min: 0 }}
+                                error={!!ingredientEditError}
+                                helperText={ingredientEditError}
                               />
                             ) : (
                               ing.quantity_required
