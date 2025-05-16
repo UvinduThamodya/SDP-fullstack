@@ -99,6 +99,8 @@ const AdminInventory = () => {
   const [deleteIngredient, setDeleteIngredient] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
+  const [addErrors, setAddErrors] = useState({});
+  const [editErrors, setEditErrors] = useState({});
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -165,16 +167,57 @@ const AdminInventory = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let val = value;
+    let errors = { ...addErrors };
 
-    // Prevent negative or zero values for numeric fields
-    if ((name === 'quantity' || name === 'unit_price' || name === 'threshold') && value < 1) {
-      return; // Do not update the state if the value is invalid
+    // Prevent negative values for numeric fields
+    if ((name === 'quantity' || name === 'unit_price' || name === 'threshold') && value !== '') {
+      if (Number(value) < 0) {
+        errors[name] = 'Value cannot be negative';
+        setAddErrors(errors);
+        return;
+      } else {
+        delete errors[name];
+      }
+      val = value.replace(/^(-)?0+(\d)/, '$1$2');
     }
+    setAddErrors(errors);
+    setNewIngredient({ ...newIngredient, [name]: val });
+  };
 
-    setNewIngredient({ ...newIngredient, [name]: value });
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    let val = value;
+    let errors = { ...editErrors };
+
+    if ((name === 'quantity' || name === 'unit_price' || name === 'threshold') && value !== '') {
+      if (Number(value) < 0) {
+        errors[name] = 'Value cannot be negative';
+        setEditErrors(errors);
+        return;
+      } else {
+        delete errors[name];
+      }
+      val = value.replace(/^(-)?0+(\d)/, '$1$2');
+    }
+    setEditErrors(errors);
+    setEditIngredient({
+      ...editIngredient,
+      [name]: val
+    });
   };
 
   const handleAddIngredient = async () => {
+    // Validate before submit
+    const errors = {};
+    ['quantity', 'unit_price', 'threshold'].forEach(field => {
+      if (newIngredient[field] !== '' && Number(newIngredient[field]) < 0) {
+        errors[field] = 'Value cannot be negative';
+      }
+    });
+    setAddErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     try {
       const response = await fetch('http://localhost:5000/api/inventory', {
         method: 'POST',
@@ -208,6 +251,16 @@ const AdminInventory = () => {
   };
 
   const handleUpdateIngredient = async () => {
+    // Validate before submit
+    const errors = {};
+    ['quantity', 'unit_price', 'threshold'].forEach(field => {
+      if (editIngredient[field] !== '' && Number(editIngredient[field]) < 0) {
+        errors[field] = 'Value cannot be negative';
+      }
+    });
+    setEditErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     try {
       const response = await fetch(`http://localhost:5000/api/inventory/${editIngredient.inventory_id}`, {
         method: 'PUT',
@@ -240,14 +293,6 @@ const AdminInventory = () => {
         severity: 'error'
       });
     }
-  };
-
-  const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditIngredient({
-      ...editIngredient,
-      [name]: value
-    });
   };
 
   const handleOpenDeleteDialog = (ingredient) => {
@@ -668,7 +713,9 @@ const AdminInventory = () => {
                   margin="dense"
                   value={newIngredient.quantity}
                   onChange={handleInputChange}
-                  inputProps={{ min: 1 }} // Prevent negative or zero values
+                  inputProps={{ min: 0 }} // Prevent negative or zero values
+                  error={!!addErrors.quantity}
+                  helperText={addErrors.quantity}
                 />
                 <TextField
                   name="unit"
@@ -696,7 +743,9 @@ const AdminInventory = () => {
                   margin="dense"
                   value={newIngredient.unit_price}
                   onChange={handleInputChange}
-                  inputProps={{ min: 1 }} // Prevent negative or zero values
+                  inputProps={{ min: 0 }} // Prevent negative or zero values
+                  error={!!addErrors.unit_price}
+                  helperText={addErrors.unit_price}
                 />
                 <TextField
                   name="threshold"
@@ -706,7 +755,9 @@ const AdminInventory = () => {
                   margin="dense"
                   value={newIngredient.threshold}
                   onChange={handleInputChange}
-                  inputProps={{ min: 1 }} // Prevent negative or zero values
+                  inputProps={{ min: 0 }} // Prevent negative or zero values
+                  error={!!addErrors.threshold}
+                  helperText={addErrors.threshold}
                 />
               </DialogContent>
               <DialogActions sx={{ p: 2 }}>
@@ -739,6 +790,9 @@ const AdminInventory = () => {
                       margin="dense"
                       value={editIngredient.quantity}
                       onChange={handleEditInputChange}
+                      inputProps={{ min: 0 }}
+                      error={!!editErrors.quantity}
+                      helperText={editErrors.quantity}
                     />
                     <TextField
                       name="unit"
@@ -756,6 +810,9 @@ const AdminInventory = () => {
                       margin="dense"
                       value={editIngredient.unit_price}
                       onChange={handleEditInputChange}
+                      inputProps={{ min: 0 }}
+                      error={!!editErrors.unit_price}
+                      helperText={editErrors.unit_price}
                     />
                     <TextField
                       name="threshold"
@@ -765,6 +822,9 @@ const AdminInventory = () => {
                       margin="dense"
                       value={editIngredient.threshold}
                       onChange={handleEditInputChange}
+                      inputProps={{ min: 0 }}
+                      error={!!editErrors.threshold}
+                      helperText={editErrors.threshold}
                     />
                   </>
                 )}

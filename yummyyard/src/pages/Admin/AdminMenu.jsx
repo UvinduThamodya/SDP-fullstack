@@ -127,6 +127,10 @@ export default function AdminMenu() {
   const [ingredientEdit, setIngredientEdit] = useState(null);
   const [ingredientDelete, setIngredientDelete] = useState(null);
   const [ingredientForm, setIngredientForm] = useState({ inventory_id: '', quantity_required: '' });
+  const [addErrors, setAddErrors] = useState({});
+  const [editErrors, setEditErrors] = useState({});
+  const [ingredientFormError, setIngredientFormError] = useState('');
+  const [ingredientEditError, setIngredientEditError] = useState('');
 
   useEffect(() => {
     fetchMenu();
@@ -188,6 +192,11 @@ export default function AdminMenu() {
 
   // Add ingredient to menu item
   const handleAddMenuItemIngredient = async () => {
+    if (ingredientForm.quantity_required !== '' && Number(ingredientForm.quantity_required) < 0) {
+      setIngredientFormError('Value cannot be negative');
+      return;
+    }
+    setIngredientFormError('');
     try {
       await MenuService.addMenuItemIngredient(selectedMenuItem.item_id, ingredientForm);
       showNotification('Ingredient added to menu item!', 'success');
@@ -200,6 +209,11 @@ export default function AdminMenu() {
 
   // Edit ingredient for menu item
   const handleEditMenuItemIngredient = async () => {
+    if (ingredientEdit.quantity_required !== '' && Number(ingredientEdit.quantity_required) < 0) {
+      setIngredientEditError('Value cannot be negative');
+      return;
+    }
+    setIngredientEditError('');
     try {
       await MenuService.editMenuItemIngredient(selectedMenuItem.item_id, ingredientEdit.menu_item_ingredient_id, ingredientEdit);
       showNotification('Ingredient updated!', 'success');
@@ -237,7 +251,20 @@ export default function AdminMenu() {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm((f) => ({ ...f, [name]: value }));
+    let val = value;
+    let errors = { ...editErrors };
+    if (name === 'price' && value !== '') {
+      if (Number(value) < 0) {
+        errors.price = 'Value cannot be negative';
+        setEditErrors(errors);
+        return;
+      } else {
+        delete errors.price;
+      }
+      val = value.replace(/^(-)?0+(\d)/, '$1$2');
+    }
+    setEditErrors(errors);
+    setEditForm((f) => ({ ...f, [name]: val }));
   };
 
   const handleEditImage = async (e) => {
@@ -256,6 +283,12 @@ export default function AdminMenu() {
 
   const handleEditSubmit = async () => {
     const { name, price, category, image_url } = editForm;
+    const errors = {};
+    if (price !== '' && Number(price) < 0) {
+      errors.price = 'Value cannot be negative';
+    }
+    setEditErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     if (!name || !price || !category || !image_url) {
       showNotification("All fields are required.", "warning");
       return;
@@ -284,9 +317,22 @@ export default function AdminMenu() {
 
   const handleAddChange = (event) => {
     const { name, value } = event.target;
+    let val = value;
+    let errors = { ...addErrors };
+    if (name === 'price' && value !== '') {
+      if (Number(value) < 0) {
+        errors.price = 'Value cannot be negative';
+        setAddErrors(errors);
+        return;
+      } else {
+        delete errors.price;
+      }
+      val = value.replace(/^(-)?0+(\d)/, '$1$2');
+    }
+    setAddErrors(errors);
     setAddForm((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: val,
     }));
   };
 
@@ -306,6 +352,12 @@ export default function AdminMenu() {
 
   const handleAddSubmit = async () => {
     const { name, price, category, image_url } = addForm;
+    const errors = {};
+    if (price !== '' && Number(price) < 0) {
+      errors.price = 'Value cannot be negative';
+    }
+    setAddErrors(errors);
+    if (Object.keys(errors).length > 0) return;
   
     if (!name || !price || !category || !image_url) {
       showNotification("All fields are required.", "warning");
@@ -537,6 +589,9 @@ export default function AdminMenu() {
                     value={ingredientForm.quantity_required}
                     onChange={e => setIngredientForm(f => ({ ...f, quantity_required: e.target.value }))}
                     sx={{ minWidth: 140 }}
+                    inputProps={{ min: 0 }}
+                    error={!!ingredientFormError}
+                    helperText={ingredientFormError}
                   />
                   <Button variant="contained" onClick={handleAddMenuItemIngredient}>Add</Button>
                 </Box>
@@ -575,6 +630,9 @@ export default function AdminMenu() {
                               type="number"
                               value={ingredientEdit.quantity_required}
                               onChange={e => setIngredientEdit(edit => ({ ...edit, quantity_required: e.target.value }))}
+                              inputProps={{ min: 0 }}
+                              error={!!ingredientEditError}
+                              helperText={ingredientEditError}
                             />
                           ) : (
                             ing.quantity_required
@@ -584,11 +642,11 @@ export default function AdminMenu() {
                           {ingredientEdit && ingredientEdit.menu_item_ingredient_id === ing.menu_item_ingredient_id ? (
                             <>
                               <Button size="small" onClick={handleEditMenuItemIngredient} variant="contained" color="primary">Save</Button>
-                              <Button size="small" onClick={() => setIngredientEdit(null)} sx={{ ml: 1 }}>Cancel</Button>
+                              <Button size="small" onClick={() => { setIngredientEdit(null); setIngredientEditError(''); }} sx={{ ml: 1 }}>Cancel</Button>
                             </>
                           ) : (
                             <>
-                              <Button size="small" onClick={() => setIngredientEdit({ ...ing })} variant="outlined">Edit</Button>
+                              <Button size="small" onClick={() => { setIngredientEdit({ ...ing }); setIngredientEditError(''); }} variant="outlined">Edit</Button>
                               <Button size="small" color="error" sx={{ ml: 1 }} onClick={() => setIngredientDelete(ing)}>Delete</Button>
                             </>
                           )}
@@ -657,6 +715,9 @@ export default function AdminMenu() {
                     value={editForm.price}
                     onChange={handleEditChange}
                     variant="outlined"
+                    inputProps={{ min: 0 }}
+                    error={!!editErrors.price}
+                    helperText={editErrors.price}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -769,6 +830,9 @@ export default function AdminMenu() {
                     value={addForm.price}
                     onChange={handleAddChange}
                     variant="outlined"
+                    inputProps={{ min: 0 }}
+                    error={!!addErrors.price}
+                    helperText={addErrors.price}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
