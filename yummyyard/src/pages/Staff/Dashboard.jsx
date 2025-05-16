@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import apiService from '../../services/api';
 import io from 'socket.io-client';
 import Swal from 'sweetalert2';
@@ -191,6 +191,8 @@ export default function StaffDashboard() {
   const [statusDialog, setStatusDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
+  const [availability, setAvailability] = useState('Accepting');
+  const socketRef = useRef(null);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -289,7 +291,10 @@ export default function StaffDashboard() {
     const socket = io(SOCKET_URL);
 
     socket.on('orderCreated', (order) => {
-      setOrders(prev => [order, ...prev]);
+      setOrders(prev => {
+        if (prev.some(o => o.order_id === order.order_id)) return prev; // Prevent duplicate
+        return [order, ...prev];
+      });
       setNotification({ open: true, message: `New order #${order.order_id} placed!`, severity: 'info' });
       showNewOrderAlert(order); // <-- Show popup immediately when order is created
     });
@@ -357,6 +362,26 @@ export default function StaffDashboard() {
       ws.close();
     };
   }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/availability')
+      .then(res => res.json())
+      .then(data => setAvailability(data.availability));
+    const socket = io(SOCKET_URL);
+    socketRef.current = socket;
+    socket.on('availabilityChanged', data => setAvailability(data.availability));
+    return () => socket.disconnect();
+  }, []);
+
+  const handleSetAvailability = async (mode) => {
+    const token = localStorage.getItem('token');
+    await fetch('http://localhost:5000/api/availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ mode })
+    });
+    // No need to set state here, will update via socket
+  };
 
   const fetchOrders = async () => {
     try {
@@ -430,6 +455,11 @@ export default function StaffDashboard() {
   const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
   const todayOrders = orders.filter(order => order.order_date.startsWith(today));
 
+  // Before rendering, filter out duplicate orders by order_id
+  const uniqueOrders = todayOrders.filter((order, index, self) =>
+    index === self.findIndex((o) => o.order_id === order.order_id)
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', minHeight: '100vh', position: 'relative', background: theme.palette.background.default }}>
@@ -484,6 +514,26 @@ export default function StaffDashboard() {
         <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f7fa', p: { xs: 2, sm: 3 }, width: '100%' }}>
           {/* Remove the "Show Menu" button */}
           <StyledContainer maxWidth="lg">
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mb: 4 }}>
+              <Button
+                variant={availability === 'Accepting' ? 'contained' : 'outlined'}
+                color="success"
+                size="large"
+                sx={{ px: 6, py: 2, fontSize: 22, fontWeight: 700 }}
+                onClick={() => handleSetAvailability('Accepting')}
+              >
+                Accepting
+              </Button>
+              <Button
+                variant={availability === 'Busy' ? 'contained' : 'outlined'}
+                color="error"
+                size="large"
+                sx={{ px: 6, py: 2, fontSize: 22, fontWeight: 700 }}
+                onClick={() => handleSetAvailability('Busy')}
+              >
+                Busy
+              </Button>
+            </Box>
             <PageHeader>
               <DashboardIcon />
               <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
@@ -582,14 +632,14 @@ export default function StaffDashboard() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {todayOrders.length === 0 ? ( // Use todayOrders instead of orders
+                    {uniqueOrders.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
                           <Typography color="textSecondary">No orders available</Typography>
                         </TableCell>
                       </TableRow>
                     ) : (
-                      todayOrders.map(order => ( // Use todayOrders instead of orders
+                      uniqueOrders.map(order => (
                         <TableRow key={order.order_id}>
                           <TableCell sx={{ fontWeight: 500 }}>{order.order_id}</TableCell>
                           <TableCell>{new Date(order.order_date).toLocaleString()}</TableCell>

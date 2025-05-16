@@ -17,6 +17,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import StripePayment from '../../components/StripePayment';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MenuIcon from '@mui/icons-material/Menu';
+import io from 'socket.io-client';
 
 // Import Poppins font
 const poppinsFont = `
@@ -98,6 +99,8 @@ const Order = () => {
   const [paymentType, setPaymentType] = useState('');
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
+  const [availability, setAvailability] = useState('Accepting');
+  const [busyDialogOpen, setBusyDialogOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -152,6 +155,15 @@ const Order = () => {
     fetchLowStockItems();
   }, []);
 
+  useEffect(() => {
+    fetch('http://localhost:5000/api/availability')
+      .then(res => res.json())
+      .then(data => setAvailability(data.availability));
+    const socket = io('http://localhost:5000');
+    socket.on('availabilityChanged', data => setAvailability(data.availability));
+    return () => socket.disconnect();
+  }, []);
+
   // Extract unique categories from menuItems
   const categories = [...new Set(menuItems.map(item => item.category))];
 
@@ -160,6 +172,10 @@ const Order = () => {
   };
 
   const handleQuantityChange = (itemId, quantity) => {
+    if (availability === 'Busy') {
+      setBusyDialogOpen(true);
+      return;
+    }
     setOrder((prevOrder) => ({
       ...prevOrder,
       [itemId]: Math.max(0, quantity),
@@ -306,6 +322,14 @@ const Order = () => {
         </Button>
         <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f5f5', p: { xs: 2, sm: 3 }, width: '100%' }}>
           <Container maxWidth="lg" sx={{ pt: 4, pb: 6 }}>
+            {/* Availability Banner */}
+            {availability === 'Busy' && (
+              <Box sx={{ mb: 3, p: 2, bgcolor: '#fff3e0', borderRadius: 2, textAlign: 'center' }}>
+                <Typography variant="h5" color="error" sx={{ fontWeight: 700 }}>
+                  Staff is Busy - Orders are temporarily unavailable
+                </Typography>
+              </Box>
+            )}
             <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
               <Typography variant="h5" sx={{ mb: 2, fontSize: 28, fontWeight: 600, color: '#333' }}>
                 Food Menu
@@ -403,6 +427,7 @@ const Order = () => {
                         onClick={() => handleQuantityChange(item.item_id, (order[item.item_id] || 0) - 1)}
                         color="primary"
                         size="small"
+                        disabled={availability === 'Busy' || item.lowStock}
                         sx={{ 
                           backgroundColor: '#f0f0f0', 
                           '&:hover': { backgroundColor: '#e0e0e0' } 
@@ -421,11 +446,13 @@ const Order = () => {
                           style: { textAlign: 'center', fontWeight: 500 }
                         }}
                         sx={{ width: 60 }}
+                        disabled={availability === 'Busy' || item.lowStock}
                       />
                       <IconButton
                         onClick={() => handleQuantityChange(item.item_id, (order[item.item_id] || 0) + 1)}
                         color="primary"
                         size="small"
+                        disabled={availability === 'Busy' || item.lowStock}
                         sx={{ 
                           backgroundColor: '#f0f0f0', 
                           '&:hover': { backgroundColor: '#e0e0e0' } 
@@ -682,6 +709,18 @@ const Order = () => {
                 >
                   Cancel
                 </Button>
+              </DialogActions>
+            </Dialog>
+
+            <Dialog open={busyDialogOpen} onClose={() => setBusyDialogOpen(false)}>
+              <DialogTitle>Staff is Busy</DialogTitle>
+              <DialogContent>
+                <Typography>
+                  Staff is busy and unable to get your order right now. Sorry!
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setBusyDialogOpen(false)}>OK</Button>
               </DialogActions>
             </Dialog>
           </Container>

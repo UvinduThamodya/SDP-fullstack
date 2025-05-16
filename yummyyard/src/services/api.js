@@ -475,6 +475,30 @@ rejectDeleteRequest: async () => {
     console.error('Error rejecting delete request:', error);
     throw new Error(error.response?.data?.message || 'Failed to reject delete request');
   }
+},
+
+getAvailability: async () => {
+  try {
+    const response = await axios.get(`${API_URL}/availability`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Failed to fetch availability');
+  }
+},
+
+setAvailability: async (mode) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/availability`, { mode }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Failed to set availability');
+  }
 }
 
 };

@@ -57,13 +57,30 @@ const Menu = () => {
     return savedCart ? JSON.parse(savedCart) : [];
   });
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [availability, setAvailability] = useState('Accepting');
+  const [busyDialogOpen, setBusyDialogOpen] = useState(false);
 
   // Save cart to local storage whenever it changes
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
+  useEffect(() => {
+    // Fetch initial availability
+    fetch('http://localhost:5000/api/availability')
+      .then(res => res.json())
+      .then(data => setAvailability(data.availability));
+    // Listen for changes
+    const socket = io('http://localhost:5000');
+    socket.on('availabilityChanged', data => setAvailability(data.availability));
+    return () => socket.disconnect();
+  }, []);
+
   const handleAddToCart = (itemId) => {
+    if (availability === 'Busy') {
+      setBusyDialogOpen(true);
+      return;
+    }
     const item = menuItems.find(i => i.item_id === itemId);
     if (!item) return;
 
@@ -90,50 +107,6 @@ const Menu = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [recommendationDialogOpen, setRecommendationDialogOpen] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
-  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
-  const [currentOrderId, setCurrentOrderId] = useState(null);
-  const [socket, setSocket] = useState(null);
-  const [orderCancelledDialogOpen, setOrderCancelledDialogOpen] = useState(false);
-  const [orderCancelledMessage, setOrderCancelledMessage] = useState('');
-
-  // Setup socket connection for order status updates
-  useEffect(() => {
-    if (!currentOrderId) return;
-    const s = io('http://localhost:5000');
-    setSocket(s);
-
-    const handleOrderUpdated = (order) => {
-      if (order.order_id === currentOrderId && order.status === 'Accepted') {
-        setProcessingDialogOpen(false);
-        setPaymentDialogOpen(true);
-        setCurrentOrderId(null);
-      }
-      // Handle cancellation
-      if (order.order_id === currentOrderId && order.status === 'Cancelled') {
-        setProcessingDialogOpen(false);
-        setOrderCancelledMessage('We regret to inform you that your order has been cancelled due to high demand at this time. We apologize for any inconvenience caused and appreciate your understanding.');
-        setOrderCancelledDialogOpen(true);
-        setCurrentOrderId(null);
-      }
-    };
-
-    // Listen for custom cancellation event
-    s.on('orderUpdated', handleOrderUpdated);
-    s.on('order_cancelled', (data) => {
-      if (data.orderId === currentOrderId) {
-        setProcessingDialogOpen(false);
-        setOrderCancelledMessage(data.reason || 'We regret to inform you that your order has been cancelled due to high demand at this time. We apologize for any inconvenience caused and appreciate your understanding.');
-        setOrderCancelledDialogOpen(true);
-        setCurrentOrderId(null);
-      }
-    });
-
-    return () => {
-      s.off('orderUpdated', handleOrderUpdated);
-      s.off('order_cancelled');
-      s.disconnect();
-    };
-  }, [currentOrderId]);
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -175,7 +148,6 @@ const Menu = () => {
 
   const handlePayment = async (paymentData) => {
     try {
-      // Prepare cart items for order
       const orderItems = cart.map(item => ({
         item_id: item.item_id,
         quantity: item.quantity,
@@ -188,15 +160,12 @@ const Menu = () => {
       };
 
       await apiService.createOrder(orderData);
-
       setNotification({ open: true, message: 'Order placed successfully!', severity: 'success' });
       setCart([]);
-      setAmountGiven('');
-      setBalance(0);
       setOpenCashDialog(false);
       setPaymentDialogOpen(false);
     } catch (error) {
-      setNotification({ open: true, message: 'Payment failed. Please try again.', severity: 'error' });
+      setNotification({ open: true, message: 'Order placement failed. Please try again.', severity: 'error' });
     }
   };
 
@@ -264,11 +233,11 @@ const Menu = () => {
     }
   };
 
-  function CardPaymentForm({ calculateTotal, handlePayment, setPaymentDialogOpen, setNotification }) {
+  function CardPaymentForm({ calculateTotal, setPaymentDialogOpen, setNotification }) {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
-  
+
     return (
       <Box sx={{ py: 2 }}>
         <Typography variant="h6" sx={{ mb: 4, fontWeight: 500, textAlign: 'center' }}>
@@ -349,12 +318,28 @@ const Menu = () => {
               if (result.error) {
                 setNotification({ open: true, message: result.error.message, severity: 'error' });
               } else if (result.paymentIntent.status === 'succeeded') {
-                await handlePayment({
-                  method: 'card',
-                  amount: calculateTotal(),
-                  stripeToken: result.paymentIntent.id,
-                });
-                setPaymentDialogOpen(false);
+                // Only now create the order in the backend!
+                const orderItems = cart.map(item => ({
+                  item_id: item.item_id,
+                  quantity: item.quantity,
+                  price: item.price,
+                }));
+                const orderData = {
+                  items: orderItems,
+                  payment: {
+                    method: 'Card',
+                    amount: calculateTotal(),
+                    stripeToken: result.paymentIntent.id,
+                  },
+                };
+                try {
+                  await apiService.createOrder(orderData);
+                  setNotification({ open: true, message: 'Order placed successfully!', severity: 'success' });
+                  setCart([]);
+                  setPaymentDialogOpen(false);
+                } catch (error) {
+                  setNotification({ open: true, message: 'Failed to create order.', severity: 'error' });
+                }
               }
             } catch (error) {
               setNotification({ open: true, message: 'Payment failed. Please try again.', severity: 'error' });
@@ -381,6 +366,16 @@ const Menu = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           <Navbar /> {/* Add the Navbar component */}
+        </Box>
+        {/* Availability Banner */}
+        <Box sx={{ mb: 2 }}>
+          {availability === 'Busy' && (
+            <Box sx={{ p: 2, bgcolor: '#fff3e0', borderRadius: 2, textAlign: 'center' }}>
+              <Typography variant="h5" color="error" sx={{ fontWeight: 700 }}>
+                Staff is Busy - Orders are temporarily unavailable
+              </Typography>
+            </Box>
+          )}
         </Box>
         <Container maxWidth="lg" sx={{ pt: 5, pb: 8 }}>
           <Tabs
@@ -520,18 +515,18 @@ const Menu = () => {
                         disableElevation
                         startIcon={<ShoppingCartIcon />}
                         onClick={() => handleAddToCart(item.item_id)}
-                        disabled={item.lowStock} // Disable button if item is low stock
+                        disabled={item.lowStock || availability === 'Busy'} // Always disable if lowStock
                         sx={{ 
                           borderRadius: '24px',
                           px: 2,
-                          backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
-                          color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
+                          backgroundColor: item.lowStock || availability === 'Busy' ? '#e0e0e0' : '#3ACA82',
+                          color: item.lowStock || availability === 'Busy' ? '#9e9e9e' : '#fff',
                           '&:hover': {
-                            backgroundColor: item.lowStock ? '#e0e0e0' : alpha('#3ACA82', 0.8),
+                            backgroundColor: item.lowStock || availability === 'Busy' ? '#e0e0e0' : alpha('#3ACA82', 0.8),
                           },
                         }}
                       >
-                        {item.lowStock ? 'Unavailable' : 'Add'}
+                        {item.lowStock || availability === 'Busy' ? 'Unavailable' : 'Add'}
                       </Button>
                     </Box>
                   </CardContent>
@@ -1229,28 +1224,9 @@ const Menu = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={async () => {
+              onClick={() => {
                 setRecommendationDialogOpen(false);
-                setProcessingDialogOpen(true);
-
-                // Prepare order data
-                const orderItems = cart.map(item => ({
-                  item_id: item.item_id,
-                  quantity: item.quantity,
-                  price: item.price,
-                }));
-                const orderData = {
-                  items: orderItems,
-                 payment: { method: 'pending', amount: calculateTotal() },
-                };
-                try {
-                  // Create order and get orderId
-                  const res = await apiService.createOrder(orderData);
-                  setCurrentOrderId(res.orderId || res.order_id || res.id || res._id);
-                } catch (err) {
-                  setProcessingDialogOpen(false);
-                  setNotification({ open: true, message: 'Failed to create order', severity: 'error' });
-                }
+                setPaymentDialogOpen(true);
               }}
               sx={{
                 px: 3,
@@ -1265,56 +1241,15 @@ const Menu = () => {
           </DialogActions>
         </Dialog>
 
-        <Dialog 
-          open={processingDialogOpen} 
-          disableEscapeKeyDown
-          PaperProps={{
-            sx: { borderRadius: 3, p: 2, maxWidth: 400 }
-          }}
-        >
-          <DialogTitle sx={{ textAlign: 'center' }}>
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>Processing Your Order</Typography>
-          </DialogTitle>
+        <Dialog open={busyDialogOpen} onClose={() => setBusyDialogOpen(false)}>
+          <DialogTitle>Staff is Busy</DialogTitle>
           <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-              <CircularProgress size={60} sx={{ color: '#3ACA82', mb: 3 }} />
-              <Typography variant="body1" sx={{ textAlign: 'center', mb: 2 }}>
-                Please wait while staff reviews your order...
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                You'll be redirected to payment once your order is accepted.
-              </Typography>
-            </Box>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog
-          open={orderCancelledDialogOpen}
-          onClose={() => setOrderCancelledDialogOpen(false)}
-          maxWidth="xs"
-          fullWidth
-          PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
-        >
-          <DialogTitle>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#d32f2f' }}>
-              Order Cancelled
+            <Typography>
+              Staff is busy and unable to get your order right now. Sorry!
             </Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ py: 2 }}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                {orderCancelledMessage}
-              </Typography>
-            </Box>
           </DialogContent>
           <DialogActions>
-            <Button
-              onClick={() => setOrderCancelledDialogOpen(false)}
-              color="primary"
-              variant="contained"
-            >
-              OK
-            </Button>
+            <Button onClick={() => setBusyDialogOpen(false)}>OK</Button>
           </DialogActions>
         </Dialog>
 

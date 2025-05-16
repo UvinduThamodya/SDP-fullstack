@@ -11,7 +11,6 @@ const path = require("path");
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
-const contactRoutes = require("./routes/contactRoutes");
 const customerRoutes = require('./routes/customerRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
@@ -22,6 +21,7 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const menuItemRoutes = require("./routes/menuItemRoutes");
+const availabilityRoutes = require('./routes/availabilityRoutes');
 
 const PORT = process.env.PORT || 3000;
 
@@ -66,7 +66,6 @@ const pool = mysql.createPool({
 
 // Attach routes
 app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
 app.use("/api/menu-items", menuItemRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/cart', cartRoutes);
@@ -77,6 +76,7 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // Start server and check DB connection
 server.listen(PORT, async () => {

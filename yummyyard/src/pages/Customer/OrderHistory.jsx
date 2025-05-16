@@ -153,8 +153,16 @@ const OrderHistory = () => {
         }
 
         const data = await response.json();
-        console.log("Fetched orders:", data); // Debug log
-        setOrders(data);
+        // Remove duplicates by order_id
+        const uniqueOrders = [];
+        const seen = new Set();
+        for (const order of data) {
+          if (!seen.has(order.order_id)) {
+            uniqueOrders.push(order);
+            seen.add(order.order_id);
+          }
+        }
+        setOrders(uniqueOrders);
       } catch (err) {
         setError(err.message);
       } finally {

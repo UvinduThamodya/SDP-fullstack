@@ -153,6 +153,7 @@ exports.downloadInventoryReport = async (req, res) => {
 // Get menu items with low stock information
 exports.getMenuItemsWithLowStock = async (req, res) => {
   try {
+    // Mark menu items as low stock if any ingredient is below its threshold
     const [menuItems] = await db.query(`
       SELECT 
         m.item_id AS menu_item_id,
@@ -163,16 +164,15 @@ exports.getMenuItemsWithLowStock = async (req, res) => {
       JOIN MenuItemIngredients mii ON m.item_id = mii.item_id
       JOIN Inventory i ON mii.inventory_id = i.inventory_id
       GROUP BY m.item_id
-      HAVING max_possible_quantity < 1
+      HAVING MIN(i.quantity / mii.quantity_required) < 1
+         OR SUM(CASE WHEN i.quantity < i.threshold THEN 1 ELSE 0 END) > 0
     `);
-
-    console.log('Low stock menu items:', menuItems); // Debugging log
 
     res.json({
       success: true,
       menuItems: menuItems.map(item => ({
         ...item,
-        lowStock: true // All results from this query are low stock items
+        lowStock: true
       }))
     });
   } catch (error) {
