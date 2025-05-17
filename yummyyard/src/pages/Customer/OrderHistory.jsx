@@ -11,6 +11,8 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import InfoIcon from '@mui/icons-material/Info';
 import HistoryIcon from '@mui/icons-material/History';
 import Navbar from '../../components/Navbar';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 // We'll use Google Fonts instead of @fontsource
 // Add this to your index.html or App.js:
@@ -72,6 +74,8 @@ const theme = createTheme({
     },
   },
 });
+
+const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   return new Intl.NumberFormat(locale, {
@@ -136,6 +140,9 @@ const OrderHistory = () => {
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const [refundingOrder, setRefundingOrder] = useState(null);
+  const [refundProcessing, setRefundProcessing] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -249,7 +256,63 @@ const OrderHistory = () => {
       });
     }
   };
-  
+
+  // Refund handler
+  const handleRefundOrder = (order) => {
+    setRefundingOrder(order);
+    setRefundDialogOpen(true);
+  };
+
+  const handleRefundConfirm = async () => {
+    setRefundProcessing(true);
+    try {
+      const token = localStorage.getItem('token');
+      // Call backend endpoint to process refund and get PDF
+      const response = await fetch(`http://localhost:5000/api/orders/${refundingOrder.order_id}/refund`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        // Try to parse error response as JSON
+        try {
+          const err = await response.json();
+          throw new Error(err.error || 'Refund failed');
+        } catch {
+          throw new Error('Refund failed');
+        }
+      }
+      // Download PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `refund-confirmation-order-${refundingOrder.order_id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+
+      setNotification({
+        open: true,
+        message: 'Refund processed successfully! Confirmation downloaded.',
+        severity: 'success'
+      });
+      setRefundDialogOpen(false);
+      setRefundingOrder(null);
+    } catch (error) {
+      setNotification({
+        open: true,
+        message: `Refund failed: ${error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      setRefundProcessing(false);
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ 
@@ -341,6 +404,19 @@ const OrderHistory = () => {
                             >
                               Receipt
                             </ActionButton>
+                            {/* Refund button: only show if Cancelled and Card payment */}
+                            {order.status === 'Cancelled' && (order.payment_method?.toLowerCase() === 'card' || order.payment_method?.toLowerCase() === 'stripe') && (
+                              <ActionButton
+                                size="small"
+                                variant="contained"
+                                color="secondary"
+                                onClick={() => handleRefundOrder(order)}
+                                disabled={refundProcessing}
+                                sx={{ ml: 1 }}
+                              >
+                                Refund
+                              </ActionButton>
+                            )}
                           </Box>
                         </TableCell>
                       </TableRow>
@@ -459,6 +535,40 @@ const OrderHistory = () => {
                   sx={{ borderRadius: 8, px: 3 }}
                 >
                   Download Receipt
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Refund Dialog */}
+            <Dialog
+              open={refundDialogOpen}
+              onClose={() => { setRefundDialogOpen(false); setRefundingOrder(null); }}
+              maxWidth="xs"
+              fullWidth
+              PaperProps={{ sx: { borderRadius: 3 } }}
+            >
+              <DialogTitle>
+                Refund Order
+              </DialogTitle>
+              <DialogContent>
+                <Typography sx={{ mb: 2 }}>
+                  Are you sure you want to refund order #{refundingOrder?.order_id}?
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  The refund will be processed to the card used for payment.
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ p: 2 }}>
+                <Button onClick={() => { setRefundDialogOpen(false); setRefundingOrder(null); }}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleRefundConfirm}
+                  disabled={refundProcessing}
+                >
+                  {refundProcessing ? 'Processing...' : 'Confirm Refund'}
                 </Button>
               </DialogActions>
             </Dialog>

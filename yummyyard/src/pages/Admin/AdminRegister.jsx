@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Container, Typography, TextField, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import Background from '../../assets/Background.jpg';
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
@@ -47,13 +48,14 @@ const AdminRegister = () => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
         minHeight: '100vh',
-        backgroundColor: '#f8f9fa',
-        fontFamily: 'Poppins, sans-serif',
+        width: '100%',
+        display: 'flex',
+        position: 'relative',
+        backgroundImage: `url(${Background})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        py: 4
       }}
     >
       <Container maxWidth="sm">

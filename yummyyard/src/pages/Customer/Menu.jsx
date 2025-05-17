@@ -476,7 +476,7 @@ const Menu = () => {
                     />
                     {item.lowStock && ( // Check if the item is low stock
                       <Chip
-                        label="Low Stock"
+                        label="Unavaiable"
                         color="error"
                         size="small"
                         sx={{

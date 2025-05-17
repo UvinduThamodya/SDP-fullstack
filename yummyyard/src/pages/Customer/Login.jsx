@@ -3,6 +3,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import apiService from '../../services/api';
 import Logo from '../../assets/YummyYard_logo.png';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Background from '../../assets/Background.jpg';
 
 // Material UI imports
 import {
@@ -120,7 +121,7 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundImage: 'url(../public/Background.jpg)',
+        backgroundImage: `url(${Background})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

@@ -14,6 +14,7 @@ import {
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Logo from '../../assets/YummyYard_logo.png';
+import Background from '../../assets/Background.jpg';
 import '@fontsource/poppins';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -121,13 +122,15 @@ const AdminLogin = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{
+      <Box sx={{ 
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e0ffe7 0%, #f5f5f5 100%)',
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: 'Poppins, sans-serif'
+        backgroundImage: `url(${Background})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}>
         <StyledPaper elevation={6} sx={{ width: '95%', maxWidth: 950 }}>
           <Grid container>

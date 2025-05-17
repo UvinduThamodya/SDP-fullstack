@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import Logo from '../../assets/YummyYard_logo.png'; // Replace with your logo path
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Background from '../../assets/Background.jpg';
 
 const StaffRegister = () => {
   const [formData, setFormData] = useState({
@@ -108,13 +109,14 @@ const StaffRegister = () => {
   return (
     <Box
       sx={{
-        height: '100vh',
+        minHeight: '100vh',
+        width: '100%',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundImage: 'url(../public/Background.jpg)',
+        position: 'relative',
+        backgroundImage: `url(${Background})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        py: 4
       }}
     >
       <Paper 

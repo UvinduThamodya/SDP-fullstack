@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 const PDFDocument = require('pdfkit');
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51RBXHE2eTzT1rj33NZDSBXcmGdYj7H24AfORJbzIzyidDs09GHjHCTo5m48nzc1JwR4oxRIuFciKgN3IXbezWiBJ00mY7yDQ01');
 
 const createOrder = async (req, res) => {
   const connection = await db.getConnection();
@@ -25,7 +25,7 @@ const createOrder = async (req, res) => {
     }
 
     // Normalize payment method
-    const paymentMethod = payment.method;
+    const paymentMethod = payment.method ? payment.method.toLowerCase() : '';
 
     // 3. Create order record
     const isCustomer = userRole && userRole.toLowerCase() === 'customer';
@@ -462,6 +462,84 @@ const generateOrderReport = async (req, res) => {
   }
 };
 
+// Refund order (card payment only)
+const refundOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+    // 1. Get payment info for the order
+    const [payments] = await db.query(
+      `SELECT * FROM Payments WHERE order_id = ? LIMIT 1`, [orderId]
+    );
+    if (!payments.length) {
+      return res.status(404).json({ error: 'Payment not found for this order' });
+    }
+    const payment = payments[0];
+    if (!payment.method || payment.method.toLowerCase() !== 'card') {
+      return res.status(400).json({ error: 'Refunds are only available for card payments' });
+    }
+    if (!payment.payment_id) {
+      return res.status(400).json({ error: 'No Stripe payment ID found' });
+    }
+
+    // 2. Check if already refunded (optional: add a refunded flag in Payments table)
+    if (payment.refunded) {
+      return res.status(400).json({ error: 'Order already refunded' });
+    }
+
+    // 3. Call Stripe to refund
+    const refund = await stripe.refunds.create({
+      payment_intent: payment.payment_id,
+      amount: Math.round(payment.amount * 100), // Stripe expects amount in cents
+    });
+
+    // 4. Mark as refunded in DB (optional: add a refunded column)
+    await db.query(
+      `UPDATE Payments SET refunded = 1 WHERE payment_id = ?`, [payment.payment_id]
+    );
+
+    // 5. Fetch order and customer info for the PDF
+    const [orderRows] = await db.query(
+      `SELECT o.*, c.name AS customer_name, c.email, c.phone, c.address
+       FROM Orders o
+       JOIN Customers c ON o.customer_id = c.customer_id
+       WHERE o.order_id = ?`,
+      [orderId]
+    );
+    const orderInfo = orderRows[0];
+
+    // 6. Generate PDF refund confirmation
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=refund-confirmation-order-${orderId}.pdf`);
+    const doc = new PDFDocument({ margin: 50 });
+    doc.pipe(res);
+
+    // PDF content
+    doc.fontSize(20).text('YummyYard', { align: 'center' });
+    doc.fontSize(15).text('Refund Confirmation', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Order ID: ${orderId}`);
+    doc.text(`Refund ID: ${refund.id}`);
+    doc.text(`Refund Date: ${new Date().toLocaleString()}`);
+    doc.text(`Customer: ${orderInfo?.customer_name || 'N/A'}`);
+    doc.text(`Email: ${orderInfo?.email || 'N/A'}`);
+    doc.text(`Phone: ${orderInfo?.phone || 'N/A'}`);
+    doc.text(`Order Date: ${orderInfo?.order_date ? new Date(orderInfo.order_date).toLocaleString() : 'N/A'}`);
+    doc.text(`Payment Method: Card`);
+    doc.text(`Refunded Amount: LKR ${parseFloat(payment.amount).toFixed(2)}`);
+    doc.moveDown();
+    doc.fontSize(12).text('This document confirms that your payment for the above order has been refunded to your card.', { align: 'left' });
+    doc.moveDown(2);
+    doc.fontSize(10).text('If you have any questions, please contact our support.', { align: 'center' });
+    doc.fontSize(10).text('Thank you for choosing YummyYard!', { align: 'center' });
+
+    doc.end();
+    // No need to send JSON response, PDF is streamed
+  } catch (error) {
+    console.error('Refund error:', error);
+    res.status(500).json({ error: error.message || 'Refund failed' });
+  }
+};
 
 module.exports = {
   createOrder,
@@ -470,5 +548,6 @@ module.exports = {
   generateOrderReceipt,
   getAllOrders,
   generateOrderReport,
-  updateOrderStatus
+  updateOrderStatus,
+  refundOrder
 };

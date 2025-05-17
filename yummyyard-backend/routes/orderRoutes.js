@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
@@ -21,6 +20,8 @@ router.get('/:orderId', authenticateUser, orderController.getOrderDetails);
 // Generate PDF receipt for an order
 router.get('/:orderId/receipt', authenticateUser, orderController.generateOrderReceipt);
 
+// Refund an order (card payment only)
+router.post('/:orderId/refund', authenticateUser, orderController.refundOrder);
 
 router.put('/:orderId/status', authenticateUser, orderController.updateOrderStatus);
 

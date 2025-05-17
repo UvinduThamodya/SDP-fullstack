@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import apiService from '../../services/api';
 import { useNavigate } from "react-router-dom"; 
+import Background from '../../assets/Background.jpg';
 
 const Register = () => {
   const navigate = useNavigate(); // Initialize useNavigate hook
@@ -135,202 +136,215 @@ const Register = () => {
   };
 
   return (
-    <Container 
-      maxWidth="lg" 
-      sx={{ 
-        fontFamily: 'Poppins, sans-serif',
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100%',
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh'
+        position: 'relative',
+        backgroundImage: `url(${Background})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        py: 4
       }}
     >
-      <Grid container spacing={0} sx={{ height: '80vh' }}>
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Paper
-            elevation={0}
-            sx={{
-              padding: 4,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              fontFamily: 'Poppins, sans-serif',
-              borderRadius: '15px 0 0 15px',
-              background: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(1px)',
-              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              flex: 1
-            }}
-          >
-            <Typography variant="h3" sx={{ fontWeight: "bold", marginBottom: 2, fontSize: {xs: '2rem', sm: '2.5rem'} }}>
-              Hello,
-            </Typography>
-            <Typography variant="subtitle1" sx={{ marginBottom: 4, color: '#666' }}>
-              Welcome to an Island of Flavors
-            </Typography>
-            
-            {submitStatus.submitted && (
-              <Alert 
-                severity={submitStatus.success ? "success" : "info"} 
-                sx={{ width: "100%", marginBottom: 2 }}
-              >
-                {submitStatus.message}
-              </Alert>
-            )}
-            
-            <Box component="form" sx={{ width: "100%" }} onSubmit={handleSubmit} noValidate>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                <TextField
-    fullWidth
-    label="Name"  // Changed label from "Username" to "Name"
-    name="name"   // Changed name from "username" to "name"
-    variant="outlined"
-    value={formData.username}  // Keep using formData.username for the field value
-    onChange={handleChange}
-    error={!!errors.username}
-    helperText={errors.username}
-    required
-    placeholder="Enter your name"
-    sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
-  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField 
-                    fullWidth 
-                    label="E-mail" 
-                    name="email"
-                    variant="outlined" 
-                    value={formData.email}
-                    onChange={handleChange}
-                    error={!!errors.email}
-                    helperText={errors.email}
-                    required 
-                    placeholder="example@example.com"
-                    sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Phone number"
-                    name="phone"
-                    variant="outlined"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    error={!!errors.phone}
-                    helperText={errors.phone}
-                    required
-                    placeholder="(+94) 71 234 5678"
-                    sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Address"
-                    name="address"
-                    variant="outlined"
-                    value={formData.address}
-                    onChange={handleChange}
-                    error={!!errors.address}
-                    helperText={errors.address}
-                    required
-                    placeholder="Enter your address"
-                    sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Password"
-                    name="password"
-                    type="password"
-                    variant="outlined"
-                    value={formData.password}
-                    onChange={handleChange}
-                    error={!!errors.password}
-                    helperText={errors.password}
-                    required
-                    placeholder="Password must be at least 7 characters"
-                    sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Confirm Password"
-                    name="confirmPassword"
-                    type="password"
-                    variant="outlined"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    error={!!errors.confirmPassword}
-                    helperText={errors.confirmPassword}
-                    required
-                    placeholder="Re-enter your password"
-                    sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    sx={{ 
-                      padding: '12px', 
-                      fontSize: 16, 
-                      marginTop: 2,
-                      borderRadius: '8px',
-                      background: '#4285F4',
-                      '&:hover': {
-                        background: '#059669'
-                      }
-                    }}
-                    disabled={submitStatus.submitted && !submitStatus.success}
-                  >
-                    Register
-                  </Button>
-                </Grid>
-              </Grid>
-            </Box>
-            <Box sx={{ width: "100%", textAlign: "center", marginTop: 2 }}>
-              <Typography variant="body2">
-                Already have an account? <a href="/login" style={{ color: '#4285F4', textDecoration: 'none' }}>Log in here!</a>
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Paper
-            elevation={0}
-            sx={{
-              padding: 0,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: '0 15px 15px 0',
-              background: '#33CC66',
-              flex: 1,
-              overflow: 'hidden'
-            }}
-          >
-            <Box
-              component="img"
-              src="/YummyYard_logo.png" 
-              alt="Yummy Yard Logo"
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          fontFamily: 'Poppins, sans-serif',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <Grid container spacing={0} sx={{ height: '80vh' }}>
+          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Paper
+              elevation={0}
               sx={{
-                width: '80%',
-                maxWidth: '500px',
-                height: 'auto',
+                padding: 4,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                fontFamily: 'Poppins, sans-serif',
+                borderRadius: '15px 0 0 15px',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(1px)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                flex: 1
               }}
-            />
-          </Paper>
+            >
+              <Typography variant="h3" sx={{ fontWeight: "bold", marginBottom: 2, fontSize: {xs: '2rem', sm: '2.5rem'} }}>
+                Hello,
+              </Typography>
+              <Typography variant="subtitle1" sx={{ marginBottom: 4, color: '#666' }}>
+                Welcome to an Island of Flavors
+              </Typography>
+              
+              {submitStatus.submitted && (
+                <Alert 
+                  severity={submitStatus.success ? "success" : "info"} 
+                  sx={{ width: "100%", marginBottom: 2 }}
+                >
+                  {submitStatus.message}
+                </Alert>
+              )}
+              
+              <Box component="form" sx={{ width: "100%" }} onSubmit={handleSubmit} noValidate>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                  <TextField
+      fullWidth
+      label="Name"  // Changed label from "Username" to "Name"
+      name="name"   // Changed name from "username" to "name"
+      variant="outlined"
+      value={formData.username}  // Keep using formData.username for the field value
+      onChange={handleChange}
+      error={!!errors.username}
+      helperText={errors.username}
+      required
+      placeholder="Enter your name"
+      sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
+    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField 
+                      fullWidth 
+                      label="E-mail" 
+                      name="email"
+                      variant="outlined" 
+                      value={formData.email}
+                      onChange={handleChange}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      required 
+                      placeholder="example@example.com"
+                      sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Phone number"
+                      name="phone"
+                      variant="outlined"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      error={!!errors.phone}
+                      helperText={errors.phone}
+                      required
+                      placeholder="(+94) 71 234 5678"
+                      sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Address"
+                      name="address"
+                      variant="outlined"
+                      value={formData.address}
+                      onChange={handleChange}
+                      error={!!errors.address}
+                      helperText={errors.address}
+                      required
+                      placeholder="Enter your address"
+                      sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      name="password"
+                      type="password"
+                      variant="outlined"
+                      value={formData.password}
+                      onChange={handleChange}
+                      error={!!errors.password}
+                      helperText={errors.password}
+                      required
+                      placeholder="Password must be at least 7 characters"
+                      sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Confirm Password"
+                      name="confirmPassword"
+                      type="password"
+                      variant="outlined"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      error={!!errors.confirmPassword}
+                      helperText={errors.confirmPassword}
+                      required
+                      placeholder="Re-enter your password"
+                      sx={{ background: 'rgba(255, 255, 255, 0.6)', borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      sx={{ 
+                        padding: '12px', 
+                        fontSize: 16, 
+                        marginTop: 2,
+                        borderRadius: '8px',
+                        background: '#4285F4',
+                        '&:hover': {
+                          background: '#059669'
+                        }
+                      }}
+                      disabled={submitStatus.submitted && !submitStatus.success}
+                    >
+                      Register
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ width: "100%", textAlign: "center", marginTop: 2 }}>
+                <Typography variant="body2">
+                  Already have an account? <a href="/login" style={{ color: '#4285F4', textDecoration: 'none' }}>Log in here!</a>
+                </Typography>
+              </Box>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Paper
+              elevation={0}
+              sx={{
+                padding: 0,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: '0 15px 15px 0',
+                background: '#33CC66',
+                flex: 1,
+                overflow: 'hidden'
+              }}
+            >
+              <Box
+                component="img"
+                src="/YummyYard_logo.png" 
+                alt="Yummy Yard Logo"
+                sx={{
+                  width: '80%',
+                  maxWidth: '500px',
+                  height: 'auto',
+                }}
+              />
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 
