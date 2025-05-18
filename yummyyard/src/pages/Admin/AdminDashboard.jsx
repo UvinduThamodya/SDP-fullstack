@@ -311,8 +311,8 @@ export default function AdminDashboard() {
           const found = salesData.find((d) => d.month === idx + 1);
           return found ? found.total : 0;
         }),
-        backgroundColor: "#1976d2",
-        borderColor: "#1976d2",
+        backgroundColor: "#3ACA82", // Changed from #1976d2 to #3ACA82
+        borderColor: "#3ACA82",     // Changed from #1976d2 to #3ACA82
         fill: graphType === "line" ? false : true,
         tension: 0.3,
       },
@@ -444,7 +444,13 @@ export default function AdminDashboard() {
                   variant="contained"
                   startIcon={<ShoppingCartIcon />}
                   onClick={() => setOrderDialogOpen(true)}
-                  sx={{ borderRadius: 8 }}
+                  sx={{ 
+                    borderRadius: 8,
+                    bgcolor: '#3ACA82', // Added color
+                    '&:hover': {
+                      bgcolor: '#2d9e68', // Darker shade for hover
+                    }
+                  }}
                 >
                   Order Inventory
                 </Button>
@@ -795,6 +801,12 @@ export default function AdminDashboard() {
                   startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <ReceiptIcon />}
                   onClick={handleSubmitStockOrder}
                   disabled={stockOrders.length === 0 || submitting}
+                  sx={{ 
+                    bgcolor: '#3ACA82', // Added color
+                    '&:hover': {
+                      bgcolor: '#2d9e68', // Darker shade for hover
+                    }
+                  }}
                 >
                   {submitting ? 'Processing...' : 'Generate Receipt'}
                 </Button>

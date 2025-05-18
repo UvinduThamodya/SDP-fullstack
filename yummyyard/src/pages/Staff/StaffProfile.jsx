@@ -30,7 +30,7 @@ const theme = createTheme({
     body1: { fontFamily: 'Poppins, sans-serif' }
   },
   palette: {
-    primary: { main: '#1976d2' },
+    primary: { main: '#3ACA82' },
     secondary: { main: '#f50057' },
     background: { default: '#f5f7fa' }
   },
@@ -196,7 +196,7 @@ const Profile = () => {
             alignItems: 'center',
             justifyContent: 'center',
             p: 0,
-            background: 'linear-gradient(135deg, #1976d2 60%, #42a5f5 100%)'
+            background: 'linear-gradient(135deg, #3ACA82 60%, #4dd496 100%)'
           }}
         >
           <MenuIcon />
@@ -307,7 +307,11 @@ const Profile = () => {
                             px: 4,
                             py: 1.2,
                             fontSize: '1rem',
-                            letterSpacing: '0.5px'
+                            letterSpacing: '0.5px',
+                            bgcolor: '#3ACA82',
+                            '&:hover': {
+                              bgcolor: '#2d9e68',
+                            }
                           }}
                         >
                           Save
@@ -343,7 +347,11 @@ const Profile = () => {
                             px: 4,
                             py: 1.2,
                             fontSize: '1rem',
-                            letterSpacing: '0.5px'
+                            letterSpacing: '0.5px',
+                            bgcolor: '#3ACA82',
+                            '&:hover': {
+                              bgcolor: '#2d9e68',
+                            }
                           }}
                         >
                           Edit Profile

@@ -311,7 +311,7 @@ const Accounts = () => {
                 variant="h4"
                 sx={{
                   mb: 3,
-                  color: '#1976d2',
+                  color: '#3ACA82', // Changed from '#1976d2' to '#3ACA82'
                   textAlign: 'center',
                   fontWeight: 700,
                   letterSpacing: 0.5,
@@ -346,6 +346,12 @@ const Accounts = () => {
                       px: 3,
                       minHeight: 48,
                     },
+                    '& .Mui-selected': {
+                      color: '#3ACA82', // Changed tab text color when selected
+                    },
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: '#3ACA82', // Changed indicator color
+                    }
                   }}
                 >
                   <Tab
@@ -364,18 +370,21 @@ const Accounts = () => {
                 {tab === 'staff' && (
                   <Button
                     variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={handleAddStaff}
                     sx={{
                       py: 1,
                       px: 2,
                       borderRadius: 3,
                       fontWeight: 600,
-                      boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
+                      boxShadow: '0 2px 8px rgba(58, 202, 130, 0.15)',
                       mt: { xs: 1, sm: 0 },
                       alignSelf: { xs: 'flex-end', sm: 'auto' },
+                      bgcolor: '#3ACA82', // Changed color to #3ACA82
+                      '&:hover': {
+                        bgcolor: '#2d9e68', // Darker shade for hover
+                      }
                     }}
+                    startIcon={<AddIcon />}
+                    onClick={handleAddStaff}
                   >
                     Add Staff
                   </Button>

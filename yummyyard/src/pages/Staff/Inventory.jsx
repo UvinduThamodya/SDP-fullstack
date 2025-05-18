@@ -48,6 +48,14 @@ const theme = createTheme({
       textTransform: 'none',
     },
   },
+  palette: {
+    primary: {
+      main: '#3ACA82',
+    },
+    success: {
+      main: '#3ACA82', // Change success color to match the theme
+    },
+  },
   components: {
     MuiTableCell: {
       styleOverrides: {
@@ -67,6 +75,20 @@ const theme = createTheme({
           boxShadow: 'none',
           '&:hover': {
             boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+          },
+        },
+        containedPrimary: {
+          backgroundColor: '#3ACA82',
+          '&:hover': {
+            backgroundColor: '#2d9e68',
+          },
+        },
+        outlinedPrimary: {
+          color: '#3ACA82',
+          borderColor: '#3ACA82',
+          '&:hover': {
+            borderColor: '#2d9e68',
+            backgroundColor: 'rgba(58, 202, 130, 0.08)',
           },
         },
       },
@@ -502,6 +524,10 @@ const Inventory = () => {
             alignItems: 'center',
             justifyContent: 'center',
             p: 0,
+            backgroundColor: '#3ACA82',
+            '&:hover': {
+              backgroundColor: '#2d9e68',
+            },
           }}
         >
           <MenuIcon />

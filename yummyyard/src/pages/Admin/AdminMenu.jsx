@@ -472,7 +472,7 @@ export default function AdminMenu() {
                 alignItems: "center", 
                 mb: 2 
               }}>
-                <Typography variant="h4" color="primary">
+                <Typography variant="h4" color="#3ACA82">
                   Menu Management
                 </Typography>
                 <Button
@@ -480,6 +480,13 @@ export default function AdminMenu() {
                   size="large"
                   startIcon={<AddIcon />}
                   onClick={handleAddOpen}
+                  sx={{
+                    borderRadius: 16,
+                    bgcolor: '#3ACA82',
+                    '&:hover': {
+                      bgcolor: '#2d9e68',
+                    }
+                  }}
                 >
                   Add New Item
                 </Button>
@@ -506,7 +513,7 @@ export default function AdminMenu() {
                         >
                           {item.category}
                         </Typography>
-                        <Typography variant="subtitle1" color="primary" fontWeight="medium">
+                        <Typography variant="subtitle1" color="#3ACA82" fontWeight="medium">
                           LKR {Number(item.price).toLocaleString()}
                         </Typography>
                         {item.description && (
@@ -518,7 +525,12 @@ export default function AdminMenu() {
                       <CardActions sx={{ justifyContent: 'flex-end' }}>
                         <IconButton 
                           onClick={() => handleEditOpen(item)}
-                          color="primary"
+                          sx={{
+                            color: '#3ACA82',
+                            '&:hover': {
+                              backgroundColor: 'rgba(58, 202, 130, 0.1)',
+                            }
+                          }}
                           size="small"
                         >
                           <EditIcon />
@@ -540,7 +552,7 @@ export default function AdminMenu() {
 
           {/* --- Menu Item Ingredients Section --- */}
           <Box sx={{ mt: 6 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: '#3ACA82' }}>
               Menu Item Ingredients Management
             </Typography>
             <Paper sx={{ p: 2, mb: 2 }}>
@@ -553,6 +565,21 @@ export default function AdminMenu() {
                     key={item.item_id}
                     variant={selectedMenuItem && selectedMenuItem.item_id === item.item_id ? 'contained' : 'outlined'}
                     onClick={() => handleOpenIngredientDialog(item)}
+                    sx={{
+                      ...(selectedMenuItem && selectedMenuItem.item_id === item.item_id ? {
+                        bgcolor: '#3ACA82',
+                        '&:hover': {
+                          bgcolor: '#2d9e68',
+                        }
+                      } : {
+                        color: '#3ACA82',
+                        borderColor: '#3ACA82',
+                        '&:hover': {
+                          borderColor: '#2d9e68',
+                          color: '#2d9e68',
+                        }
+                      })
+                    }}
                   >
                     {item.name}
                   </Button>
@@ -562,11 +589,27 @@ export default function AdminMenu() {
           </Box>
 
           {/* Dialog for viewing and editing menu item ingredients */}
-          <Dialog open={ingredientDialogOpen} onClose={handleCloseIngredientDialog} maxWidth="md" fullWidth>
-            <DialogTitle>
+          <Dialog 
+            open={ingredientDialogOpen} 
+            onClose={handleCloseIngredientDialog} 
+            maxWidth="md" 
+            fullWidth
+            PaperProps={{
+              sx: { 
+                borderRadius: 4,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                overflow: 'hidden'
+              }
+            }}
+          >
+            <DialogTitle sx={{ 
+              bgcolor: '#3ACA82', 
+              color: 'white',
+              fontWeight: 600
+            }}>
               Ingredients for: {selectedMenuItem?.name}
             </DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{ pt: 3 }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Add Ingredient</Typography>
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
@@ -662,22 +705,62 @@ export default function AdminMenu() {
                 </Table>
               </TableContainer>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseIngredientDialog}>Close</Button>
+            <DialogActions sx={{ px: 3, pb: 3 }}>
+              <Button 
+                onClick={handleCloseIngredientDialog}
+                sx={{ 
+                  color: '#3ACA82',
+                  borderColor: '#3ACA82',
+                  '&:hover': {
+                    borderColor: '#2d9e68',
+                    backgroundColor: 'rgba(58, 202, 130, 0.08)'
+                  }
+                }}
+                variant="outlined"
+              >
+                Close
+              </Button>
             </DialogActions>
           </Dialog>
 
           {/* Confirm Delete Ingredient Dialog */}
-          <Dialog open={!!ingredientDelete} onClose={() => setIngredientDelete(null)}>
-            <DialogTitle>Delete Ingredient</DialogTitle>
-            <DialogContent>
+          <Dialog 
+            open={!!ingredientDelete} 
+            onClose={() => setIngredientDelete(null)}
+            PaperProps={{
+              sx: { 
+                borderRadius: 4,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                overflow: 'hidden'
+              }
+            }}
+          >
+            <DialogTitle sx={{ bgcolor: '#ffebee', color: '#d32f2f', fontWeight: 600 }}>
+              Delete Ingredient
+            </DialogTitle>
+            <DialogContent sx={{ pt: 3 }}>
               <Typography>
                 Are you sure you want to remove this ingredient from the menu item?
               </Typography>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setIngredientDelete(null)}>Cancel</Button>
-              <Button color="error" variant="contained" onClick={handleDeleteMenuItemIngredient}>Delete</Button>
+            <DialogActions sx={{ px: 3, pb: 3 }}>
+              <Button 
+                onClick={() => setIngredientDelete(null)}
+                variant="outlined"
+                sx={{ 
+                  borderColor: '#3ACA82', 
+                  color: '#3ACA82',
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                color="error" 
+                variant="contained" 
+                onClick={handleDeleteMenuItemIngredient}
+              >
+                Delete
+              </Button>
             </DialogActions>
           </Dialog>
 
@@ -688,13 +771,22 @@ export default function AdminMenu() {
             maxWidth="sm" 
             fullWidth
             PaperProps={{
-              sx: { borderRadius: 2 }
+              sx: { 
+                borderRadius: 4,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                overflow: 'hidden'
+              }
             }}
           >
-            <DialogTitle sx={{ pb: 1 }}>
+            <DialogTitle sx={{ 
+              pb: 1, 
+              bgcolor: '#3ACA82', 
+              color: 'white',
+              fontWeight: 600
+            }}>
               <Typography variant="h5" fontWeight="medium">Edit Menu Item</Typography>
             </DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{ pt: 3 }}>
               <Grid container spacing={2} sx={{ mt: 0.5 }}>
                 <Grid item xs={12}>
                   <TextField
@@ -783,6 +875,14 @@ export default function AdminMenu() {
               <Button 
                 onClick={() => setEditDialogOpen(false)}
                 variant="outlined"
+                sx={{ 
+                  borderColor: '#3ACA82', 
+                  color: '#3ACA82',
+                  '&:hover': {
+                    borderColor: '#2d9e68',
+                    backgroundColor: 'rgba(58, 202, 130, 0.08)'
+                  }
+                }}
               >
                 Cancel
               </Button>
@@ -790,6 +890,15 @@ export default function AdminMenu() {
                 variant="contained" 
                 onClick={handleEditSubmit} 
                 disabled={imageUploading}
+                sx={{ 
+                  bgcolor: '#3ACA82',
+                  '&:hover': {
+                    bgcolor: '#2d9e68'
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: 'rgba(58, 202, 130, 0.5)'
+                  }
+                }}
               >
                 Save Changes
               </Button>
@@ -803,13 +912,22 @@ export default function AdminMenu() {
             maxWidth="sm" 
             fullWidth
             PaperProps={{
-              sx: { borderRadius: 2 }
+              sx: { 
+                borderRadius: 4,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                overflow: 'hidden'
+              }
             }}
           >
-            <DialogTitle sx={{ pb: 1 }}>
+            <DialogTitle sx={{ 
+              pb: 1, 
+              bgcolor: '#3ACA82', 
+              color: 'white',
+              fontWeight: 600
+            }}>
               <Typography variant="h5" fontWeight="medium">Add New Menu Item</Typography>
             </DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{ pt: 3 }}>
               <Grid container spacing={2} sx={{ mt: 0.5 }}>
                 <Grid item xs={12}>
                   <TextField
@@ -899,6 +1017,14 @@ export default function AdminMenu() {
               <Button 
                 onClick={() => setAddDialogOpen(false)}
                 variant="outlined"
+                sx={{ 
+                  borderColor: '#3ACA82', 
+                  color: '#3ACA82',
+                  '&:hover': {
+                    borderColor: '#2d9e68',
+                    backgroundColor: 'rgba(58, 202, 130, 0.08)'
+                  }
+                }}
               >
                 Cancel
               </Button>
@@ -906,6 +1032,15 @@ export default function AdminMenu() {
                 variant="contained" 
                 onClick={handleAddSubmit} 
                 disabled={imageUploading}
+                sx={{ 
+                  bgcolor: '#3ACA82',
+                  '&:hover': {
+                    bgcolor: '#2d9e68'
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: 'rgba(58, 202, 130, 0.5)'
+                  }
+                }}
               >
                 Add Item
               </Button>

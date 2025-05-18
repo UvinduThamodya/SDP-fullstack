@@ -91,6 +91,15 @@ function StripePayment({ amount, onSuccess }) {
         color="primary" 
         disabled={!stripe || processing}
         fullWidth
+        sx={{
+          bgcolor: '#3ACA82',
+          '&:hover': {
+            bgcolor: '#2d9e68',
+          },
+          '&.Mui-disabled': {
+            bgcolor: 'rgba(58, 202, 130, 0.5)',
+          }
+        }}
       >
         {processing ? <CircularProgress size={24} /> : `Pay ${formatCurrency(amount, 'LKR')}`}
       </Button>

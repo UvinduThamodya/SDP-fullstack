@@ -36,9 +36,9 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#1976d2',
-      dark: '#0d47a1',
-      light: '#42a5f5',
+      main: '#3ACA82', // Changed from '#1976d2' to green
+      dark: '#2d9e68', // Darker shade of green
+      light: '#4dd496', // Lighter shade of green
     },
     secondary: {
       main: '#f50057',
@@ -130,6 +130,10 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
 const ActionButton = styled(Button)(({ theme, color }) => ({
   boxShadow: 'none',
   minWidth: '130px',
+  backgroundColor: color === 'primary' ? '#3ACA82' : undefined,
+  '&:hover': {
+    backgroundColor: color === 'primary' ? '#2d9e68' : undefined,
+  }
 }));
 
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
