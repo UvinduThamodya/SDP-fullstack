@@ -8,7 +8,8 @@
 - Created a secure authentication mechanism using app passwords
 
 ### 2. Order Status Email Notifications
-- Implemented email notifications for three order statuses:
+- Implemented email notifications for four order statuses:
+  - Order Pending (new)
   - Order Accepted
   - Order Completed
   - Order Cancelled/Rejected
@@ -17,9 +18,9 @@
 - Removed delivery address and estimated delivery time from templates
 
 ### 3. Integration with Order Flow
-- Added email notifications when customers place new orders
-- Added email notifications when staff update order statuses
-- Implemented intelligent status-to-email type mapping
+- Added "Order Pending" email notifications when customers place new orders
+- Added "Order Accepted" email notifications only when staff explicitly accept an order
+- Added email notifications when staff update other order statuses (Completed/Cancelled)
 
 ### 4. Email Service Enhancements
 - Added helper methods to simplify sending different types of emails

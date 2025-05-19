@@ -20,10 +20,11 @@ The `emailService.js` module handles all email-related functionality:
 - Sends emails to customers
 
 ### Email Types
-The system supports three types of notification emails:
-1. **Order Accepted** - Sent when a new order is created or when an existing order's status is changed to "Accepted"
-2. **Order Completed** - Sent when an order's status is changed to "Completed" 
-3. **Order Rejected/Cancelled** - Sent when an order's status is changed to "Cancelled"
+The system supports four types of notification emails:
+1. **Order Pending** - Sent when a new order is created with "Pending" status
+2. **Order Accepted** - Sent only when an order's status is changed to "Accepted" by staff
+3. **Order Completed** - Sent when an order's status is changed to "Completed" 
+4. **Order Rejected/Cancelled** - Sent when an order's status is changed to "Cancelled"
 
 ### Integration with Order Processing
 Email notifications are triggered from:

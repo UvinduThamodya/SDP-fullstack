@@ -139,11 +139,9 @@ const createOrder = async (req, res) => {
               quantity: item.quantity,
               price: item.subtotal / item.quantity
             }))
-          };
-          
-          // Send confirmation email
-          await emailService.sendOrderEmail(customerResult[0].email, 'accepted', orderForEmail);
-          console.log(`Order confirmation email sent for Order #${orderId}`);
+          };          // Send order creation notification email (not "accepted" yet)
+          await emailService.sendPendingOrderEmail(customerResult[0].email, orderForEmail);
+          console.log(`Order creation notification email sent for Order #${orderId}`);
         }
       } catch (emailError) {
         // Log but don't block order creation if email fails

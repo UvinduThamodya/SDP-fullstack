@@ -249,8 +249,29 @@ class EmailService {  constructor() {
     let iconHtml = '';
     let greeting = '';
     let buttonHtml = '';
-    
-    switch(type) {
+      switch(type) {
+      case 'pending':
+        headerStyle = 'background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);';
+        iconHtml = `
+          <div class="icon-container">
+            <div class="icon-circle" style="background-color: #fff3e0; color: #fb8c00;">📋</div>
+          </div>
+        `;
+        greeting = `Order #${orderId} Received!`;
+        specificContent = `
+          <p class="message">Thank you for placing your order with YummyYard! We've received your order and it is currently pending staff review.</p>
+          
+          <p class="message">You'll receive another notification once our staff accepts your order and begins preparing your meal.</p>
+        `;
+        buttonHtml = `
+          <div class="button-container">
+            <a href="https://yummyyard.com/orders/history" class="action-button" style="background-color: #fb8c00; color: white;">
+              View Order Status
+            </a>
+          </div>
+        `;
+        break;
+        
       case 'completed':
         headerStyle = 'background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);';
         iconHtml = `
@@ -411,9 +432,8 @@ class EmailService {  constructor() {
         console.error('No email address provided for order notification');
         return false;
       }
-      
-      // Validate email type
-      if (!['completed', 'accepted', 'rejected'].includes(emailType)) {
+        // Validate email type
+      if (!['pending', 'completed', 'accepted', 'rejected'].includes(emailType)) {
         console.error('Invalid email type:', emailType);
         return false;
       }
@@ -423,6 +443,9 @@ class EmailService {  constructor() {
         // Generate subject line based on email type
       let subject;
       switch(emailType) {
+        case 'pending':
+          subject = `YummyYard: Order #${orderId} Received - Awaiting Confirmation`;
+          break;
         case 'completed':
           subject = `YummyYard: Your Order #${orderId} Has Been Delivered!`;
           break;
@@ -453,8 +476,7 @@ class EmailService {  constructor() {
       return false;
     }
   }
-  
-  /**
+    /**
    * Send email for a completed order
    * @param {string} email - Customer email
    * @param {object} orderData - Order details
@@ -462,6 +484,16 @@ class EmailService {  constructor() {
    */
   async sendCompletedOrderEmail(email, orderData) {
     return this.sendOrderEmail(email, 'completed', orderData);
+  }
+  
+  /**
+   * Send email for a pending order
+   * @param {string} email - Customer email
+   * @param {object} orderData - Order details
+   * @returns {Promise<boolean>}
+   */
+  async sendPendingOrderEmail(email, orderData) {
+    return this.sendOrderEmail(email, 'pending', orderData);
   }
   
   /**
@@ -482,7 +514,6 @@ class EmailService {  constructor() {
    */  async sendRejectedOrderEmail(email, orderData) {
     return this.sendOrderEmail(email, 'rejected', orderData);
   }
-
   /**
    * Send order status update email based on the new status
    * @param {string} email - Customer email address
@@ -494,6 +525,9 @@ class EmailService {  constructor() {
     // Map the order status to the email type
     let emailType;
     switch(newStatus.toLowerCase()) {
+      case 'pending':
+        emailType = 'pending';
+        break;
       case 'accepted':
         emailType = 'accepted';
         break;

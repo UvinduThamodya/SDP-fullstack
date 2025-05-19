@@ -44,17 +44,22 @@ async function runTests() {
   console.log('Starting email tests...');
   
   try {
-    // Test 1: Send Accepted Order Email
-    console.log('Testing ACCEPTED order email...');
+    // Test 1: Send Pending Order Email
+    console.log('Testing PENDING order email...');
+    const pendingResult = await emailService.sendPendingOrderEmail(testEmail, testOrderData);
+    console.log('Pending email result:', pendingResult ? 'SUCCESS' : 'FAILED');
+    
+    // Test 2: Send Accepted Order Email
+    console.log('\nTesting ACCEPTED order email...');
     const acceptedResult = await emailService.sendAcceptedOrderEmail(testEmail, testOrderData);
     console.log('Accepted email result:', acceptedResult ? 'SUCCESS' : 'FAILED');
     
-    // Test 2: Send Completed Order Email
+    // Test 3: Send Completed Order Email
     console.log('\nTesting COMPLETED order email...');
     const completedResult = await emailService.sendCompletedOrderEmail(testEmail, testOrderData);
     console.log('Completed email result:', completedResult ? 'SUCCESS' : 'FAILED');
     
-    // Test 3: Send Rejected Order Email
+    // Test 4: Send Rejected Order Email
     console.log('\nTesting REJECTED order email...');
     const rejectedResult = await emailService.sendRejectedOrderEmail(testEmail, testOrderData);
     console.log('Rejected email result:', rejectedResult ? 'SUCCESS' : 'FAILED');
