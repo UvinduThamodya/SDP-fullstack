@@ -141,6 +141,30 @@ const Menu = () => {
     fetchLowStockItems();
   }, []);
 
+  // Empty category content with quotes and icons
+  const emptyCategoryContent = {
+    'Main-Dishes': {
+      quote: "Good food is good mood",
+      icon: "🍽️"
+    },
+    'Sea-Food': {
+      quote: "Fresh from the ocean to your plate",
+      icon: "🐟" 
+    },
+    'Desserts': {
+      quote: "Life is short, eat dessert first",
+      icon: "🍰"
+    },
+    'Beverage': {
+      quote: "Sip, savor, smile",
+      icon: "🥤"
+    },
+    'Favorites': {
+      quote: "Your favorite dishes will appear here",
+      icon: "❤️"
+    },
+  };
+
   const [favoriteIds, setFavoriteIds] = useState([]);
 
   const displayItems = selectedCategory === 'Favorites'
@@ -351,6 +375,26 @@ const Menu = () => {
             }
           }}
           disabled={isProcessing}
+          sx={{
+            py: 1.5,
+            px: 4,
+            display: 'block',
+            ml: 'auto', // This pushes the button to the right
+            borderRadius: 6,
+            backgroundColor: '#3ACA82',
+            color: 'white',
+            textTransform: 'none',
+            fontWeight: 600,
+            boxShadow: '0 4px 12px rgba(58, 202, 130, 0.25)',
+            '&:hover': {
+              backgroundColor: '#2db873',
+              boxShadow: '0 6px 16px rgba(58, 202, 130, 0.35)',
+            },
+            '&:disabled': {
+              backgroundColor: '#e0e0e0',
+              color: '#9e9e9e',
+            }
+          }}
         >
           {isProcessing ? 'Processing...' : 'Pay Now'}
         </Button>
@@ -449,93 +493,139 @@ const Menu = () => {
           </Tabs>
 
           <Grid container spacing={3}>
-            {displayItems.map(item => (
-              <Grid item xs={12} sm={6} md={4} key={item.item_id}>
-                <Card 
-                  sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    height: '100%',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-                    transition: 'transform 0.3s, box-shadow 0.3s',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
-                    }
-                  }}
-                >
-                  <Box sx={{ position: 'relative' }}>
-                    <CardMedia
-                      component="img"
-                      image={item.image_url}
-                      alt={item.name}
-                      sx={{
-                        width: '100%',
-                        height: 200,
-                        objectFit: 'cover',
-                      }}
-                    />
-                    {item.lowStock && ( // Check if the item is low stock
-                      <Chip
-                        label="Unavaiable"
-                        color="error"
-                        size="small"
+            {displayItems.length > 0 ? (
+              displayItems.map(item => (
+                <Grid item xs={12} sm={6} md={4} key={item.item_id}>
+                  <Card 
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      height: '100%',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
+                      transition: 'transform 0.3s, box-shadow 0.3s',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                      }
+                    }}
+                  >
+                    <Box sx={{ position: 'relative' }}>
+                      <CardMedia
+                        component="img"
+                        image={item.image_url}
+                        alt={item.name}
+                        sx={{
+                          width: '100%',
+                          height: 200,
+                          objectFit: 'cover',
+                        }}
+                      />
+                      {item.lowStock && ( // Check if the item is low stock
+                        <Chip
+                          label="Unavaiable"
+                          color="error"
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            backgroundColor: '#ff9800',
+                            color: '#fff',
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      )}
+                      <IconButton
                         sx={{
                           position: 'absolute',
                           top: 8,
-                          left: 8,
-                          backgroundColor: '#ff9800',
-                          color: '#fff',
-                          fontWeight: 'bold',
+                          right: 8,
+                          backgroundColor: 'rgba(255,255,255,0.8)',
+                          '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' },
                         }}
-                      />
-                    )}
-                    <IconButton
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        backgroundColor: 'rgba(255,255,255,0.8)',
-                        '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' },
-                      }}
-                      color="error"
-                      onClick={() => handleToggleFavorite(item.item_id)}
-                    >
-                      {favoriteIds.includes(item.item_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                    </IconButton>
-                  </Box>
-                  <CardContent sx={{ flexGrow: 1, pt: 2, px: 3 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>{item.name}</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{item.description}</Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#3ACA82' }}>
-                        {formatCurrency(item.price)}
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        disableElevation
-                        startIcon={<ShoppingCartIcon />}
-                        onClick={() => handleAddToCart(item.item_id)}
-                        disabled={item.lowStock || availability === 'Busy'} // Always disable if lowStock
-                        sx={{ 
-                          borderRadius: '24px',
-                          px: 2,
-                          backgroundColor: item.lowStock || availability === 'Busy' ? '#e0e0e0' : '#3ACA82',
-                          color: item.lowStock || availability === 'Busy' ? '#9e9e9e' : '#fff',
-                          '&:hover': {
-                            backgroundColor: item.lowStock || availability === 'Busy' ? '#e0e0e0' : alpha('#3ACA82', 0.8),
-                          },
-                        }}
+                        color="error"
+                        onClick={() => handleToggleFavorite(item.item_id)}
                       >
-                        {item.lowStock || availability === 'Busy' ? 'Unavailable' : 'Add'}
-                      </Button>
+                        {favoriteIds.includes(item.item_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                      </IconButton>
                     </Box>
-                  </CardContent>
-                </Card>
+                    <CardContent sx={{ flexGrow: 1, pt: 2, px: 3 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>{item.name}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{item.description}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#3ACA82' }}>
+                          {formatCurrency(item.price)}
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          disableElevation
+                          startIcon={<ShoppingCartIcon />}
+                          onClick={() => handleAddToCart(item.item_id)}
+                          disabled={item.lowStock || availability === 'Busy'} // Always disable if lowStock
+                          sx={{ 
+                            borderRadius: '24px',
+                            px: 2,
+                            backgroundColor: item.lowStock || availability === 'Busy' ? '#e0e0e0' : '#3ACA82',
+                            color: item.lowStock || availability === 'Busy' ? '#9e9e9e' : '#fff',
+                            '&:hover': {
+                              backgroundColor: item.lowStock || availability === 'Busy' ? '#e0e0e0' : alpha('#3ACA82', 0.8),
+                            },
+                          }}
+                        >
+                          {item.lowStock || availability === 'Busy' ? 'Unavailable' : 'Add'}
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))
+            ) : (
+              <Grid item xs={12}>
+                <Box sx={{ 
+                  py: 8,
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  bgcolor: 'rgba(58, 202, 130, 0.05)',
+                  borderRadius: 4,
+                  minHeight: 300,
+                }}>
+                  <Typography variant="h1" sx={{ fontSize: '5rem', mb: 2 }}>
+                    {emptyCategoryContent[selectedCategory]?.icon}
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+                    No items available in this category
+                  </Typography>
+                  <Typography variant="body1" sx={{ 
+                    fontStyle: 'italic',
+                    color: 'text.secondary',
+                    maxWidth: '80%',
+                    mb: 3
+                  }}>
+                    "{emptyCategoryContent[selectedCategory]?.quote}"
+                  </Typography>
+                  <Button 
+                    variant="outlined"
+                    onClick={() => setSelectedCategory('Main-Dishes')}
+                    sx={{
+                      borderColor: '#3ACA82',
+                      color: '#3ACA82',
+                      borderRadius: 2,
+                      '&:hover': {
+                        backgroundColor: 'rgba(58, 202, 130, 0.05)',
+                        borderColor: '#3ACA82',
+                      }
+                    }}
+                  >
+                    Browse Main Dishes
+                  </Button>
+                </Box>
               </Grid>
-            ))}
+            )}
           </Grid>
         </Container>
 
@@ -733,7 +823,7 @@ const Menu = () => {
                               </Typography>
                               <IconButton 
                                 size="small" 
-                                color="error" 
+                                color="error"  
                                 onClick={() => handleRemoveFromCart(item.item_id)}
                                 sx={{ 
                                   p: 0.5, 
@@ -758,7 +848,7 @@ const Menu = () => {
                                 overflow: 'hidden'
                               }}>
                                 <IconButton 
-                                  size="small"
+                                  size="small" 
                                   onClick={() => handleQuantityChange(item.item_id, item.quantity - 1)}
                                   disabled={item.quantity <= 1}
                                   sx={{ 
@@ -1201,7 +1291,7 @@ const Menu = () => {
                           backgroundColor: item.lowStock ? '#e0e0e0' : '#3ACA82', // Greyed out if low stock
                           color: item.lowStock ? '#9e9e9e' : '#fff', // Adjust text color
                           '&:hover': {
-                            backgroundColor: item.lowStock
+                            backgroundColor: item.lowStock 
                               ? '#e0e0e0'
                               : alpha('#3ACA82', 0.8),
                             boxShadow: item.lowStock

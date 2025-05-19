@@ -27,11 +27,13 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import yummyYard from '../assets/YummyYard_logo.png';
+import { useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
   
   const [user, setUser] = useState(null);
   const [deleteRequest, setDeleteRequest] = useState(false);
@@ -86,6 +88,67 @@ const Navbar = () => {
     };
   }, []);
 
+  // --- Order status notification state ---
+  const [orderStatusChanged, setOrderStatusChanged] = useState(false);
+  const [lastOrderStatuses, setLastOrderStatuses] = useState({});
+
+  // --- Poll for order status changes ---
+  useEffect(() => {
+    const checkOrderStatusChanges = async () => {
+      const token = localStorage.getItem('token');
+      if (!token || !user) return;
+
+      try {
+        const response = await fetch('http://localhost:5000/api/orders/history', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const orders = await response.json();
+          // Deduplicate by order_id
+          const uniqueOrders = [];
+          const seen = new Set();
+          for (const order of orders) {
+            if (!seen.has(order.order_id)) {
+              uniqueOrders.push(order);
+              seen.add(order.order_id);
+            }
+          }
+          // Compare statuses
+          const newOrderStatuses = {};
+          let statusChanged = false;
+          uniqueOrders.forEach(order => {
+            newOrderStatuses[order.order_id] = order.status;
+            if (
+              lastOrderStatuses[order.order_id] &&
+              lastOrderStatuses[order.order_id] !== order.status
+            ) {
+              statusChanged = true;
+            }
+          });
+          if (statusChanged) {
+            setOrderStatusChanged(true);
+            setTimeout(() => setOrderStatusChanged(false), 60000); // auto-clear after 1 min
+          }
+          setLastOrderStatuses(newOrderStatuses);
+        }
+      } catch (e) {
+        // ignore errors
+      }
+    };
+    if (user) {
+      checkOrderStatusChanges();
+      const interval = setInterval(checkOrderStatusChanges, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]); // Only depend on user, NOT lastOrderStatuses
+
+  // Clear notification when visiting order history
+  useEffect(() => {
+    if (location.pathname === '/orderhistory') {
+      setOrderStatusChanged(false);
+    }
+  }, [location]);
+
   // Navigation handlers
   const handleNavigation = (route) => {
     navigate(route);
@@ -125,9 +188,44 @@ const Navbar = () => {
         </IconButton>
       </Tooltip>
       <Tooltip title="Orders" placement="bottom">
-        <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
-          <ListAltIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
-        </IconButton>
+        <Box sx={{ position: 'relative' }}>
+          <IconButton color="inherit" onClick={() => handleNavigation('/orderhistory')}>
+            <ListAltIcon sx={{ fontSize: isMobile ? 24 : 40, color: '#fff' }} />
+          </IconButton>
+          {orderStatusChanged && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -2,
+                right: -2,
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle at 40% 40%, #4CAF50 60%, #fff 100%)',
+                border: '2px solid #fff',
+                boxShadow: '0 0 8px 2px #4CAF50, 0 0 0 4px rgba(76, 175, 80, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 2,
+                animation: 'ping 1.2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                '@keyframes ping': {
+                  '0%': { boxShadow: '0 0 8px 2px #4CAF50, 0 0 0 4px rgba(76, 175, 80, 0.2)' },
+                  '70%': { boxShadow: '0 0 16px 8px #4CAF50, 0 0 0 16px rgba(76, 175, 80, 0.1)' },
+                  '100%': { boxShadow: '0 0 8px 2px #4CAF50, 0 0 0 4px rgba(76, 175, 80, 0.2)' },
+                }
+              }}
+            >
+              <span style={{
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: 10,
+                lineHeight: 1,
+                textShadow: '0 0 2px #4CAF50',
+              }}>!</span>
+            </Box>
+          )}
+        </Box>
       </Tooltip>
       {/* {user && (
         <Tooltip title="Dashboard" placement="bottom">
@@ -201,7 +299,28 @@ const Navbar = () => {
         <ListItemText primary="Menu" />
       </ListItem>
       <ListItem onClick={() => handleNavigation('/orderhistory')}>
-        <ListItemIcon><ListAltIcon /></ListItemIcon>
+        <ListItemIcon sx={{ position: 'relative' }}>
+          <ListAltIcon />
+          {orderStatusChanged && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 2,
+                right: 2,
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                backgroundColor: '#4CAF50',
+                animation: 'pulse 1.5s infinite',
+                '@keyframes pulse': {
+                  '0%': { boxShadow: '0 0 0 0 rgba(76, 175, 80, 0.7)' },
+                  '70%': { boxShadow: '0 0 0 10px rgba(76, 175, 80, 0)' },
+                  '100%': { boxShadow: '0 0 0 0 rgba(76, 175, 80, 0)' },
+                }
+              }}
+            />
+          )}
+        </ListItemIcon>
         <ListItemText primary="Orders" />
       </ListItem>
       {/* {user && (
