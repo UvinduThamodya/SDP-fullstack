@@ -125,7 +125,28 @@ const updateStaffProfile = async (req, res) => {
   }
 };
 
+const getPendingOrders = async (req, res) => {
+  try {
+    const [orders] = await db.query(
+      `SELECT o.order_id, o.customer_id, o.order_date, 
+              o.total_amount, o.status, o.note, 
+              c.name as customer_name, c.phone as customer_phone
+       FROM Orders o
+       LEFT JOIN Customers c ON o.customer_id = c.customer_id
+       WHERE o.status = 'Pending'
+       ORDER BY o.order_date DESC`
+    );
+    
+    // Get order items for each order
+    // ...rest of your code
+    
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching pending orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+};
 
 // Add other staff controller functions as needed
 
-module.exports = { staffLogin, registerStaff, getStaffProfile, updateStaffProfile };
+module.exports = { staffLogin, registerStaff, getStaffProfile, updateStaffProfile, getPendingOrders };

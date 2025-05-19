@@ -6,7 +6,7 @@ import {
   Box, Container, Typography, Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Button, Chip, Snackbar, Alert, Dialog, 
   DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl,
-  InputLabel, Divider, Grid, Card, CardContent
+  InputLabel, Divider, Grid, Card, CardContent, Tooltip
 } from '@mui/material';
 import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
 import SidebarStaff from '../../components/SidebarStaff';
@@ -197,6 +197,12 @@ export default function StaffDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default to hidden for mobile view
   const [availability, setAvailability] = useState('Accepting');
   const socketRef = useRef(null);
+  // Add new state for the note popup
+  const [notePopup, setNotePopup] = useState({
+    open: false,
+    note: '',
+    orderId: null
+  });
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -391,7 +397,13 @@ export default function StaffDashboard() {
     try {
       const response = await apiService.getAllOrders();
       console.log('Fetched orders:', response);
-      setOrders(response.orders); // Access the actual array
+      
+      // Add this debug to check if notes are included in the API response
+      if (response.orders && response.orders.length > 0) {
+        console.log('Sample order note:', response.orders[0].note);
+      }
+      
+      setOrders(response.orders);
     } catch (error) {
       setNotification({ open: true, message: 'Failed to fetch orders', severity: 'error' });
     }
@@ -463,6 +475,24 @@ export default function StaffDashboard() {
   const uniqueOrders = todayOrders.filter((order, index, self) =>
     index === self.findIndex((o) => o.order_id === order.order_id)
   );
+
+  // Add new function to handle opening the note popup
+  const handleOpenNotePopup = (note, orderId) => {
+    setNotePopup({
+      open: true,
+      note,
+      orderId
+    });
+  };
+
+  // Add function to close the note popup
+  const handleCloseNotePopup = () => {
+    setNotePopup({
+      open: false,
+      note: '',
+      orderId: null
+    });
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -632,13 +662,14 @@ export default function StaffDashboard() {
                       <TableCell>Customer/Staff</TableCell>
                       <TableCell>Status</TableCell>
                       <TableCell>Amount</TableCell>
+                      <TableCell>Note</TableCell> {/* Add explicit column header for notes */}
                       <TableCell align="center">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {uniqueOrders.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                        <TableCell colSpan={7} align="center" sx={{ py: 3 }}> {/* Update colspan to 7 */}
                           <Typography color="textSecondary">No orders available</Typography>
                         </TableCell>
                       </TableRow>
@@ -656,6 +687,35 @@ export default function StaffDashboard() {
                             />
                           </TableCell>
                           <TableCell sx={{ fontWeight: 500 }}>{formatCurrency(order.total_amount)}</TableCell>
+                          <TableCell> {/* Note cell */}
+                            {order.note ? (
+                              <Button
+                                variant="text"
+                                onClick={() => handleOpenNotePopup(order.note, order.order_id)}
+                                sx={{ 
+                                  p: 1, 
+                                  bgcolor: 'rgba(58, 202, 130, 0.08)', 
+                                  borderRadius: 1,
+                                  maxWidth: 150,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  justifyContent: 'flex-start',
+                                  textTransform: 'none',
+                                  fontWeight: 'normal',
+                                  '&:hover': {
+                                    bgcolor: 'rgba(58, 202, 130, 0.15)',
+                                  }
+                                }}
+                              >
+                                {order.note}
+                              </Button>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                No note
+                              </Typography>
+                            )}
+                          </TableCell>
                           <TableCell align="center">
                             <ActionButton 
                               variant="outlined" 
@@ -720,6 +780,43 @@ export default function StaffDashboard() {
                     ))}
                   </Select>
                 </FormControl>
+
+                {/* Order note - enhanced visibility */}
+                {selectedOrder?.note && (
+                  <Box sx={{ 
+                    mt: 3, 
+                    p: 2, 
+                    bgcolor: 'rgba(58, 202, 130, 0.1)', 
+                    borderRadius: 2,
+                    border: '2px solid rgba(58, 202, 130, 0.5)',
+                    boxShadow: '0 2px 8px rgba(58, 202, 130, 0.15)'
+                  }}>
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 700, 
+                      mb: 1,
+                      color: '#2a8e5d',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}>
+                      <span style={{ 
+                        display: 'inline-block',
+                        width: '8px',
+                        height: '8px',
+                        backgroundColor: '#3ACA82',
+                        borderRadius: '50%',
+                        marginRight: '8px'
+                      }}></span>
+                      Customer Note:
+                    </Typography>
+                    <Typography variant="body1" sx={{ 
+                      fontWeight: 500,
+                      fontSize: '1.05rem',
+                      color: '#333'
+                    }}>
+                      {selectedOrder.note}
+                    </Typography>
+                  </Box>
+                )}
               </DialogContent>
               <DialogActions sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
                 <Button onClick={() => setStatusDialog(false)}>
@@ -733,6 +830,69 @@ export default function StaffDashboard() {
                   Update
                 </Button>
               </DialogActions>
+            </Dialog>
+
+            {/* Note Popup Dialog */}
+            <Dialog
+              open={notePopup.open}
+              onClose={handleCloseNotePopup}
+              PaperProps={{
+                sx: {
+                  borderRadius: 2,
+                  width: { xs: '90%', sm: '500px' },
+                  maxWidth: '100%',
+                  overflow: 'hidden'
+                }
+              }}
+            >
+              <Box sx={{ 
+                bgcolor: '#3ACA82', 
+                color: 'white',
+                py: 2,
+                px: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Customer Note - Order #{notePopup.orderId}
+                </Typography>
+                <Button 
+                  onClick={handleCloseNotePopup}
+                  sx={{ color: 'white', minWidth: 'auto', p: 1 }}
+                >
+                  ✕
+                </Button>
+              </Box>
+              <Box sx={{ 
+                p: 3,
+                backgroundColor: 'rgba(58, 202, 130, 0.05)',
+                borderLeft: '4px solid #3ACA82',
+                m: 3,
+                borderRadius: 1,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+              }}>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    fontSize: '1.1rem',
+                    fontWeight: 500,
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap'
+                  }}
+                >
+                  {notePopup.note}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #e0e0e0' }}>
+                <Button
+                  variant="contained"
+                  onClick={handleCloseNotePopup}
+                  sx={{ minWidth: 100 }}
+                >
+                  Close
+                </Button>
+              </Box>
             </Dialog>
 
             {/* Notification Snackbar */}

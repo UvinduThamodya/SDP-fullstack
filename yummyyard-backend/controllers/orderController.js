@@ -12,7 +12,7 @@ const createOrder = async (req, res) => {
     const userRole = req.user.role;
     const userId = req.user.id;
     console.log('createOrder - user:', req.user); // Debug log
-    const { items, payment } = req.body;
+    const { items, payment, note } = req.body;
 
     // 2. Validate input
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -34,15 +34,20 @@ const createOrder = async (req, res) => {
 
     console.log('createOrder - isCustomer:', isCustomer, 'userId:', userId);
 
+    // Calculate total amount
+    const totalAmount = items.reduce((total, item) => 
+      total + (item.price * item.quantity), 0);
+
     const [orderResult] = await connection.query(
       `INSERT INTO Orders 
-      (customer_id, staff_id, total_amount, status) 
-      VALUES (?, ?, ?, ?)`,
+      (customer_id, staff_id, total_amount, status, note) 
+      VALUES (?, ?, ?, ?, ?)`,
       [
         isCustomer ? userId : null,
         (isStaff || isAdmin) ? userId : null,
-        payment.amount,
-        'Pending'
+        totalAmount,
+        'Pending',
+        note || null
       ]
     );
     const orderId = orderResult.insertId;
@@ -384,7 +389,7 @@ const updateOrderStatus = async (req, res) => {
 // Get all orders
 const getAllOrders = async (req, res) => {
   try {
-    // Fetch all orders with customer and staff details
+    console.log('Getting all orders...');
     const [orders] = await db.query(`
       SELECT o.*, c.name AS customer_name, s.name AS staff_name
       FROM Orders o
@@ -393,6 +398,11 @@ const getAllOrders = async (req, res) => {
       ORDER BY o.order_date DESC
     `);
 
+    // Debug log each order's note
+    orders.forEach((order, index) => {
+      console.log(`Order #${order.order_id} note: "${order.note}"`);
+    });
+    
     res.json({ orders });
   } catch (error) {
     console.error('Error fetching all orders:', error);

@@ -107,6 +107,7 @@ const Menu = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [recommendationDialogOpen, setRecommendationDialogOpen] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [orderNote, setOrderNote] = useState('');
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -157,6 +158,7 @@ const Menu = () => {
       const orderData = {
         items: orderItems,
         payment: paymentData,
+        note: orderNote // Include the note
       };
 
       await apiService.createOrder(orderData);
@@ -233,7 +235,7 @@ const Menu = () => {
     }
   };
 
-  function CardPaymentForm({ calculateTotal, setPaymentDialogOpen, setNotification }) {
+  function CardPaymentForm({ calculateTotal, setPaymentDialogOpen, setNotification,orderNote}) {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -331,6 +333,7 @@ const Menu = () => {
                     amount: calculateTotal(),
                     stripeToken: result.paymentIntent.id,
                   },
+                  note: orderNote
                 };
                 try {
                   await apiService.createOrder(orderData);
@@ -1086,6 +1089,7 @@ const Menu = () => {
                 handlePayment={handlePayment}
                 setPaymentDialogOpen={setPaymentDialogOpen}
                 setNotification={setNotification}
+                 orderNote={orderNote}
               />
             </Elements>
           </DialogContent>
@@ -1212,6 +1216,25 @@ const Menu = () => {
                   </Grid>
                 ))}
               </Grid>
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                  Add a note to your order (optional)
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Special instructions, allergies, preferences..."
+                  value={orderNote}
+                  onChange={(e) => setOrderNote(e.target.value)}
+                  variant="outlined"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    }
+                  }}
+                />
+              </Box>
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
