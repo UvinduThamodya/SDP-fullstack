@@ -13,6 +13,8 @@ router.get('/history', authenticateUser, orderController.getCustomerOrders);
 
 router.get('/all', authenticateUser, orderController.getAllOrders);
 
+router.get('/all-with-details', authenticateUser, orderController.getAllOrdersWithDetails);
+
 router.get('/report', authenticateUser, orderController.generateOrderReport);
 // Get details for a specific order
 router.get('/:orderId', authenticateUser, orderController.getOrderDetails);

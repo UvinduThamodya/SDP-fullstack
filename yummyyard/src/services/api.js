@@ -162,6 +162,20 @@ const apiService = {
       throw new Error(error.response?.data?.message || 'Failed to fetch orders');
     }
   },
+  
+  // Get all orders with detailed information (including menu items)
+  getAllOrdersWithDetails: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/orders/all-with-details`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all orders with details:', error);
+      throw error;
+    }
+  },
 
   // Admin functions
   loginAdmin: async (credentials) => {

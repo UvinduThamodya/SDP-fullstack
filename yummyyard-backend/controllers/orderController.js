@@ -482,6 +482,42 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+// Get all orders with detailed information including menu items
+const getAllOrdersWithDetails = async (req, res) => {
+  try {
+    console.log('Getting all orders with details...');
+    
+    // First, get all orders
+    const [orders] = await db.query(`
+      SELECT o.*, c.name AS customer_name, s.name AS staff_name
+      FROM Orders o
+      LEFT JOIN Customers c ON o.customer_id = c.customer_id
+      LEFT JOIN Employees s ON o.staff_id = s.employee_id
+      ORDER BY o.order_date DESC
+    `);
+    
+    // For each order, get its menu items
+    const ordersWithItems = await Promise.all(orders.map(async (order) => {
+      const [menuItems] = await db.query(`
+        SELECT oi.*, m.name, m.price, m.description, m.category
+        FROM OrderItems oi
+        JOIN MenuItems m ON oi.item_id = m.item_id
+        WHERE oi.order_id = ?
+      `, [order.order_id]);
+      
+      return {
+        ...order,
+        menuItems
+      };
+    }));
+    
+    res.json({ orders: ordersWithItems });
+  } catch (error) {
+    console.error('Error fetching all orders with details:', error);
+    res.status(500).json({ error: 'Failed to fetch orders with details' });
+  }
+};
+
 const generateOrderReport = async (req, res) => {
   try {
     // Fetch all orders with customer/staff info
@@ -629,6 +665,7 @@ module.exports = {
   getOrderDetails,
   generateOrderReceipt,
   getAllOrders,
+  getAllOrdersWithDetails,
   generateOrderReport,
   updateOrderStatus,
   refundOrder

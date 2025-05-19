@@ -136,6 +136,29 @@ const ActionButton = styled(Button)(({ theme, color }) => ({
   }
 }));
 
+const MenuItemChip = styled(Chip)(({ theme }) => ({
+  margin: theme.spacing(0.5),
+  backgroundColor: theme.palette.primary.light,
+  color: 'white',
+  fontWeight: 500,
+  '&:hover': {
+    backgroundColor: theme.palette.primary.main,
+  }
+}));
+
+const OrderDetailsContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1.5),
+  backgroundColor: '#f8f9fa',
+  borderRadius: theme.shape.borderRadius,
+  border: '1px solid #e0e0e0',
+  maxHeight: '120px',
+  overflowY: 'auto',
+  '&:hover': {
+    borderColor: theme.palette.primary.main,
+    boxShadow: '0 0 0 1px rgba(58, 202, 130, 0.2)',
+  }
+}));
+
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
@@ -248,7 +271,7 @@ export default function StaffDashboard() {
   const showNewOrderAlert = (orderData) => {
     Swal.fire({
       title: 'New Order Request!',
-      text: `New order placed with ${orderData.items ? orderData.items.length : 0} items. Total: ${formatCurrency(orderData.totalAmount || orderData.total_amount)}`,
+      text: `New order placed to the system.}`,
       icon: 'info',
       showCancelButton: true,
       confirmButtonText: 'Accept',
@@ -392,20 +415,28 @@ export default function StaffDashboard() {
     });
     // No need to set state here, will update via socket
   };
-
   const fetchOrders = async () => {
     try {
-      const response = await apiService.getAllOrders();
-      console.log('Fetched orders:', response);
+      const response = await apiService.getAllOrdersWithDetails();
+      console.log('Fetched orders with details:', response);
       
-      // Add this debug to check if notes are included in the API response
+      // Add this debug to check if notes and menu items are included in the API response
       if (response.orders && response.orders.length > 0) {
         console.log('Sample order note:', response.orders[0].note);
+        console.log('Sample order menu items:', response.orders[0].menuItems);
       }
       
       setOrders(response.orders);
     } catch (error) {
-      setNotification({ open: true, message: 'Failed to fetch orders', severity: 'error' });
+      console.error('Error fetching orders with details:', error);
+      // Fallback to the old method if the new endpoint fails
+      try {
+        const fallbackResponse = await apiService.getAllOrders();
+        console.log('Fallback to basic orders:', fallbackResponse);
+        setOrders(fallbackResponse.orders);
+      } catch (fallbackError) {
+        setNotification({ open: true, message: 'Failed to fetch orders', severity: 'error' });
+      }
     }
   };
 
@@ -652,8 +683,7 @@ export default function StaffDashboard() {
               </Box>
               
               <Divider sx={{ mb: 2 }} />
-              
-              <ResponsiveTableContainer>
+                <ResponsiveTableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -661,15 +691,16 @@ export default function StaffDashboard() {
                       <TableCell>Date</TableCell>
                       <TableCell>Customer/Staff</TableCell>
                       <TableCell>Status</TableCell>
+                      <TableCell>Details</TableCell>
                       <TableCell>Amount</TableCell>
-                      <TableCell>Note</TableCell> {/* Add explicit column header for notes */}
+                      <TableCell>Note</TableCell>
                       <TableCell align="center">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {uniqueOrders.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} align="center" sx={{ py: 3 }}> {/* Update colspan to 7 */}
+                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
                           <Typography color="textSecondary">No orders available</Typography>
                         </TableCell>
                       </TableRow>
@@ -686,7 +717,50 @@ export default function StaffDashboard() {
                               size="small"
                             />
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 500 }}>{formatCurrency(order.total_amount)}</TableCell>
+                          <TableCell>
+                            {order.menuItems && order.menuItems.length > 0 ? (
+                              <Box sx={{ maxWidth: 300 }}>
+                                <Typography variant="body2" fontWeight={600} mb={0.5}>
+                                  Menu Items:
+                                </Typography>
+                                <Box 
+                                  sx={{ 
+                                    display: 'flex', 
+                                    flexWrap: 'wrap', 
+                                    gap: 0.5,
+                                    maxHeight: '100px',
+                                    overflowY: 'auto',
+                                    p: 1,
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: 1,
+                                    backgroundColor: '#f9f9f9'
+                                  }}
+                                >
+                                  {order.menuItems.map((item, idx) => (
+                                    <Chip
+                                      key={idx}
+                                      label={`${item.name} x${item.quantity}`}
+                                      size="small"
+                                      sx={{ 
+                                        fontSize: '0.7rem',
+                                        backgroundColor: '#3ACA82',
+                                        color: 'white',
+                                        fontWeight: 500,
+                                        '& .MuiChip-label': { px: 1 }
+                                      }}
+                                    />
+                                  ))}
+                                </Box>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                No details available
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: '1rem', color: theme.palette.primary.main }}>
+                            {formatCurrency(order.total_amount)}
+                          </TableCell>
                           <TableCell> {/* Note cell */}
                             {order.note ? (
                               <Button
@@ -752,14 +826,74 @@ export default function StaffDashboard() {
                 fontWeight: 600
               }}>
                 Change Order Status
-              </DialogTitle>
-              <DialogContent sx={{ pt: 3, pb: 1 }}>
+              </DialogTitle>              <DialogContent sx={{ pt: 3, pb: 1 }}>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500 }}>
                   Order #{selectedOrder?.order_id}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
                   {selectedOrder && new Date(selectedOrder.order_date).toLocaleString()}
                 </Typography>
+                
+                {/* Order menu items - enhanced visibility */}
+                {selectedOrder?.menuItems && selectedOrder.menuItems.length > 0 && (
+                  <Box sx={{ 
+                    mt: 2, 
+                    p: 2, 
+                    bgcolor: '#f5f5f5', 
+                    borderRadius: 2,
+                    border: '1px solid #e0e0e0',
+                    mb: 3
+                  }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
+                      Order Items:
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {selectedOrder.menuItems.map((item, idx) => (
+                        <Box key={idx} sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between',
+                          p: 1,
+                          borderBottom: idx < selectedOrder.menuItems.length - 1 ? '1px solid #e0e0e0' : 'none'
+                        }}>
+                          <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                              {item.name}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {item.description ? item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '') : 'No description'}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                              x{item.quantity}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: theme.palette.primary.main, fontWeight: 500 }}>
+                              {formatCurrency(item.price)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                    <Box sx={{ 
+                      mt: 2, 
+                      pt: 1, 
+                      borderTop: '2px solid #e0e0e0', 
+                      display: 'flex', 
+                      justifyContent: 'flex-end',
+                      alignItems: 'center'
+                    }}>
+                      <Typography variant="subtitle1" sx={{ mr: 1 }}>
+                        Total:
+                      </Typography>
+                      <Typography variant="h6" sx={{ 
+                        fontWeight: 600, 
+                        color: theme.palette.primary.main 
+                      }}>
+                        {formatCurrency(selectedOrder.total_amount)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
                 
                 <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
                   <InputLabel id="status-select-label">Status</InputLabel>
