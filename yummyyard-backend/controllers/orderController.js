@@ -2,6 +2,7 @@ const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 const PDFDocument = require('pdfkit');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51RBXHE2eTzT1rj33NZDSBXcmGdYj7H24AfORJbzIzyidDs09GHjHCTo5m48nzc1JwR4oxRIuFciKgN3IXbezWiBJ00mY7yDQ01');
+const emailService = require('../services/emailService');
 
 const createOrder = async (req, res) => {
   const connection = await db.getConnection();
@@ -97,9 +98,7 @@ const createOrder = async (req, res) => {
           [cartResult[0].cart_id]
         );
       }
-    }
-
-    await connection.commit();
+    }    await connection.commit();
 
     // 8. Emit real-time event for staff dashboard (Socket.IO)
     try {
@@ -110,6 +109,46 @@ const createOrder = async (req, res) => {
     } catch (emitError) {
       // Log but don't block order creation if emit fails
       console.error('Socket emit error:', emitError);
+    }
+
+    // 9. Send order confirmation email for customer orders
+    if (isCustomer) {
+      try {
+        // Get customer email
+        const [customerResult] = await db.query('SELECT email FROM Customers WHERE customer_id = ?', [userId]);
+        if (customerResult.length > 0) {
+          // Get order items with names for the email
+          const [orderItemsWithNames] = await db.query(`
+            SELECT oi.*, mi.name as item_name 
+            FROM OrderItems oi
+            JOIN MenuItems mi ON oi.item_id = mi.item_id
+            WHERE oi.order_id = ?
+          `, [orderId]);
+          
+          // Format order data for email
+          const orderForEmail = {
+            order_id: orderId,
+            customer_id: userId,
+            customer_name: req.user.name,
+            email: customerResult[0].email,
+            order_date: new Date(),
+            total_amount: totalAmount,
+            status: 'Pending',
+            items: orderItemsWithNames.map(item => ({
+              item_name: item.item_name,
+              quantity: item.quantity,
+              price: item.subtotal / item.quantity
+            }))
+          };
+          
+          // Send confirmation email
+          await emailService.sendOrderEmail(customerResult[0].email, 'accepted', orderForEmail);
+          console.log(`Order confirmation email sent for Order #${orderId}`);
+        }
+      } catch (emailError) {
+        // Log but don't block order creation if email fails
+        console.error('Error sending order confirmation email:', emailError);
+      }
     }
 
     res.status(201).json({
@@ -369,12 +408,47 @@ const updateOrderStatus = async (req, res) => {
     // Update order in the database
     await db.query('UPDATE Orders SET status = ? WHERE order_id = ?', [status, orderId]);
 
-    // Fetch the updated order
-    const [orderRows] = await db.query('SELECT * FROM Orders WHERE order_id = ?', [orderId]);
+    // Fetch the updated order with customer details and items
+    const [orderRows] = await db.query(`
+      SELECT o.*, c.name AS customer_name, c.email AS customer_email 
+      FROM Orders o
+      LEFT JOIN Customers c ON o.customer_id = c.customer_id
+      WHERE o.order_id = ?
+    `, [orderId]);
+    
     if (!orderRows.length) {
       return res.status(404).json({ error: 'Order not found' });
     }
     const updatedOrder = orderRows[0];
+
+    // Get order items to include in the email
+    const [orderItems] = await db.query(`
+      SELECT oi.*, mi.name as item_name 
+      FROM OrderItems oi
+      JOIN MenuItems mi ON oi.item_id = mi.item_id
+      WHERE oi.order_id = ?
+    `, [orderId]);
+
+    // Prepare order data for the email
+    const orderData = {
+      ...updatedOrder,
+      items: orderItems.map(item => ({
+        item_name: item.item_name,
+        quantity: item.quantity,
+        price: item.subtotal / item.quantity
+      }))
+    };
+
+    // Send email notification based on the new status
+    if (['Accepted', 'Completed', 'Cancelled'].includes(status)) {
+      try {
+        await emailService.notifyOrderStatusChange(orderData, status);
+        console.log(`Email notification sent for Order #${orderId} - Status: ${status}`);
+      } catch (emailError) {
+        // Log the error but don't fail the status update
+        console.error('Failed to send email notification:', emailError);
+      }
+    }
 
     // Emit event to all staff dashboards
     req.app.get('io').emit('orderUpdated', updatedOrder);

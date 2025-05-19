@@ -7,28 +7,33 @@ dotenv.config();
 
 // Sample order data for testing
 const testOrderData = {
-  customerName: 'Test Customer',
-  orderId: 'TEST-12345',
-  orderItems: [
+  order_id: 115,
+  customer_name: "Uvindu",
+  customer_id: 1,
+  order_date: "2025-05-19T14:18:28.000Z",
+  status: "Pending", 
+  total_amount: "1830.00",
+  staff_id: null,
+  staff_name: null,
+  note: null,
+  // Sample items - in a real scenario, you would fetch these from the database
+  items: [
     { 
-      name: 'Chicken Kottu', 
+      item_name: 'Chicken Kottu', 
       quantity: 2, 
-      price: 12.99 
+      price: 650 
     },
     { 
-      name: 'Egg Fried Rice', 
+      item_name: 'Egg Fried Rice', 
       quantity: 1, 
-      price: 9.99 
+      price: 450 
     },
     { 
-      name: 'Coca Cola', 
-      quantity: 3, 
-      price: 2.49 
+      item_name: 'Coca Cola', 
+      quantity: 2, 
+      price: 40
     }
-  ],
-  total: 43.44, // 2*12.99 + 1*9.99 + 3*2.49
-  orderDate: new Date(),
-  estimatedDeliveryTime: '30-45 minutes'
+  ]
 };
 
 // Email to send the test to - replace with your own email for testing

@@ -23,9 +23,18 @@ class EmailService {  constructor() {
    * @param {string} type - Type of email (completed, accepted, rejected)
    * @param {object} orderData - Order information
    * @returns {string} HTML content for the email
-   */
-  generateEmailTemplate(type, orderData) {
-    const { customerName, orderId, orderItems, total, orderDate, estimatedDeliveryTime } = orderData;
+   */  generateEmailTemplate(type, orderData) {    // Extract data with fallback values for missing fields
+    const {
+      order_id: orderId = orderData.orderId,
+      customer_name: customerName = orderData.customerName,
+      order_date: rawOrderDate = orderData.orderDate,
+      total_amount: total = orderData.total,
+      status = 'Pending',
+      items: orderItems = orderData.orderItems || []
+    } = orderData;
+    
+    // Format order date
+    const orderDate = rawOrderDate ? new Date(rawOrderDate) : new Date();
     
     // Common CSS styles for all email types
     const commonStyles = `
@@ -219,17 +228,20 @@ class EmailService {  constructor() {
           padding: 16px;
         }
       }
-    `;
+    `;      // Generate items HTML
+    const itemsHtml = orderItems && orderItems.length > 0 
+      ? orderItems.map(item => `
+        <tr>
+          <td>${item.name || item.item_name || 'Item'}</td>
+          <td>${item.quantity}</td>
+          <td>LKR ${(item.price || 0).toFixed(2)}</td>
+          <td>LKR ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="4" style="text-align: center; padding: 15px;">No items in this order</td></tr>`;
     
-    // Generate items HTML
-    const itemsHtml = orderItems.map(item => `
-      <tr>
-        <td>${item.name}</td>
-        <td>${item.quantity}</td>
-        <td>$${item.price.toFixed(2)}</td>
-        <td>$${(item.price * item.quantity).toFixed(2)}</td>
-      </tr>
-    `).join('');
+    // Format total amount
+    const formattedTotal = typeof total === 'string' ? parseFloat(total) : (total || 0);
     
     // Content specific to each email type
     let specificContent = '';
@@ -268,11 +280,8 @@ class EmailService {  constructor() {
             <div class="icon-circle" style="background-color: #e8f5e9; color: #43a047;">🍽️</div>
           </div>
         `;
-        greeting = `Order #${orderId} Confirmed!`;
-        specificContent = `
+        greeting = `Order #${orderId} Confirmed!`;        specificContent = `
           <p class="message">Great news! Your order has been accepted and our chefs are preparing your delicious meal.</p>
-          
-          <p class="message">Estimated delivery time: <strong>${estimatedDeliveryTime}</strong></p>
         `;
         buttonHtml = `
           <div class="button-container">
@@ -335,12 +344,10 @@ class EmailService {  constructor() {
               ${iconHtml}
               <h2 class="greeting">${greeting}</h2>
               
-              ${specificContent}
-              
-              <div class="order-details">
+              ${specificContent}                <div class="order-details">
                 <h3>Order Details</h3>
                 <p>Order ID: <span class="order-id">${orderId}</span></p>
-                <p>Order Date: ${new Date(orderDate).toLocaleString()}</p>
+                <p>Order Date: ${orderDate.toLocaleString()}</p>
                 
                 <table class="item-list">
                   <thead>
@@ -355,7 +362,7 @@ class EmailService {  constructor() {
                     ${itemsHtml}
                     <tr class="total-row">
                       <td colspan="3">Total</td>
-                      <td>$${total.toFixed(2)}</td>
+                      <td>LKR ${formattedTotal.toFixed(2)}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -392,26 +399,38 @@ class EmailService {  constructor() {
    * @param {string} emailType - Type of email (completed, accepted, rejected)
    * @param {object} orderData - Order information
    * @returns {Promise<boolean>} True if email sent successfully, false otherwise
-   */
-  async sendOrderEmail(email, emailType, orderData) {
+   */  async sendOrderEmail(email, emailType, orderData) {
     try {
+      // If email is not provided but order data has customer email, use that
+      if (!email && orderData.email) {
+        email = orderData.email;
+      }
+      
+      // Ensure we have a valid email to send to
+      if (!email) {
+        console.error('No email address provided for order notification');
+        return false;
+      }
+      
       // Validate email type
       if (!['completed', 'accepted', 'rejected'].includes(emailType)) {
         console.error('Invalid email type:', emailType);
         return false;
       }
       
-      // Generate subject line based on email type
+      // Get order ID from different possible sources in the order data
+      const orderId = orderData.order_id || orderData.orderId || 'Unknown';
+        // Generate subject line based on email type
       let subject;
       switch(emailType) {
         case 'completed':
-          subject = `YummyYard: Your Order #${orderData.orderId} Has Been Delivered!`;
+          subject = `YummyYard: Your Order #${orderId} Has Been Delivered!`;
           break;
         case 'accepted':
-          subject = `YummyYard: Your Order #${orderData.orderId} Has Been Confirmed!`;
+          subject = `YummyYard: Your Order #${orderId} Has Been Confirmed!`;
           break;
         case 'rejected':
-          subject = `YummyYard: Important Update About Your Order #${orderData.orderId}`;
+          subject = `YummyYard: Important Update About Your Order #${orderId}`;
           break;
       }
       
@@ -460,9 +479,60 @@ class EmailService {  constructor() {
    * @param {string} email - Customer email
    * @param {object} orderData - Order details
    * @returns {Promise<boolean>}
-   */
-  async sendRejectedOrderEmail(email, orderData) {
+   */  async sendRejectedOrderEmail(email, orderData) {
     return this.sendOrderEmail(email, 'rejected', orderData);
+  }
+
+  /**
+   * Send order status update email based on the new status
+   * @param {string} email - Customer email address
+   * @param {object} orderData - Order details 
+   * @param {string} newStatus - New order status
+   * @returns {Promise<boolean>}
+   */
+  async sendOrderStatusUpdateEmail(email, orderData, newStatus) {
+    // Map the order status to the email type
+    let emailType;
+    switch(newStatus.toLowerCase()) {
+      case 'accepted':
+        emailType = 'accepted';
+        break;
+      case 'completed':
+        emailType = 'completed';
+        break;
+      case 'cancelled':
+      case 'rejected':
+        emailType = 'rejected';
+        break;
+      default:
+        // No need to send email for other statuses
+        return false;
+    }
+    
+    return this.sendOrderEmail(email, emailType, orderData);
+  }
+    /**
+   * Notify customer about order status change
+   * This method should be called from orderController when status is updated
+   * @param {object} orderDetails - Order details including customer email and items
+   * @param {string} newStatus - The new order status
+   * @returns {Promise<boolean>}
+   */
+  async notifyOrderStatusChange(orderDetails, newStatus) {
+    try {
+      // Extract customer email from order details - check both formats
+      const customerEmail = orderDetails.email || orderDetails.customer_email || orderDetails.customerEmail;
+      
+      if (!customerEmail) {
+        console.error('Customer email not found in order details');
+        return false;
+      }
+      
+      return await this.sendOrderStatusUpdateEmail(customerEmail, orderDetails, newStatus);
+    } catch (error) {
+      console.error('Error notifying customer about order status change:', error);
+      return false;
+    }
   }
 }
 
