@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import Swal from 'sweetalert2';
 import {
   Box, Container, Typography, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Button, Chip, Snackbar, Alert, Dialog, 
+  TableContainer, TableHead, TableRow, Button, Chip, Snackbar, Alert, Dialog,
   DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl,
   InputLabel, Divider, Grid, Card, CardContent, Tooltip
 } from '@mui/material';
@@ -58,6 +58,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
+          
           borderRadius: 8,
           boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
         },
@@ -95,16 +96,16 @@ const theme = createTheme({
 const StatusChip = styled(Chip)(({ theme, status }) => ({
   fontFamily: 'Poppins, Arial, sans-serif',
   fontWeight: 500,
-  backgroundColor: 
+  backgroundColor:
     status === 'Completed' ? '#e8f5e9' :
-    status === 'Pending' ? '#fff3e0' :
-    status === 'Cancelled' ? '#ffebee' :
-    '#f5f5f5',
-  color: 
+      status === 'Pending' ? '#fff3e0' :
+        status === 'Cancelled' ? '#ffebee' :
+          '#f5f5f5',
+  color:
     status === 'Completed' ? theme.palette.status.completed :
-    status === 'Pending' ? theme.palette.status.pending :
-    status === 'Cancelled' ? theme.palette.status.cancelled :
-    '#616161',
+      status === 'Pending' ? theme.palette.status.pending :
+        status === 'Cancelled' ? theme.palette.status.cancelled :
+          '#616161',
 }));
 
 const PageHeader = styled(Box)(({ theme }) => ({
@@ -181,8 +182,11 @@ const getStatusColor = (status) => {
 const StyledContainer = styled(Container)(({ theme }) => ({
   marginTop: theme.spacing(4),
   marginBottom: theme.spacing(4),
+  maxWidth: '2600px', // Increase from default maxWidth
+  width: '95%', // Use percentage width for responsiveness
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(1),
+    width: '98%', // More width on small screens
   },
 }));
 
@@ -230,7 +234,7 @@ export default function StaffDashboard() {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
+
   // Daily stats counters
   const [dailyStats, setDailyStats] = useState({
     totalOrders: 0,
@@ -271,17 +275,14 @@ export default function StaffDashboard() {
   const showNewOrderAlert = (orderData) => {
     Swal.fire({
       title: 'New Order Request!',
-      text: `New order placed to the system.}`,
+      text: `New order placed to the system.`,
       icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Accept',
-      cancelButtonText: 'Review Details',
+      confirmButtonText: 'Ok',
       confirmButtonColor: '#3ACA82',
     }).then((result) => {
       if (result.isConfirmed) {
-        handleAcceptOrder(orderData);
-      } else {
-        // Optionally select or highlight this order in the table
+        // Optionally add any action you want to happen when Ok is clicked
+        fetchOrders(); // Refresh orders list to make sure it's up to date
       }
     });
   };
@@ -300,18 +301,18 @@ export default function StaffDashboard() {
       // Update in database
       apiService.updateOrderStatus(orderData.orderId || orderData.order_id, 'Accepted')
         .then(() => {
-          setNotification({ 
-            open: true, 
-            message: `Order #${orderData.orderId || orderData.order_id} accepted!`, 
-            severity: 'success' 
+          setNotification({
+            open: true,
+            message: `Order #${orderData.orderId || orderData.order_id} accepted!`,
+            severity: 'success'
           });
         })
         .catch(error => {
           console.error('Error accepting order:', error);
-          setNotification({ 
-            open: true, 
-            message: 'Failed to update order status', 
-            severity: 'error' 
+          setNotification({
+            open: true,
+            message: 'Failed to update order status',
+            severity: 'error'
           });
         });
 
@@ -360,19 +361,19 @@ export default function StaffDashboard() {
   useEffect(() => {
     // Socket.IO for backend events
     const socketIO = io(SOCKET_URL);
-  
+
     socketIO.on('orderCreated', (order) => {
       setOrders(prev => [order, ...prev]);
       setNotification({ open: true, message: `New order #${order.order_id} placed!`, severity: 'info' });
       // Only show alert for pending orders
       if (order.status === 'Pending') showNewOrderAlert(order);
     });
-  
+
     socketIO.on('orderUpdated', (order) => {
       setOrders(prev => prev.map(o => o.order_id === order.order_id ? order : o));
       setNotification({ open: true, message: `Order #${order.order_id} updated!`, severity: 'success' });
     });
-  
+
     // WebSocket for custom events (new order requests, status updates)
     const ws = new WebSocket('ws://localhost:5000/orders');
     ws.onmessage = (event) => {
@@ -381,15 +382,15 @@ export default function StaffDashboard() {
         showNewOrderAlert(data);
         fetchOrders();
       } else if (data.type === 'order_status_update') {
-        setOrders(prev => prev.map(order => 
-          order.order_id === data.orderId ? {...order, status: data.status} : order
+        setOrders(prev => prev.map(order =>
+          order.order_id === data.orderId ? { ...order, status: data.status } : order
         ));
       }
     };
-  
+
     // Initial fetch using apiService
     fetchOrders();
-  
+
     return () => {
       socketIO.disconnect();
       ws.close();
@@ -419,13 +420,13 @@ export default function StaffDashboard() {
     try {
       const response = await apiService.getAllOrdersWithDetails();
       console.log('Fetched orders with details:', response);
-      
+
       // Add this debug to check if notes and menu items are included in the API response
       if (response.orders && response.orders.length > 0) {
         console.log('Sample order note:', response.orders[0].note);
         console.log('Sample order menu items:', response.orders[0].menuItems);
       }
-      
+
       setOrders(response.orders);
     } catch (error) {
       console.error('Error fetching orders with details:', error);
@@ -467,17 +468,17 @@ export default function StaffDashboard() {
 
       setStatusDialog(false);
       setSelectedOrder(null);
-      setNotification({ 
-        open: true, 
-        message: `Order status updated to ${newStatus}!`, 
-        severity: 'success' 
+      setNotification({
+        open: true,
+        message: `Order status updated to ${newStatus}!`,
+        severity: 'success'
       });
     } catch (error) {
       console.error('Error updating status:', error);
-      setNotification({ 
-        open: true, 
-        message: 'Failed to update status', 
-        severity: 'error' 
+      setNotification({
+        open: true,
+        message: 'Failed to update status',
+        severity: 'error'
       });
     }
   };
@@ -533,7 +534,7 @@ export default function StaffDashboard() {
           sx={{
             display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
             position: { xs: 'fixed', sm: 'relative' },
-            zIndex: 1200,
+            zIndex: 100,
             height: '100vh',
             minHeight: '100vh',
             width: { xs: 220, sm: 'auto' },
@@ -578,39 +579,39 @@ export default function StaffDashboard() {
         </Button>
         <Box component="main" sx={{ flexGrow: 1, backgroundColor: '#f5f7fa', p: { xs: 2, sm: 3 }, width: '100%' }}>
           {/* Remove the "Show Menu" button */}
-          <StyledContainer maxWidth="lg">
+          <StyledContainer maxWidth="1400px">
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mb: 4 }}>
               <Button
-  variant={availability === 'Accepting' ? 'contained' : 'outlined'}
-  color="success"
-  size="large"
-  sx={{
-    px: 6,
-    py: 2,
-    fontSize: 22,
-    fontWeight: 700,
-    borderRadius: '24px' // Adjust this value as needed
-  }}
-  onClick={() => handleSetAvailability('Accepting')}
->
-  Accepting
-</Button>
+                variant={availability === 'Accepting' ? 'contained' : 'outlined'}
+                color="success"
+                size="large"
+                sx={{
+                  px: 6,
+                  py: 2,
+                  fontSize: 22,
+                  fontWeight: 700,
+                  borderRadius: '24px' // Adjust this value as needed
+                }}
+                onClick={() => handleSetAvailability('Accepting')}
+              >
+                Accepting
+              </Button>
 
               <Button
-  variant={availability === 'Busy' ? 'contained' : 'outlined'}
-  color="error"
-  size="large"
-  sx={{
-    px: 6,
-    py: 2,
-    fontSize: 22,
-    fontWeight: 700,
-    borderRadius: '24px' // Increase this value for more curveness
-  }}
-  onClick={() => handleSetAvailability('Busy')}
->
-  Busy
-</Button>
+                variant={availability === 'Busy' ? 'contained' : 'outlined'}
+                color="error"
+                size="large"
+                sx={{
+                  px: 6,
+                  py: 2,
+                  fontSize: 22,
+                  fontWeight: 700,
+                  borderRadius: '24px' // Increase this value for more curveness
+                }}
+                onClick={() => handleSetAvailability('Busy')}
+              >
+                Busy
+              </Button>
             </Box>
             <PageHeader>
               <DashboardIcon />
@@ -618,7 +619,7 @@ export default function StaffDashboard() {
                 Staff Dashboard
               </Typography>
             </PageHeader>
-            
+
             {/* Daily Stats Cards */}
             <ResponsiveGrid container spacing={3} sx={{ mb: 4 }}>
               {/* Total Orders */}
@@ -677,14 +678,18 @@ export default function StaffDashboard() {
                 </Card>
               </Grid>
             </ResponsiveGrid>
-            
-            <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+
+            <Paper sx={{
+              p: { xs: 2, sm: 3 },
+              width: '100%', // Ensure paper uses full container width
+              overflowX: 'auto' // Add horizontal scrolling for small screens
+            }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 0 } }}>
                   <ReceiptLongIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
                   <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem' } }}>All Orders</Typography>
                 </Box>
-                
+
                 <Button
                   variant="contained"
                   startIcon={<DownloadIcon />}
@@ -694,9 +699,9 @@ export default function StaffDashboard() {
                   Download Complete Order Report
                 </Button>
               </Box>
-              
+
               <Divider sx={{ mb: 2 }} />
-                <ResponsiveTableContainer>
+              <ResponsiveTableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -724,21 +729,21 @@ export default function StaffDashboard() {
                           <TableCell sx={{ fontWeight: 500 }}>{order.order_id}</TableCell>
                           <TableCell>{new Date(order.order_date).toLocaleString()}</TableCell>
                           <TableCell>
-                            {order.customer_name 
-                              ? order.customer_name 
-                              : order.staff_name 
-                                ? order.staff_name 
+                            {order.customer_name
+                              ? order.customer_name
+                              : order.staff_name
+                                ? order.staff_name
                                 : 'Unknown'}
                           </TableCell>
                           <TableCell> {/* New cell for phone number */}
-                            {order.customer_id 
+                            {order.customer_id
                               ? (order.phone || 'Not provided')
                               : 'N/A'}
                           </TableCell>
                           <TableCell>
-                            <StatusChip 
-                              label={order.status} 
-                              status={order.status} 
+                            <StatusChip
+                              label={order.status}
+                              status={order.status}
                               size="small"
                             />
                           </TableCell>
@@ -748,10 +753,10 @@ export default function StaffDashboard() {
                                 <Typography variant="body2" fontWeight={600} mb={0.5}>
                                   Menu Items:
                                 </Typography>
-                                <Box 
-                                  sx={{ 
-                                    display: 'flex', 
-                                    flexWrap: 'wrap', 
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
                                     gap: 0.5,
                                     maxHeight: '100px',
                                     overflowY: 'auto',
@@ -766,7 +771,7 @@ export default function StaffDashboard() {
                                       key={idx}
                                       label={`${item.name} x${item.quantity}`}
                                       size="small"
-                                      sx={{ 
+                                      sx={{
                                         fontSize: '0.7rem',
                                         backgroundColor: '#3ACA82',
                                         color: 'white',
@@ -791,9 +796,9 @@ export default function StaffDashboard() {
                               <Button
                                 variant="text"
                                 onClick={() => handleOpenNotePopup(order.note, order.order_id)}
-                                sx={{ 
-                                  p: 1, 
-                                  bgcolor: 'rgba(58, 202, 130, 0.08)', 
+                                sx={{
+                                  p: 1,
+                                  bgcolor: 'rgba(58, 202, 130, 0.08)',
                                   borderRadius: 1,
                                   maxWidth: 150,
                                   overflow: 'hidden',
@@ -816,9 +821,9 @@ export default function StaffDashboard() {
                             )}
                           </TableCell>
                           <TableCell align="center">
-                            <ActionButton 
-                              variant="outlined" 
-                              size="small" 
+                            <ActionButton
+                              variant="outlined"
+                              size="small"
                               startIcon={<EditIcon />}
                               onClick={() => handleChangeStatus(order)}
                               sx={{ fontSize: { xs: '0.7rem', sm: '0.9rem' } }}
@@ -835,8 +840,8 @@ export default function StaffDashboard() {
             </Paper>
 
             {/* Status Change Dialog */}
-            <Dialog 
-              open={statusDialog} 
+            <Dialog
+              open={statusDialog}
               onClose={() => setStatusDialog(false)}
               PaperProps={{
                 sx: {
@@ -846,7 +851,7 @@ export default function StaffDashboard() {
                 }
               }}
             >
-              <DialogTitle sx={{ 
+              <DialogTitle sx={{
                 borderBottom: '1px solid #e0e0e0',
                 fontWeight: 600
               }}>
@@ -858,7 +863,7 @@ export default function StaffDashboard() {
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
                   {selectedOrder && new Date(selectedOrder.order_date).toLocaleString()}
                 </Typography>
-                
+
                 {/* Customer or Staff Details */}
                 <Box sx={{ mt: 1, mb: 2 }}>
                   {selectedOrder?.customer_name ? (
@@ -878,13 +883,13 @@ export default function StaffDashboard() {
                     </Typography>
                   ) : null}
                 </Box>
-                
+
                 {/* Order menu items - enhanced visibility */}
                 {selectedOrder?.menuItems && selectedOrder.menuItems.length > 0 && (
-                  <Box sx={{ 
-                    mt: 2, 
-                    p: 2, 
-                    bgcolor: '#f5f5f5', 
+                  <Box sx={{
+                    mt: 2,
+                    p: 2,
+                    bgcolor: '#f5f5f5',
                     borderRadius: 2,
                     border: '1px solid #e0e0e0',
                     mb: 3
@@ -894,8 +899,8 @@ export default function StaffDashboard() {
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {selectedOrder.menuItems.map((item, idx) => (
-                        <Box key={idx} sx={{ 
-                          display: 'flex', 
+                        <Box key={idx} sx={{
+                          display: 'flex',
                           justifyContent: 'space-between',
                           p: 1,
                           borderBottom: idx < selectedOrder.menuItems.length - 1 ? '1px solid #e0e0e0' : 'none'
@@ -919,27 +924,27 @@ export default function StaffDashboard() {
                         </Box>
                       ))}
                     </Box>
-                    <Box sx={{ 
-                      mt: 2, 
-                      pt: 1, 
-                      borderTop: '2px solid #e0e0e0', 
-                      display: 'flex', 
+                    <Box sx={{
+                      mt: 2,
+                      pt: 1,
+                      borderTop: '2px solid #e0e0e0',
+                      display: 'flex',
                       justifyContent: 'flex-end',
                       alignItems: 'center'
                     }}>
                       <Typography variant="subtitle1" sx={{ mr: 1 }}>
                         Total:
                       </Typography>
-                      <Typography variant="h6" sx={{ 
-                        fontWeight: 600, 
-                        color: theme.palette.primary.main 
+                      <Typography variant="h6" sx={{
+                        fontWeight: 600,
+                        color: theme.palette.primary.main
                       }}>
                         {formatCurrency(selectedOrder.total_amount)}
                       </Typography>
                     </Box>
                   </Box>
                 )}
-                
+
                 <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
                   <InputLabel id="status-select-label">Status</InputLabel>
                   <Select
@@ -950,10 +955,10 @@ export default function StaffDashboard() {
                   >
                     {statusOptions.map(status => (
                       <MenuItem key={status} value={status}>
-                        <StatusChip 
-                          label={status} 
-                          status={status} 
-                          size="small" 
+                        <StatusChip
+                          label={status}
+                          status={status}
+                          size="small"
                         />
                       </MenuItem>
                     ))}
@@ -962,22 +967,22 @@ export default function StaffDashboard() {
 
                 {/* Order note - enhanced visibility */}
                 {selectedOrder?.note && (
-                  <Box sx={{ 
-                    mt: 3, 
-                    p: 2, 
-                    bgcolor: 'rgba(58, 202, 130, 0.1)', 
+                  <Box sx={{
+                    mt: 3,
+                    p: 2,
+                    bgcolor: 'rgba(58, 202, 130, 0.1)',
                     borderRadius: 2,
                     border: '2px solid rgba(58, 202, 130, 0.5)',
                     boxShadow: '0 2px 8px rgba(58, 202, 130, 0.15)'
                   }}>
-                    <Typography variant="subtitle1" sx={{ 
-                      fontWeight: 700, 
+                    <Typography variant="subtitle1" sx={{
+                      fontWeight: 700,
                       mb: 1,
                       color: '#2a8e5d',
                       display: 'flex',
                       alignItems: 'center'
                     }}>
-                      <span style={{ 
+                      <span style={{
                         display: 'inline-block',
                         width: '8px',
                         height: '8px',
@@ -987,7 +992,7 @@ export default function StaffDashboard() {
                       }}></span>
                       Customer Note:
                     </Typography>
-                    <Typography variant="body1" sx={{ 
+                    <Typography variant="body1" sx={{
                       fontWeight: 500,
                       fontSize: '1.05rem',
                       color: '#333'
@@ -1001,8 +1006,8 @@ export default function StaffDashboard() {
                 <Button onClick={() => setStatusDialog(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleStatusUpdate} 
+                <Button
+                  onClick={handleStatusUpdate}
                   variant="contained"
                   color="primary"
                 >
@@ -1024,8 +1029,8 @@ export default function StaffDashboard() {
                 }
               }}
             >
-              <Box sx={{ 
-                bgcolor: '#3ACA82', 
+              <Box sx={{
+                bgcolor: '#3ACA82',
                 color: 'white',
                 py: 2,
                 px: 3,
@@ -1036,14 +1041,14 @@ export default function StaffDashboard() {
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   Customer Note - Order #{notePopup.orderId}
                 </Typography>
-                <Button 
+                <Button
                   onClick={handleCloseNotePopup}
                   sx={{ color: 'white', minWidth: 'auto', p: 1 }}
                 >
                   ✕
                 </Button>
               </Box>
-              <Box sx={{ 
+              <Box sx={{
                 p: 3,
                 backgroundColor: 'rgba(58, 202, 130, 0.05)',
                 borderLeft: '4px solid #3ACA82',
@@ -1051,9 +1056,9 @@ export default function StaffDashboard() {
                 borderRadius: 1,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
               }}>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
+                <Typography
+                  variant="body1"
+                  sx={{
                     fontSize: '1.1rem',
                     fontWeight: 500,
                     lineHeight: 1.6,
@@ -1081,9 +1086,9 @@ export default function StaffDashboard() {
               onClose={() => setNotification({ ...notification, open: false })}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <Alert 
+              <Alert
                 severity={notification.severity}
-                sx={{ 
+                sx={{
                   width: '100%',
                   fontFamily: 'Poppins, sans-serif',
                   borderRadius: 2,
