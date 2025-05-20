@@ -467,3 +467,12 @@ SELECT o.*, c.name AS customer_name, c.email, c.phone, c.address,
        JOIN Customers c ON o.customer_id = c.customer_id
        LEFT JOIN Payments p ON o.order_id = p.order_id
        WHERE o.order_id = ?
+
+
+             UPDATE MenuItems
+SET description = 'A classic Sri Lankan rice plate served with fish curry, three seasonal vegetable curries (such as dhal, beans, and brinjal moju), coconut sambol, papadam, and a mild gravy.'
+WHERE name = 'Rice And Curry Fish';
+
+UPDATE MenuItems
+SET description = 'A wholesome Sri Lankan meal featuring rice with boiled egg curry, three seasonal vegetable curries (like dhal, carrot, and beetroot), coconut sambol, papadam, and a mild gravy.'
+WHERE name = 'Rice And Curry Egg';
