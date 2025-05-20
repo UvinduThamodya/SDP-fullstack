@@ -15,6 +15,9 @@ CREATE TABLE Customers (
 ALTER TABLE Customers
 ADD COLUMN delete_requested BOOLEAN DEFAULT false;
 
+ALTER TABLE Customers
+ADD COLUMN reset_token VARCHAR(255),
+ADD COLUMN reset_token_expiry DATETIME;
 
 -- Menu Items Table
 CREATE TABLE MenuItems (
@@ -27,6 +30,10 @@ CREATE TABLE MenuItems (
     image_url VARCHAR(255),
     favorite_count INT DEFAULT 0
 );
+
+UPDATE MenuItems 
+SET price = 150.00 
+WHERE price < 150.00;
 
 -- Orders Table
 CREATE TABLE Orders (
@@ -50,6 +57,14 @@ WHERE status = 'Ready to Pick up';
 
 ALTER TABLE Orders
 MODIFY status ENUM('Pending', 'Preparing', 'Completed', 'Cancelled', 'Paid', 'Accepted') DEFAULT 'Pending';
+
+ALTER TABLE Orders MODIFY status ENUM('Pending', 'Accepted', 'Completed', 'Cancelled') DEFAULT 'Pending';
+
+-- Add note column to Orders table
+ALTER TABLE Orders
+ADD COLUMN note TEXT;
+
+UPDATE Orders SET note = 'Test note for staff dashboard' WHERE order_id = 84;
 
 
 -- Order Items Table (Many-to-Many Relationship)
@@ -84,6 +99,12 @@ CREATE TABLE Payments (
     FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE
 );
 
+ALTER TABLE Payments 
+MODIFY COLUMN method ENUM('Cash','Card','Online','pending') NOT NULL;
+
+ALTER TABLE Payments
+ADD COLUMN refunded BOOLEAN DEFAULT FALSE;
+ 
 -- Inventory Table
 CREATE TABLE Inventory (
     inventory_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -405,15 +426,40 @@ ORDER BY
   total_used DESC
 LIMIT 3;
 
+-- Customer Loyalty Table
+CREATE TABLE CustomerLoyalty (
+  customer_id INT PRIMARY KEY,
+  points_balance INT DEFAULT 0,
+  lifetime_points INT DEFAULT 0,
+  tier VARCHAR(20) DEFAULT 'Starter',
+  join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
 
-SELECT 
-        m.item_id AS menu_item_id,
-        m.name AS menu_item_name,
-        i.inventory_id,
-        i.item_name AS ingredient_name,
-        i.quantity AS ingredient_quantity,
-        i.threshold AS ingredient_threshold,
-        mii.quantity_required AS quantity_required_per_item
-      FROM MenuItems m
-      JOIN MenuItemIngredients mii ON m.item_id = mii.item_id
-      JOIN Inventory i ON mii.inventory_id = i.inventory_id;
+-- Points Transaction History
+CREATE TABLE PointsTransactions (
+  transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT,
+  order_id INT NULL,
+  points_earned INT DEFAULT 0,
+  points_redeemed INT DEFAULT 0,
+  transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  description VARCHAR(255),
+  FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
+  FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+);
+
+
+
+drop table RewardRedemptions;
+drop table  LoyaltyRewards;
+drop table PointsTransactions;
+drop table CustomerLoyalty;
+
+
+SELECT o.*, c.name AS customer_name, c.email, c.phone, c.address, 
+       p.method AS payment_method, p.payment_date
+       FROM Orders o
+       JOIN Customers c ON o.customer_id = c.customer_id
+       LEFT JOIN Payments p ON o.order_id = p.order_id
+       WHERE o.order_id = ?
