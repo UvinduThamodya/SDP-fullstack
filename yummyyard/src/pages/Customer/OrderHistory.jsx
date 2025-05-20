@@ -281,7 +281,7 @@ const OrderHistory = () => {
           const err = await response.json();
           throw new Error(err.error || 'Refund failed');
         } catch {
-          throw new Error('Refund failed');
+          throw new Error('Refund requested once.');
         }
       }
       // Download PDF

@@ -392,9 +392,9 @@ const Homepage = () => {
   
   // Opening hours data
   const openingHours = [
-    { day: "Monday - Friday", hours: "11:00 AM - 10:00 PM" },
-    { day: "Saturday - Sunday", hours: "10:00 AM - 11:00 PM" },
-    { day: "Public Holidays", hours: "12:00 PM - 9:00 PM" }
+    { day: "Monday - Friday", hours: "8:00 AM - 10:00 PM" },
+    { day: "Saturday - Sunday", hours: "10:00 AM - 6:00 PM" },
+    { day: "Public Holidays", hours: "10:00 AM - 4:00 PM" }
   ];
 
   // Fetch menu items from the backend
@@ -738,7 +738,7 @@ const responsiveSliderSettings = {
                 First Priority
               </Typography>
               <Typography variant="body2" sx={{ color: 'black' }}>
-                Enjoy your meals delivered to your doorstep in no time.
+                Customers ordering through this website receive our priority service.
               </Typography>
             </Paper>
           </Grid>
@@ -1186,7 +1186,7 @@ const responsiveSliderSettings = {
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       }
                     }}
-                    // onClick={() => navigate('/order')}
+                    onClick={() => navigate('/Login')}
                   >
                     Order Online
                   </StyledButton>

@@ -371,7 +371,7 @@ const Navbar = () => {
         position="static"
         sx={{
           background: 'linear-gradient(to right, #11998e, #38ef7d)',
-          height: { xs: '60px', sm: '70px', md: '80px' },
+          height: { xs: '50px', sm: '60px', md: '70px' },
           boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.4)',
         }}
       >

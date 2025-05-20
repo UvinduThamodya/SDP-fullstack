@@ -353,7 +353,7 @@ const CustomerProfile = () => {
                   borderRadius: 4,
                   overflow: 'visible',
                   position: 'relative',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                  background: `linear-gradient(to right, #11998e, #38ef7d)`,
                   color: 'white',
                   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
                   '&:hover': {
@@ -595,9 +595,19 @@ const CustomerProfile = () => {
                     
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 600,
+                            mb: 1,
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <PersonIcon sx={{ mr: 1, color: theme.palette.primary.main }} /> Full Name
+                        </Typography>
                         <TextField
                           fullWidth
-                          label="Full Name"
                           name="name"
                           value={editMode ? formValues.name : customer.name}
                           onChange={handleChange}
@@ -605,13 +615,6 @@ const CustomerProfile = () => {
                           variant={editMode ? "outlined" : "filled"}
                           InputProps={{
                             readOnly: !editMode,
-                            startAdornment: (
-                              <PersonIcon sx={{ 
-                                mr: 1.5, 
-                                color: theme.palette.primary.main,
-                                opacity: 0.7
-                              }} />
-                            ),
                           }}
                           sx={{
                             '& .MuiFilledInput-root': {
@@ -626,17 +629,24 @@ const CustomerProfile = () => {
                               '&.Mui-focused': {
                                 boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`
                               }
-                            },
-                            '& .MuiInputLabel-root': {
-                              fontWeight: 500
                             }
                           }}
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 600,
+                            mb: 1,
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <EmailIcon sx={{ mr: 1, color: theme.palette.primary.main }} /> Email Address
+                        </Typography>
                         <TextField
                           fullWidth
-                          label="Email Address"
                           name="email"
                           type="email"
                           value={editMode ? formValues.email : customer.email}
@@ -645,13 +655,6 @@ const CustomerProfile = () => {
                           variant={editMode ? "outlined" : "filled"}
                           InputProps={{
                             readOnly: !editMode,
-                            startAdornment: (
-                              <EmailIcon sx={{ 
-                                mr: 1.5, 
-                                color: theme.palette.primary.main,
-                                opacity: 0.7
-                              }} />
-                            ),
                           }}
                           sx={{
                             '& .MuiFilledInput-root': {
@@ -666,17 +669,24 @@ const CustomerProfile = () => {
                               '&.Mui-focused': {
                                 boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`
                               }
-                            },
-                            '& .MuiInputLabel-root': {
-                              fontWeight: 500
                             }
                           }}
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 600,
+                            mb: 1,
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <PhoneIcon sx={{ mr: 1, color: theme.palette.primary.main }} /> Phone Number
+                        </Typography>
                         <TextField
                           fullWidth
-                          label="Phone Number"
                           name="phone"
                           value={editMode ? formValues.phone : customer.phone}
                           onChange={handleChange}
@@ -684,13 +694,6 @@ const CustomerProfile = () => {
                           variant={editMode ? "outlined" : "filled"}
                           InputProps={{
                             readOnly: !editMode,
-                            startAdornment: (
-                              <PhoneIcon sx={{ 
-                                mr: 1.5, 
-                                color: theme.palette.primary.main,
-                                opacity: 0.7
-                              }} />
-                            ),
                           }}
                           sx={{
                             '& .MuiFilledInput-root': {
@@ -705,9 +708,6 @@ const CustomerProfile = () => {
                               '&.Mui-focused': {
                                 boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`
                               }
-                            },
-                            '& .MuiInputLabel-root': {
-                              fontWeight: 500
                             }
                           }}
                         />
@@ -726,48 +726,6 @@ const CustomerProfile = () => {
                           <SecurityIcon fontSize="small" /> 
                           Your data is secure and encrypted
                         </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Address"
-                          name="address"
-                          value={editMode ? formValues.address : customer.address}
-                          onChange={handleChange}
-                          disabled={!editMode || loading}
-                          variant={editMode ? "outlined" : "filled"}
-                          multiline
-                          rows={3}
-                          InputProps={{
-                            readOnly: !editMode,
-                            startAdornment: (
-                              <HomeIcon sx={{ 
-                                mr: 1.5, 
-                                mt: 1,
-                                color: theme.palette.primary.main,
-                                opacity: 0.7
-                              }} />
-                            ),
-                          }}
-                          sx={{
-                            '& .MuiFilledInput-root': {
-                              borderRadius: 2,
-                              bgcolor: alpha(theme.palette.primary.main, 0.05),
-                              '&.Mui-focused': {
-                                bgcolor: alpha(theme.palette.primary.main, 0.08),
-                              }
-                            },
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              '&.Mui-focused': {
-                                boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`
-                              }
-                            },
-                            '& .MuiInputLabel-root': {
-                              fontWeight: 500
-                            }
-                          }}
-                        />
                       </Grid>
                     </Grid>
                   </Paper>

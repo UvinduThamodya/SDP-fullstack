@@ -263,13 +263,13 @@ class EmailService {  constructor() {
           
           <p class="message">You'll receive another notification once our staff accepts your order and begins preparing your meal.</p>
         `;
-        buttonHtml = `
-          <div class="button-container">
-            <a href="https://yummyyard.com/orders/history" class="action-button" style="background-color: #fb8c00; color: white;">
-              View Order Status
-            </a>
-          </div>
-        `;
+        // buttonHtml = `
+        //   <div class="button-container">
+        //     <a href="https://yummyyard.com/orders/history" class="action-button" style="background-color: #fb8c00; color: white;">
+        //       View Order Status
+        //     </a>
+        //   </div>
+        // `;
         break;
         
       case 'completed':
@@ -285,13 +285,13 @@ class EmailService {  constructor() {
           
           <p class="message">Thank you for choosing YummyYard. We'd love to hear your feedback about your dining experience.</p>
         `;
-        buttonHtml = `
-          <div class="button-container">
-            <a href="https://yummyyard.com/feedback/${orderId}" class="action-button" style="background-color: #2e7d32; color: white;">
-              Leave Feedback
-            </a>
-          </div>
-        `;
+        // buttonHtml = `
+        //   <div class="button-container">
+        //     <a href="https://yummyyard.com/feedback/${orderId}" class="action-button" style="background-color: #2e7d32; color: white;">
+        //       Leave Feedback
+        //     </a>
+        //   </div>
+        // `;
         break;
         
       case 'accepted':
@@ -304,13 +304,13 @@ class EmailService {  constructor() {
         greeting = `Order #${orderId} Confirmed!`;        specificContent = `
           <p class="message">Great news! Your order has been accepted and our chefs are preparing your delicious meal.</p>
         `;
-        buttonHtml = `
-          <div class="button-container">
-            <a href="https://yummyyard.com/track/${orderId}" class="action-button" style="background-color: #43a047; color: white;">
-              Track Your Order
-            </a>
-          </div>
-        `;
+        // buttonHtml = `
+        //   <div class="button-container">
+        //     <a href="https://yummyyard.com/track/${orderId}" class="action-button" style="background-color: #43a047; color: white;">
+        //       Track Your Order
+        //     </a>
+        //   </div>
+        // `;
         break;
         
       case 'rejected':
@@ -332,13 +332,13 @@ class EmailService {  constructor() {
           
           <p class="message">Please don't worry, no payment has been taken from your account for this order.</p>
         `;
-        buttonHtml = `
-          <div class="button-container">
-            <a href="https://yummyyard.com/order/retry" class="action-button" style="background-color: #66bb6a; color: white;">
-              Try Again
-            </a>
-          </div>
-        `;
+        // buttonHtml = `
+        //   <div class="button-container">
+        //     <a href="https://yummyyard.com/order/retry" class="action-button" style="background-color: #66bb6a; color: white;">
+        //       Try Again
+        //     </a>
+        //   </div>
+        // `;
         break;
     }
     
@@ -401,9 +401,9 @@ class EmailService {  constructor() {
           <div class="email-footer">
             <p>© ${new Date().getFullYear()} YummyYard Restaurant. All rights reserved.</p>
             <div class="social-links">
-              <a href="https://facebook.com/yummyyard" class="social-icon" style="background-color: #4267B2;">f</a>
-              <a href="https://instagram.com/yummyyard" class="social-icon" style="background-color: #E1306C;">i</a>
-              <a href="https://twitter.com/yummyyard" class="social-icon" style="background-color: #1DA1F2;">t</a>
+              <a href="https://www.facebook.com/people/Yummy-Yard/61565171879434/" class="social-icon" style="background-color: #4267B2;">f</a>
+              // <a href="https://instagram.com/yummyyard" class="social-icon" style="background-color: #E1306C;">i</a>
+              // <a href="https://twitter.com/yummyyard" class="social-icon" style="background-color: #1DA1F2;">t</a>
             </div>
             <p>123 Tasty Lane, Foodville, CA 90210</p>
             <p><a href="https://yummyyard.com/privacy">Privacy Policy</a> • <a href="https://yummyyard.com/terms">Terms of Service</a></p>

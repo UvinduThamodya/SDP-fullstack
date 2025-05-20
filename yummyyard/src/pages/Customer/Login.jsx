@@ -224,9 +224,17 @@ const Login = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                color="primary"
+                sx={{ 
+                  mt: 3, 
+                  mb: 3, 
+                  py: 2, 
+                  fontSize: '1.2rem',
+                  backgroundColor: '#10b981',
+                  '&:hover': {
+                    backgroundColor: '#0e9f6e'
+                  }
+                }}
                 disabled={isLoading}
-                sx={{ mt: 3, mb: 3, py: 2, fontSize: '1.2rem' }}
               >
                 {isLoading ? 'Logging in...' : 'Login'}
               </Button>
