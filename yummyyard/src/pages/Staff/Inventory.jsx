@@ -435,7 +435,8 @@ const Inventory = () => {
   };
 
   const handleAddMenuItemIngredient = async () => {
-    if (ingredientForm.quantity_required !== '' && Number(ingredientForm.quantity_required) < 0) {
+    const qty = parseFloat(ingredientForm.quantity_required);
+    if (isNaN(qty) || qty < 0) {
       setIngredientFormError('Value cannot be negative');
       return;
     }
@@ -451,7 +452,8 @@ const Inventory = () => {
   };
 
   const handleEditMenuItemIngredient = async () => {
-    if (ingredientEdit.quantity_required !== '' && Number(ingredientEdit.quantity_required) < 0) {
+    const qty = parseFloat(ingredientEdit.quantity_required);
+    if (isNaN(qty) || qty < 0) {
       setIngredientEditError('Value cannot be negative');
       return;
     }
@@ -945,13 +947,15 @@ const Inventory = () => {
                       onChange={e => {
                         const val = e.target.value;
                         setIngredientFormError('');
-                        if (val !== '' && Number(val) < 0) {
+                        // Allow decimal values but prevent negative numbers
+                        const numVal = parseFloat(val);
+                        if (val !== '' && numVal < 0) {
                           setIngredientFormError('Value cannot be negative');
                         }
                         setIngredientForm(f => ({ ...f, quantity_required: val }));
                       }}
                       sx={{ minWidth: 140 }}
-                      inputProps={{ min: 0 }}
+                      inputProps={{ step: "0.01", min: 0.01 }} // Set step to allow decimal values
                       error={!!ingredientFormError}
                       helperText={ingredientFormError}
                     />
@@ -994,12 +998,13 @@ const Inventory = () => {
                                 onChange={e => {
                                   const val = e.target.value;
                                   setIngredientEditError('');
-                                  if (val !== '' && Number(val) < 0) {
+                                  const numVal = parseFloat(val);
+                                  if (val !== '' && numVal < 0) {
                                     setIngredientEditError('Value cannot be negative');
                                   }
                                   setIngredientEdit(edit => ({ ...edit, quantity_required: val }));
                                 }}
-                                inputProps={{ min: 0 }}
+                                inputProps={{ step: "0.01", min: 0 }} // Allow decimal values
                                 error={!!ingredientEditError}
                                 helperText={ingredientEditError}
                               />

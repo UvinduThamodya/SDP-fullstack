@@ -143,6 +143,10 @@ CREATE TABLE MenuItemIngredients (
     CONSTRAINT unique_menu_item_ingredient UNIQUE (item_id, inventory_id)
 );
 
+ALTER TABLE MenuItemIngredients
+MODIFY quantity_required DECIMAL(10,2) NOT NULL;
+
+
 -- Contacts Table
 CREATE TABLE contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
