@@ -658,143 +658,42 @@ const Homepage = () => {
   </Box>
 </Container>
 
-      {/* Features Section */}
-      <Container sx={{ py: { xs: 6, md: 10 } }}>
-        <SectionTitle>
-          <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
-            sx={{ 
-              fontSize: '1.25rem', 
-              letterSpacing: '2px', 
-              textTransform: 'uppercase',
-              fontWeight: 'bold'
-            }}>
-            Why Choose Us
-          </RunaltoTypography>
-          <RunaltoTypography variant="h3" component="h2" align="center" 
-            sx={{ 
-              fontWeight: 'bold', 
-              color: 'black', // Changed to black
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              margin: '8px 0'
-            }}>
-            Our Features
-          </RunaltoTypography>
-          <div className="underline"></div>
-        </SectionTitle> 
+      {/* Introduction Section - NEW */}
+<Container sx={{ py: { xs: 6, md: 10 } }}>
+  <SectionTitle>
+    <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+      sx={{ 
+        fontSize: '1.25rem', 
+        letterSpacing: '2px', 
+        textTransform: 'uppercase',
+        fontWeight: 'bold'
+      }}>
+      Introduction
+    </RunaltoTypography>
+    <RunaltoTypography variant="h3" component="h2" align="center" 
+      sx={{ 
+        fontWeight: 'bold', 
+        color: 'black', // Changed to black
+        fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+        margin: '8px 0'
+      }}>
+      Yummy Yard Restaurant Website
+    </RunaltoTypography>
+    <div className="underline"></div>
+  </SectionTitle>
+  
+  <Box sx={{ textAlign: 'center', maxWidth: '900px', margin: '0 auto', mt: 4 }}>
+    <Typography variant="body1" sx={{ fontSize: '1.1rem', lineHeight: 1.7, color: 'black' }}>
+      The Yummy Yard Restaurant Website is a digital platform designed to streamline dine-in and takeaway orders for our customers. 
+      While we do not offer delivery, all orders placed through this website receive top priority in our kitchen, 
+      with no extra charges or hidden fees. Customers can easily browse the menu, place orders, and enjoy exclusive 
+      loyalty rewards—all in a secure and user-friendly environment.
+    </Typography>
+  </Box>
+</Container>
 
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          <Grid item xs={12} sm={4}>
-            <Paper 
-              elevation={3} 
-              sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                borderRadius: '16px', 
-                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-                backdropFilter: 'blur(10px)', 
-                border: '1px solid rgba(255, 255, 255, 0.1)' 
-              }}
-            >
-              <Box 
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  mx: 'auto', 
-                  mb: 2, 
-                  backgroundColor: '#E8F5E9', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}
-              >
-                <RestaurantIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'black' }}>
-                Easy To Order
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'black' }}>
-                Place your order effortlessly with our user-friendly platform.
-              </Typography>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Paper 
-              elevation={3} 
-              sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                borderRadius: '16px', 
-                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-                backdropFilter: 'blur(10px)', 
-                border: '1px solid rgba(255, 255, 255, 0.1)' 
-              }}
-            >
-              <Box 
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  mx: 'auto', 
-                  mb: 2, 
-                  backgroundColor: '#E8F5E9', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}
-              >
-                <AccessTimeIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'balck' }}>
-                Fastest Delivery
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'black' }}>
-                Customers ordering through this website receive our priority service.
-              </Typography>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} sm={4}>
-            <Paper 
-              elevation={3} 
-              sx={{ 
-                p: 4, 
-                textAlign: 'center', 
-                borderRadius: '16px', 
-                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-                backdropFilter: 'blur(10px)', 
-                border: '1px solid rgba(255, 255, 255, 0.1)' 
-              }}
-            >
-              <Box 
-                sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  mx: 'auto', 
-                  mb: 2, 
-                  backgroundColor: '#E8F5E9', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}
-              >
-                <StarIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'black' }}>
-                Best Quality
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'black' }}>
-                Relish the finest quality meals prepared with care.
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Container>
-
-      {/* Opening Hours Section - Moved */}
-      <Container sx={{ py: { xs: 6, md: 8 }, textAlign: 'center' }}>
+{/* Opening Hours Section - Moved */}
+<Container sx={{ py: { xs: 6, md: 8 }, textAlign: 'center' }}>
         <Grid container spacing={4} alignItems="center" justifyContent="center">
           <Grid item xs={12} md={6}>
             <Box sx={{ 
@@ -832,109 +731,147 @@ const Homepage = () => {
         </Grid>
       </Container>
 
-      {/* Chef's Recommendations */}
-      <Box sx={{ 
-        py: { xs: 4, md: 10 }, 
-        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
-        color: 'white',
-        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9))',
-      }}>
-        <Container>
-          <SectionTitle>
-            <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
-              sx={{ 
-                fontSize: '1.25rem', 
-                letterSpacing: '2px', 
-                textTransform: 'uppercase',
-                fontWeight: 'bold'
-              }}>
-              Special Selection
-            </RunaltoTypography>
-            <RunaltoTypography variant="h3" component="h2" align="center" 
-              sx={{ 
-                fontWeight: 'bold', 
-                color: 'white', 
-                fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-                margin: '8px 0'
-              }}>
-              Chef's Recommendations
-            </RunaltoTypography>
-            <div className="underline"></div>
-          </SectionTitle>
-          
-          <Grid container spacing={4} justifyContent="center" sx={{ mt: 2 }}>
-            {chefSpecials.map((special, index) => (
-              <Grid item xs={12} md={6} key={special.id}>
-                <Grow in={showSpecials} timeout={1000 + (index * 500)}>
-                  <Paper sx={{ 
-                    p: 3, 
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)', 
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: 'center',
-                    transition: 'transform 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
-                    }
-                  }}>
-                    <Box 
-                      sx={{ 
-                        width: { xs: '100%', sm: '40%' }, 
-                        mb: { xs: 2, sm: 0 }, 
-                        mr: { xs: 0, sm: 3 },
-                        borderRadius: '12px',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      <CardMedia
-                        component="img"
-                        image={special.image}
-                        alt={special.name}
-                        sx={{ 
-                          height: { xs: 180, sm: 200 },
-                          width: '100%',
-                          objectFit: 'cover',
-                          borderRadius: '12px',
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ width: { xs: '100%', sm: '60%' }, textAlign: { xs: 'center', sm: 'left' } }}>
-                      <RunaltoTypography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
-                        {special.name}
-                      </RunaltoTypography>
-                      <RunaltoTypography variant="body1" paragraph sx={{ opacity: 0.9 }}>
-                        {special.description}
-                      </RunaltoTypography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
-                        <RunaltoTypography variant="h6" color="#3ACA82" sx={{ fontWeight: 'bold', mr: 2 }}>
-                          {special.price}
-                        </RunaltoTypography>
-                        <Button 
-                          variant="contained" 
-                          sx={{ 
-                            backgroundColor: '#3ACA82', 
-                            color: 'black',
-                            '&:hover': {
-                              backgroundColor: alpha('#3ACA82', 0.8),
-                            }
-                          }}
-                        >
-                          Order Special
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Paper>
-                </Grow>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
+{/* Features Section - Moved to where Chef's Recommendations was */}
+<Box sx={{ 
+  py: { xs: 4, md: 10 }, 
+  backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+  color: 'white',
+  backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9))',
+}}>
+  <Container>
+    <SectionTitle>
+      <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+        sx={{ 
+          fontSize: '1.25rem', 
+          letterSpacing: '2px', 
+          textTransform: 'uppercase',
+          fontWeight: 'bold'
+        }}>
+        Why Choose Us
+      </RunaltoTypography>
+      <RunaltoTypography variant="h3" component="h2" align="center" 
+        sx={{ 
+          fontWeight: 'bold', 
+          color: 'white', 
+          fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+          margin: '8px 0'
+        }}>
+        Our Features
+      </RunaltoTypography>
+      <div className="underline"></div>
+    </SectionTitle>
+
+    <Grid container spacing={4} sx={{ mt: 4 }}>
+      <Grid item xs={12} sm={4}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            textAlign: 'center', 
+            borderRadius: '16px', 
+            backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+            backdropFilter: 'blur(10px)', 
+            border: '1px solid rgba(255, 255, 255, 0.1)' 
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              mx: 'auto', 
+              mb: 2, 
+              backgroundColor: '#E8F5E9', 
+              borderRadius: '50%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
+          >
+            <RestaurantIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
+            Easy To Order
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'white' }}>
+            Place your order effortlessly with our user-friendly platform.
+          </Typography>
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} sm={4}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            textAlign: 'center', 
+            borderRadius: '16px', 
+            backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+            backdropFilter: 'blur(10px)', 
+            border: '1px solid rgba(255, 255, 255, 0.1)' 
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              mx: 'auto', 
+              mb: 2, 
+              backgroundColor: '#E8F5E9', 
+              borderRadius: '50%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
+          >
+            <AccessTimeIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
+            Fastest Delivery
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'white' }}>
+            Customers ordering through this website receive our priority service.
+          </Typography>
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} sm={4}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            textAlign: 'center', 
+            borderRadius: '16px', 
+            backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+            backdropFilter: 'blur(10px)', 
+            border: '1px solid rgba(255, 255, 255, 0.1)' 
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              mx: 'auto', 
+              mb: 2, 
+              backgroundColor: '#E8F5E9', 
+              borderRadius: '50%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}
+          >
+            <StarIcon sx={{ fontSize: 40, color: '#3ACA82' }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
+            Best Quality
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'white' }}>
+            Relish the finest quality meals prepared with care.
+          </Typography>
+        </Paper>
+      </Grid>
+    </Grid>
+  </Container>
+</Box>
 
       {/* Testimonials Section */}
       <Box sx={{ 

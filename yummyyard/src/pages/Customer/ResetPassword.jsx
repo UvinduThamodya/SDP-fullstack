@@ -15,6 +15,7 @@ import {
 import LockIcon from '@mui/icons-material/Lock';
 import CheckIcon from '@mui/icons-material/Check';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Background from '../../assets/Background.jpg';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -118,20 +119,54 @@ const ResetPassword = () => {
 
   if (isLoading) {
     return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Box sx={{ textAlign: 'center' }}>
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundImage: `url(${Background})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <Box sx={{ 
+          textAlign: 'center',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+          padding: 4,
+          borderRadius: 3,
+        }}>
           <CircularProgress size={60} thickness={4} sx={{ color: '#10b981' }} />
           <Typography variant="h6" sx={{ mt: 3, color: 'text.secondary' }}>
             Verifying your reset link...
           </Typography>
         </Box>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: '100%' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundImage: `url(${Background})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: 2
+      }}
+    >
+      <Paper elevation={3} sx={{ 
+        p: 4, 
+        borderRadius: 3, 
+        width: '100%',
+        maxWidth: 450,
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+      }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography component="h1" variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
             Reset Your Password
@@ -268,7 +303,7 @@ const ResetPassword = () => {
           </Box>
         </Box>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Background from '../../assets/Background.jpg';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -55,8 +56,26 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, width: '100%' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundImage: `url(${Background})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: 2
+      }}
+    >
+      <Paper elevation={3} sx={{ 
+        p: 4, 
+        borderRadius: 3, 
+        width: '100%',
+        maxWidth: 450,
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
+      }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
             Reset Your Password
@@ -137,7 +156,7 @@ const ForgotPassword = () => {
           </Box>
         </Box>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

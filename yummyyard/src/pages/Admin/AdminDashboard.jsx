@@ -7,7 +7,8 @@ import {
   Box, Typography, Container, Grid, Paper, Card, CardContent,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
-  FormControl, InputLabel, Select, MenuItem, Alert, CircularProgress, Snackbar
+  FormControl, InputLabel, Select, MenuItem, Alert, CircularProgress, Snackbar,
+  IconButton
 } from '@mui/material';
 import {
   Warning as WarningIcon,
@@ -72,8 +73,6 @@ const theme = createTheme({
 });
 
 // Add a styled Paper for curved edges
-
-
 const CurvedPaper = styled(MuiPaper)(({ theme }) => ({
   borderRadius: 32,
   boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
@@ -86,11 +85,10 @@ const CurvedPaper = styled(MuiPaper)(({ theme }) => ({
   },
 }));
 
-const DashboardCenter = styled('div')(({ theme }) => ({
+const DashboardContent = styled('div')(({ theme }) => ({
   flexGrow: 1,
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'center',
   minHeight: '100vh',
   background: '#f5f5f5',
   padding: theme.spacing(4, 0),
@@ -100,7 +98,10 @@ const DashboardCenter = styled('div')(({ theme }) => ({
 }));
 
 export default function AdminDashboard() {
-  // State management
+  // State variables for sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Rest of state variables
   const [lowStockItems, setLowStockItems] = useState([]);
   const [topItems, setTopItems] = useState([]);
   const [leastOrderedItem, setLeastOrderedItem] = useState(null);
@@ -130,16 +131,10 @@ export default function AdminDashboard() {
   const [salesError, setSalesError] = useState(null);
   const [salesNotification, setSalesNotification] = useState(null);
   const [salesData, setSalesData] = useState([]);
+  const [topUsedIngredients, setTopUsedIngredients] = useState([]);
+  const [graphType, setGraphType] = useState("bar");
 
   const currentDate = new Date();
-
-  // Add this state variable
-  const [topUsedIngredients, setTopUsedIngredients] = useState([]);
-
-  // Add this state variable
-  const [graphType, setGraphType] = useState("bar");
-  
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch dashboard data on component mount
   useEffect(() => {
@@ -166,7 +161,7 @@ export default function AdminDashboard() {
     apiService.getSalesByMonth().then(setSalesData);
   }, []);
 
-  // Fetch the data in a `useEffect`
+  // Fetch top used ingredients
   useEffect(() => {
     const fetchTopUsedIngredients = async () => {
       try {
@@ -365,73 +360,51 @@ export default function AdminDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          display: 'flex',
-          minHeight: '100vh',
-          background: '#f5f5f5',
-          position: 'relative',
-        }}
-      >
-        {/* Sidebar for desktop, Drawer-style for mobile */}
-        <Box
-          sx={{
-            display: { xs: sidebarOpen ? 'block' : 'none', sm: 'block' },
-            position: { xs: 'fixed', sm: 'relative' },
-            zIndex: 1200,
-            height: '100vh',
-            minHeight: '100vh',
-            width: { xs: 240, sm: 'auto' },
-            background: { xs: '#fff', sm: 'none' },
-            boxShadow: { xs: 3, sm: 'none' },
-            transition: 'left 0.3s',
-            left: { xs: sidebarOpen ? 0 : '-100%', sm: 0 },
-            top: 0,
-          }}
-        >
-          <SidebarAdmin
-            open={sidebarOpen}
-            toggleSidebar={() => setSidebarOpen(false)}
-            sx={{
-              height: '100vh',
-              minHeight: '100vh',
-              borderRight: 0,
-            }}
-          />
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+        {/* Sidebar */}
+        <Box sx={{ 
+          position: { xs: 'fixed', md: 'sticky' },
+          top: 0,
+          left: 0,
+          height: '100vh',
+          zIndex: 1000,
+          display: { xs: sidebarOpen ? 'block' : 'none', md: 'block' },
+          transition: 'all 0.3s ease',
+          boxShadow: { xs: 2, md: 'none' },
+        }}>
+          <SidebarAdmin />
         </Box>
-        {/* Mobile menu button */}
-        <Button
-          variant="contained"
+
+        {/* Mobile menu toggle button */}
+        <IconButton 
+          color="inherit"
+          aria-label="open drawer"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          sx={{
-            display: { xs: 'flex', sm: 'none' },
+          sx={{ 
             position: 'fixed',
             top: 16,
             left: 16,
-            zIndex: 1300,
-            minWidth: 'auto',
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            boxShadow: 3,
-            alignItems: 'center',
-            justifyContent: 'center',
+            zIndex: 1200,
+            display: { xs: 'flex', md: 'none' },
+            bgcolor: '#3ACA82',
+            color: 'white',
+            '&:hover': {
+              bgcolor: '#2d9e68',
+            }
           }}
         >
           <MenuIcon />
-        </Button>
-        <DashboardCenter
-          sx={{
-            width: '100%',
-            ml: { sm: 0 },
-            pl: { sm: 0 },
-            minHeight: '100vh',
-            background: '#f5f5f5',
-          }}
-        >
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4, ml: 0 }}>
+        </IconButton>
+
+        {/* Main content */}
+        <DashboardContent sx={{ 
+          width: '100%',
+          pl: { md: '0px' },
+          ml: { md: 0 }
+        }}>
+          <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 4 }, mb: 4 }}>
             <CurvedPaper>
-              <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Box>
                   <Typography variant="h4" gutterBottom>
                     Admin Dashboard
@@ -445,10 +418,11 @@ export default function AdminDashboard() {
                   startIcon={<ShoppingCartIcon />}
                   onClick={() => setOrderDialogOpen(true)}
                   sx={{ 
+                    mt: { xs: 2, sm: 0 },
                     borderRadius: 8,
-                    bgcolor: '#3ACA82', // Added color
+                    bgcolor: '#3ACA82', 
                     '&:hover': {
-                      bgcolor: '#2d9e68', // Darker shade for hover
+                      bgcolor: '#2d9e68',
                     }
                   }}
                 >
@@ -457,6 +431,7 @@ export default function AdminDashboard() {
               </Box>
             </CurvedPaper>
 
+            {/* Rest of your dashboard components */}
             <CurvedPaper sx={{ backgroundColor: lowStockItems.length > 0 ? '#fff8e1' : 'white' }}>
               {/* Low Stock Alert */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -499,6 +474,7 @@ export default function AdminDashboard() {
               )}
             </CurvedPaper>
 
+            {/* Grid layout for Top/Least Ordered items */}
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <CurvedPaper>
@@ -573,6 +549,7 @@ export default function AdminDashboard() {
               </Grid>
             </Grid>
 
+            {/* Sales Reports */}
             <CurvedPaper>
               <Typography variant="h5" gutterBottom>Sales Reports</Typography>
               {salesLoading ? (
@@ -618,6 +595,7 @@ export default function AdminDashboard() {
               )}
             </CurvedPaper>
 
+            {/* Sales Overview */}
             <CurvedPaper>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h5">Sales Overview</Typography>
@@ -654,6 +632,7 @@ export default function AdminDashboard() {
               )}
             </CurvedPaper>
 
+            {/* Top 3 Used Ingredients */}
             <CurvedPaper>
               <Typography variant="h5" gutterBottom>Top 3 Used Ingredients</Typography>
               {Array.isArray(topUsedIngredients) && topUsedIngredients.length > 0 ? (
@@ -833,7 +812,7 @@ export default function AdminDashboard() {
               </Alert>
             </Snackbar>
           </Container>
-        </DashboardCenter>
+        </DashboardContent>
       </Box>
     </ThemeProvider>
   );
