@@ -1227,7 +1227,7 @@ const responsiveSliderSettings = {
                     <strong>Address:</strong>
                   </Typography>
                   <Typography variant="body2" sx={{ opacity: 0.8, fontFamily: 'Runalto, sans-serif' }}>
-                    123 Yummy Street, Matara, Sri Lanka
+                    Koggalakade Junction, No. 214A Wakwella Rd, Galle 80000
                   </Typography>
                 </Box>
               </ContactItem>

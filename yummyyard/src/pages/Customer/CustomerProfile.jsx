@@ -35,6 +35,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Navbar from '../../components/Navbar';
 import { useNavigate } from 'react-router-dom';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const CustomerProfile = () => {
   const navigate = useNavigate();
@@ -70,6 +71,19 @@ const CustomerProfile = () => {
 
   const [deleteRequest, setDeleteRequest] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Password change state
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+  const [passwordFields, setPasswordFields] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     const fetchCustomerProfile = async () => {
@@ -301,6 +315,76 @@ const CustomerProfile = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Password field handlers
+  const handlePasswordFieldChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordFields({ ...passwordFields, [name]: value });
+  };
+  const handleClickShowPassword = (field) => {
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (!passwordFields.currentPassword || !passwordFields.newPassword || !passwordFields.confirmPassword) {
+      setNotification({
+        open: true,
+        message: 'All password fields are required.',
+        severity: 'error'
+      });
+      return;
+    }
+    if (passwordFields.newPassword !== passwordFields.confirmPassword) {
+      setNotification({
+        open: true,
+        message: 'New passwords do not match.',
+        severity: 'error'
+      });
+      return;
+    }
+    if (passwordFields.newPassword.length < 6) {
+      setNotification({
+        open: true,
+        message: 'New password must be at least 6 characters.',
+        severity: 'error'
+      });
+      return;
+    }
+    try {
+      setPasswordLoading(true);
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/customers/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordFields.currentPassword,
+          newPassword: passwordFields.newPassword
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to change password');
+      }
+      setNotification({
+        open: true,
+        message: 'Password changed successfully!',
+        severity: 'success'
+      });
+      setPasswordFields({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      setNotification({
+        open: true,
+        message: error.message,
+        severity: 'error'
+      });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -728,6 +812,83 @@ const CustomerProfile = () => {
                         </Typography>
                       </Grid>
                     </Grid>
+                    {/* Change Password Section */}
+                    <Divider sx={{ my: 4 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                      Change Password
+                    </Typography>
+                    <Box component="form" onSubmit={handlePasswordChange} sx={{ maxWidth: 400 }}>
+                      <TextField
+                        fullWidth
+                        label="Current Password"
+                        name="currentPassword"
+                        type={showPassword.current ? 'text' : 'password'
+                        }
+                        value={passwordFields.currentPassword}
+                        onChange={handlePasswordFieldChange}
+                        margin="normal"
+                        InputProps={{
+                          endAdornment: (
+                            <Button
+                              onClick={() => handleClickShowPassword('current')}
+                              tabIndex={-1}
+                              sx={{ minWidth: 0, p: 0, color: 'inherit' }}
+                            >
+                              {showPassword.current ? <VisibilityOff /> : <Visibility />}
+                            </Button>
+                          )
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label="New Password"
+                        name="newPassword"
+                        type={showPassword.new ? 'text' : 'password'}
+                        value={passwordFields.newPassword}
+                        onChange={handlePasswordFieldChange}
+                        margin="normal"
+                        InputProps={{
+                          endAdornment: (
+                            <Button
+                              onClick={() => handleClickShowPassword('new')}
+                              tabIndex={-1}
+                              sx={{ minWidth: 0, p: 0, color: 'inherit' }}
+                            >
+                              {showPassword.new ? <VisibilityOff /> : <Visibility />}
+                            </Button>
+                          )
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label="Confirm New Password"
+                        name="confirmPassword"
+                        type={showPassword.confirm ? 'text' : 'password'}
+                        value={passwordFields.confirmPassword}
+                        onChange={handlePasswordFieldChange}
+                        margin="normal"
+                        InputProps={{
+                          endAdornment: (
+                            <Button
+                              onClick={() => handleClickShowPassword('confirm')}
+                              tabIndex={-1}
+                              sx={{ minWidth: 0, p: 0, color: 'inherit' }}
+                            >
+                              {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
+                            </Button>
+                          )
+                        }}
+                      />
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 2, minWidth: 160 }}
+                        disabled={passwordLoading}
+                      >
+                        {passwordLoading ? <CircularProgress size={20} color="inherit" /> : 'Change Password'}
+                      </Button>
+                    </Box>
                   </Paper>
                 </Grid>
               </Grid>

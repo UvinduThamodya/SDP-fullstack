@@ -317,9 +317,6 @@ const AboutContact = () => {
                             Email Address
                           </Typography>
                           <Typography variant="body2">
-                            Reservations: bookings@yummyyard.com
-                          </Typography>
-                          <Typography variant="body2">
                             General Inquiries: info@yummyyard.com
                           </Typography>
                         </Box>

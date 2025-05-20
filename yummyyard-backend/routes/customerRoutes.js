@@ -12,6 +12,7 @@ router.delete('/profile', authenticateUser, customerController.deleteCustomerPro
 router.get('/delete-requests', authenticateUser, customerController.checkDeleteRequests);
 router.post('/accept-delete', authenticateUser, customerController.acceptDeleteRequest);
 router.post('/reject-delete', authenticateUser, customerController.rejectDeleteRequest);
+router.post('/change-password', authenticateUser, customerController.changeCustomerPassword);
     
 
 module.exports = router;

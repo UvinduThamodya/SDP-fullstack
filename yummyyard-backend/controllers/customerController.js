@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const bcrypt = require('bcrypt');
 
 // Get customer profile by ID
 const getCustomerProfile = async (req, res) => {
@@ -112,9 +113,43 @@ const deleteCustomerProfile = async (req, res) => {
   }
 };
 
-module.exports = { getCustomerProfile,
+const changeCustomerPassword = async (req, res) => {
+  try {
+    const customerId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'All password fields are required.' });
+    }
+
+    // Get current hashed password from DB
+    const [rows] = await db.query('SELECT password FROM Customers WHERE customer_id = ?', [customerId]);
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Customer not found.' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, rows[0].password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    // Hash new password and update
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await db.query('UPDATE Customers SET password = ? WHERE customer_id = ?', [hashed, customerId]);
+
+    res.json({ message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Failed to change password.' });
+  }
+};
+
+module.exports = { 
+  getCustomerProfile,
   updateCustomerProfile, 
   checkDeleteRequests, 
   acceptDeleteRequest, 
   rejectDeleteRequest,
-  deleteCustomerProfile };
+  deleteCustomerProfile,
+  changeCustomerPassword
+};
