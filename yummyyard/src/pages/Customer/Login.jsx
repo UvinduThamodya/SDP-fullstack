@@ -213,10 +213,17 @@ const Login = () => {
                   sx: { fontSize: '1.2rem' }
                 }}
               />
-              
-              <Box sx={{ width: "100%", textAlign: "center", marginTop: 2 }}>
+                <Box sx={{ width: "100%", textAlign: "center", marginTop: 2 }}>
                 <Typography variant="body2">
                   New for the island of flavours? <a href="/Register" style={{ color: '#4285F4', textDecoration: 'none' }}>Register in here!</a>
+                </Typography>
+              </Box>
+              
+              <Box sx={{ width: "100%", textAlign: "center", marginTop: 1 }}>
+                <Typography variant="body2">
+                  <RouterLink to="/forgot-password" style={{ color: '#10b981', textDecoration: 'none' }}>
+                    Forgot your password?
+                  </RouterLink>
                 </Typography>
               </Box>
               

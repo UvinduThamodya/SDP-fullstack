@@ -23,6 +23,9 @@ const adminRoutes = require('./routes/adminRoutes');
 const menuItemRoutes = require("./routes/menuItemRoutes");
 const availabilityRoutes = require('./routes/availabilityRoutes');
 
+// Database initialization
+const { initializeDatabase } = require('./config/initDb');
+
 const PORT = process.env.PORT || 3000;
 
 // Socket.IO setup
@@ -92,6 +95,9 @@ server.listen(PORT, async () => {
 
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`📂 Connected to database: ${rows[0].dbName}`);
+    
+    // Initialize database tables
+    await initializeDatabase();
   } catch (error) {
     console.error("❌ Database connection failed:", error);
     process.exit(1);

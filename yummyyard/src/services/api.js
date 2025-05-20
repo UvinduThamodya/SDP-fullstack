@@ -491,6 +491,37 @@ rejectDeleteRequest: async () => {
   }
 },
 
+// Password reset functions
+requestPasswordReset: async (data) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/forgot-password`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    throw error;
+  }
+},
+
+verifyResetToken: async (token) => {
+  try {
+    const response = await axios.get(`${API_URL}/auth/reset-password/${token}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying reset token:', error);
+    throw error;
+  }
+},
+
+resetPassword: async (data) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/reset-password`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    throw error;
+  }
+},
+
 getAvailability: async () => {
   try {
     const response = await axios.get(`${API_URL}/availability`);

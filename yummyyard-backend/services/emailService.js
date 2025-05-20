@@ -568,6 +568,188 @@ class EmailService {  constructor() {
       return false;
     }
   }
+
+  /**
+   * Send a password reset email to the customer
+   * @param {string} email - Customer email address
+   * @param {string} resetToken - Password reset token
+   * @param {string} name - Customer name (optional)
+   * @returns {Promise<boolean>} True if email sent successfully, false otherwise
+   */
+  async sendPasswordResetEmail(email, resetToken, name = '') {
+    try {
+      if (!email) {
+        console.error('No email address provided for password reset');
+        return false;
+      }
+
+      // Create the reset URL
+      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+      
+      // Email content
+      const mailOptions = {
+        from: process.env.GMAIL_FROM || `YummyYard Restaurant <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: 'Reset Your YummyYard Password',
+        html: `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reset Your YummyYard Password</title>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+              
+              body, html {
+                margin: 0;
+                padding: 0;
+                font-family: 'Poppins', Arial, sans-serif;
+                line-height: 1.6;
+                color: #333333;
+                background-color: #f9f9f9;
+              }
+              
+              .email-container {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #ffffff;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+              }
+              
+              .email-header {
+                padding: 30px 20px;
+                text-align: center;
+                background: linear-gradient(135deg, #10b981 0%, #0e9f6e 100%);
+              }
+              
+              .logo {
+                font-size: 28px;
+                font-weight: 700;
+                margin: 0;
+                letter-spacing: 1px;
+                color: #ffffff;
+              }
+              
+              .header-tag {
+                margin: 8px 0 0;
+                font-size: 16px;
+                font-weight: 400;
+                opacity: 0.9;
+                color: #ffffff;
+              }
+              
+              .email-body {
+                padding: 32px 24px;
+                background-color: #ffffff;
+              }
+              
+              .content-box {
+                background-color: #ffffff;
+                border-radius: 8px;
+                padding: 0;
+              }
+              
+              .greeting {
+                font-size: 22px;
+                font-weight: 600;
+                margin-top: 0;
+                margin-bottom: 16px;
+              }
+              
+              .message {
+                font-size: 16px;
+                margin-bottom: 24px;
+                color: #555555;
+              }
+              
+              .button-container {
+                text-align: center;
+                margin: 28px 0;
+              }
+              
+              .action-button {
+                display: inline-block;
+                padding: 12px 28px;
+                font-size: 16px;
+                font-weight: 600;
+                text-decoration: none;
+                border-radius: 6px;
+                text-align: center;
+                cursor: pointer;
+                background-color: #10b981;
+                color: white;
+              }
+              
+              .note-box {
+                background-color: #f5f5f5;
+                border-radius: 8px;
+                padding: 16px;
+                margin-top: 24px;
+                font-size: 14px;
+                color: #666666;
+              }
+              
+              .email-footer {
+                background-color: #f0f0f0;
+                color: #777777;
+                text-align: center;
+                padding: 20px;
+                font-size: 12px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">
+                <h1 class="logo">YummyYard</h1>
+                <p class="header-tag">Fresh & Delicious, Delivered To You</p>
+              </div>
+              
+              <div class="email-body">
+                <div class="content-box">
+                  <h2 class="greeting">Reset Your Password</h2>
+                  
+                  <p class="message">Hello ${name || 'Valued Customer'},</p>
+                  
+                  <p class="message">We received a request to reset your password for your YummyYard account. To reset your password, click on the button below:</p>
+                  
+                  <div class="button-container">
+                    <a href="${resetUrl}" class="action-button">
+                      Reset Password
+                    </a>
+                  </div>
+                  
+                  <p class="message">This link is valid for 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
+                  
+                  <div class="note-box">
+                    <p><strong>Note:</strong> For security reasons, this link can only be used once. If you need to reset your password again, you'll need to submit another request.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="email-footer">
+                <p>© ${new Date().getFullYear()} YummyYard Restaurant. All rights reserved.</p>
+                <p>123 Tasty Lane, Foodville, CA 90210</p>
+                <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/privacy">Privacy Policy</a> • <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/terms">Terms of Service</a></p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+      // Send email
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`Password reset email sent to ${email}:`, info.messageId);
+      return true;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      return false;
+    }
+  }
 }
 
 module.exports = new EmailService();

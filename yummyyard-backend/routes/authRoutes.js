@@ -6,6 +6,11 @@ console.log(authController);
 router.post('/customer/register', authController.registerCustomer);
 router.post('/customer/login', authController.loginCustomer);
 
+// Password reset routes
+router.post('/forgot-password', authController.requestPasswordReset);
+router.get('/reset-password/:token', authController.verifyResetToken);
+router.post('/reset-password', authController.resetPassword);
+
 // Staff registration and login
 router.post('/staff/register', authController.registerStaff);
 router.post('/staff/login', authController.loginStaff);

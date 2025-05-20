@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import Register from "./pages/Customer/Register";
 import Login from "./pages/Customer/Login";
+import ForgotPassword from "./pages/Customer/ForgotPassword";
+import ResetPassword from "./pages/Customer/ResetPassword";
 import Homepage from "./pages/Customer/HomePage";
 import Menu from './pages/Customer/Menu';
 import "./App.css";
@@ -49,6 +51,8 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/stafflogin" element={<StaffLogin />} />
         <Route path="/staffregister" element={<StaffRegister />} />
         <Route path="/dashboard" element={<Dashboard />} />
