@@ -581,23 +581,36 @@ export default function StaffDashboard() {
           <StyledContainer maxWidth="lg">
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mb: 4 }}>
               <Button
-                variant={availability === 'Accepting' ? 'contained' : 'outlined'}
-                color="success"
-                size="large"
-                sx={{ px: 6, py: 2, fontSize: 22, fontWeight: 700 }}
-                onClick={() => handleSetAvailability('Accepting')}
-              >
-                Accepting
-              </Button>
+  variant={availability === 'Accepting' ? 'contained' : 'outlined'}
+  color="success"
+  size="large"
+  sx={{
+    px: 6,
+    py: 2,
+    fontSize: 22,
+    fontWeight: 700,
+    borderRadius: '24px' // Adjust this value as needed
+  }}
+  onClick={() => handleSetAvailability('Accepting')}
+>
+  Accepting
+</Button>
+
               <Button
-                variant={availability === 'Busy' ? 'contained' : 'outlined'}
-                color="error"
-                size="large"
-                sx={{ px: 6, py: 2, fontSize: 22, fontWeight: 700 }}
-                onClick={() => handleSetAvailability('Busy')}
-              >
-                Busy
-              </Button>
+  variant={availability === 'Busy' ? 'contained' : 'outlined'}
+  color="error"
+  size="large"
+  sx={{
+    px: 6,
+    py: 2,
+    fontSize: 22,
+    fontWeight: 700,
+    borderRadius: '24px' // Increase this value for more curveness
+  }}
+  onClick={() => handleSetAvailability('Busy')}
+>
+  Busy
+</Button>
             </Box>
             <PageHeader>
               <DashboardIcon />
@@ -678,7 +691,7 @@ export default function StaffDashboard() {
                   onClick={handleDownloadReport}
                   sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}
                 >
-                  Download Report
+                  Download Complete Order Report
                 </Button>
               </Box>
               
@@ -690,6 +703,7 @@ export default function StaffDashboard() {
                       <TableCell>Order ID</TableCell>
                       <TableCell>Date</TableCell>
                       <TableCell>Customer/Staff</TableCell>
+                      <TableCell>Phone</TableCell> {/* New column header for phone number */}
                       <TableCell>Status</TableCell>
                       <TableCell>Details</TableCell>
                       <TableCell>Amount</TableCell>
@@ -700,7 +714,7 @@ export default function StaffDashboard() {
                   <TableBody>
                     {uniqueOrders.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                        <TableCell colSpan={9} align="center" sx={{ py: 3 }}> {/* Updated colspan to 9 to account for new column */}
                           <Typography color="textSecondary">No orders available</Typography>
                         </TableCell>
                       </TableRow>
@@ -709,7 +723,18 @@ export default function StaffDashboard() {
                         <TableRow key={order.order_id}>
                           <TableCell sx={{ fontWeight: 500 }}>{order.order_id}</TableCell>
                           <TableCell>{new Date(order.order_date).toLocaleString()}</TableCell>
-                          <TableCell>{order.customer_id ? `Customer #${order.customer_id}` : `Staff #${order.staff_id}`}</TableCell>
+                          <TableCell>
+                            {order.customer_name 
+                              ? order.customer_name 
+                              : order.staff_name 
+                                ? order.staff_name 
+                                : 'Unknown'}
+                          </TableCell>
+                          <TableCell> {/* New cell for phone number */}
+                            {order.customer_id 
+                              ? (order.phone || 'Not provided')
+                              : 'N/A'}
+                          </TableCell>
                           <TableCell>
                             <StatusChip 
                               label={order.status} 
@@ -830,9 +855,29 @@ export default function StaffDashboard() {
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500 }}>
                   Order #{selectedOrder?.order_id}
                 </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
                   {selectedOrder && new Date(selectedOrder.order_date).toLocaleString()}
                 </Typography>
+                
+                {/* Customer or Staff Details */}
+                <Box sx={{ mt: 1, mb: 2 }}>
+                  {selectedOrder?.customer_name ? (
+                    <>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        Customer: {selectedOrder.customer_name}
+                      </Typography>
+                      {selectedOrder.phone && (
+                        <Typography variant="body2">
+                          Phone: {selectedOrder.phone}
+                        </Typography>
+                      )}
+                    </>
+                  ) : selectedOrder?.staff_name ? (
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Staff: {selectedOrder.staff_name}
+                    </Typography>
+                  ) : null}
+                </Box>
                 
                 {/* Order menu items - enhanced visibility */}
                 {selectedOrder?.menuItems && selectedOrder.menuItems.length > 0 && (

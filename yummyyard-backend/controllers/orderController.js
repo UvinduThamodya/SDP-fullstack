@@ -487,9 +487,13 @@ const getAllOrdersWithDetails = async (req, res) => {
   try {
     console.log('Getting all orders with details...');
     
-    // First, get all orders
+    // First, get all orders with customer and staff details including phone
     const [orders] = await db.query(`
-      SELECT o.*, c.name AS customer_name, s.name AS staff_name
+      SELECT o.*, 
+             c.name AS customer_name, 
+             c.phone AS phone, 
+             c.email AS email,
+             s.name AS staff_name
       FROM Orders o
       LEFT JOIN Customers c ON o.customer_id = c.customer_id
       LEFT JOIN Employees s ON o.staff_id = s.employee_id
