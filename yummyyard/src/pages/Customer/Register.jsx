@@ -297,9 +297,9 @@ const Register = () => {
                         fontSize: 16, 
                         marginTop: 2,
                         borderRadius: '8px',
-                        background: '#4285F4',
+                        background: '#3ACA82', // Changed to green color
                         '&:hover': {
-                          background: '#059669'
+                          background: '#2da76c' // Darker green on hover
                         }
                       }}
                       disabled={submitStatus.submitted && !submitStatus.success}

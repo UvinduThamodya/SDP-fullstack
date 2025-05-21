@@ -649,7 +649,7 @@ const responsiveSliderSettings = {
 {/* Introduction Section - NEW */}
 <Container sx={{ py: { xs: 6, md: 10 } }}>
   <SectionTitle>
-    <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
+    {/* <RunaltoTypography variant="subtitle1" align="center" color="#3ACA82" 
       sx={{ 
         fontSize: '1.25rem', 
         letterSpacing: '2px', 
@@ -657,7 +657,7 @@ const responsiveSliderSettings = {
         fontWeight: 'bold'
       }}>
       Introduction
-    </RunaltoTypography>
+    </RunaltoTypography> */}
     <RunaltoTypography variant="h3" component="h2" align="center" 
       sx={{ 
         fontWeight: 'bold', 
@@ -1031,40 +1031,13 @@ const responsiveSliderSettings = {
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'center',
-          flexDirection: { xs: 'column', md: 'row' },
           alignItems: 'center',
-          gap: 4,
+          textAlign: 'center',
+          maxWidth: '700px',
+          margin: '0 auto'
         }}>
-          <Box sx={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '16px',
-            p: 2,
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            overflow: 'hidden',
-            width: { xs: '100%', md: '500px' },
-            height: { xs: '300px', md: '500px' },
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-            mb: { xs: 2, md: 0 }
-          }}>
-            <iframe 
-              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fpeople%2FYummy-Yard%2F61565171879434%2F&show_posts=true&width=500&height=500&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=true" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 'none', overflow: 'hidden', borderRadius: '8px' }} 
-              scrolling="no" 
-              frameBorder="0" 
-              allowFullScreen={true} 
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              title="Yummy Yard Facebook Feed"
-            />
-          </Box>
-          
-          <Box sx={{ 
-            textAlign: { xs: 'center', md: 'left' },
-            maxWidth: { xs: '100%', md: '400px' }
-          }}>
-            <RunaltoTypography variant="h4" component="h3" color="black" // Changed to black
+          <Box>
+            <RunaltoTypography variant="h4" component="h3" color="black"
               sx={{ mb: 2, fontWeight: 'bold' }}>
               Never Miss an Update
             </RunaltoTypography>
