@@ -22,14 +22,16 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Login = () => {
+  // Form state management
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
   });
 
+  // UI state for loading, errors, and password visibility
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // toggle for password field
   const [alert, setAlert] = useState({
     open: false,
     message: '',
@@ -38,7 +40,8 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  // Check if user is already logged in with valid token
+  // Check if user is already logged in on component mount
+  // Redirect to homepage if valid token exists
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
@@ -49,6 +52,7 @@ const Login = () => {
     }
   }, [navigate]);
 
+  // Handle input field changes - updates credentials state
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCredentials(prev => ({
@@ -57,6 +61,7 @@ const Login = () => {
     }));
   };
 
+  // Handle form submission and login API call
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -66,10 +71,10 @@ const Login = () => {
       const response = await apiService.loginCustomer(credentials);
 
       if (response.user) {
-        // Store user info
+        // Store user info in localStorage for persistence
         localStorage.setItem('user', JSON.stringify(response.user));
         
-        // Store JWT token
+        // Store JWT token for authenticated requests
         if (response.token) {
           localStorage.setItem('token', response.token);
         } else {

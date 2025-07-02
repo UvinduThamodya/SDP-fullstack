@@ -18,14 +18,15 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Background from '../../assets/Background.jpg';
 
 const ResetPassword = () => {
-  const { token } = useParams();
+  const { token } = useParams(); // Get reset token from URL
   const navigate = useNavigate();
   
+  // Form state for new password
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isValid, setIsValid] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isValid, setIsValid] = useState(false); // Track if reset token is valid
+  const [isLoading, setIsLoading] = useState(true); // Loading state for token validation
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');

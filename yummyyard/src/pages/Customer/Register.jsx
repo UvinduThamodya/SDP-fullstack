@@ -14,30 +14,29 @@ import { useNavigate } from "react-router-dom";
 import Background from '../../assets/Background.jpg';
 
 const Register = () => {
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate(); // Router navigation hook
 
-  // State for form inputs
+  // Form data state - holds all user input
   const [formData, setFormData] = useState({
-    name: "",  // Changed from "username" to "name"
+    name: "",  // Customer's full name
     email: "",
     phone: "",
     address: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "" // For password confirmation validation
   });
   
-
-  // State for form errors
+  // Track validation errors for each field
   const [errors, setErrors] = useState({});
   
-  // State for submission status
+  // Track form submission state and response messages
   const [submitStatus, setSubmitStatus] = useState({
     submitted: false,
     success: false,
     message: ""
   });
 
-  // Handle input changes
+  // Handle input field changes and clear related errors
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -45,7 +44,7 @@ const Register = () => {
       [name]: value
     });
     
-    // Clear error when user starts typing in a field with error
+    // Clear error when user starts typing in a field that had validation errors
     if (errors[name]) {
       setErrors({
         ...errors,

@@ -1,4 +1,4 @@
-// pages/Customer/OrderHistory.jsx
+// Customer order history page - view past orders, download receipts, request refunds
 import React, { useState, useEffect } from 'react';
 import {
   Container, Box, Typography, Paper, Table, TableBody, TableCell,
@@ -14,11 +14,11 @@ import Navbar from '../../components/Navbar';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
-// We'll use Google Fonts instead of @fontsource
-// Add this to your index.html or App.js:
+// Using Google Fonts for Poppins font family
+// Make sure this is included in index.html:
 // <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-// Create a custom theme with Poppins font
+// Material-UI theme configuration with custom styling
 const theme = createTheme({
   typography: {
     fontFamily: 'Poppins, Arial, sans-serif',
@@ -75,8 +75,10 @@ const theme = createTheme({
   },
 });
 
+// Stripe integration for payment processing
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
+// Helper function to format currency in Sri Lankan Rupees
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
@@ -84,17 +86,20 @@ const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') => {
   }).format(price);
 };
 
+// Custom styled component for order status chips with color coding
 const StatusChip = styled(Chip)(({ theme, status }) => ({
   fontFamily: 'Poppins, Arial, sans-serif',
   fontWeight: 500,
   borderRadius: 16,
   padding: '0 6px',
+  // Dynamic background colors based on order status
   backgroundColor: 
     status === 'Completed' ? theme.palette.success.light :
     status === 'Pending' ? theme.palette.warning.light :
     status === 'Preparing' ? theme.palette.info.light :
-    status === 'Accepted' ? theme.palette.primary.light : // Add this line
+    status === 'Accepted' ? theme.palette.primary.light :
     theme.palette.error.light,
+  // Dynamic text colors to match background
   color: 
     status === 'Completed' ? theme.palette.success.dark :
     status === 'Pending' ? theme.palette.warning.dark :

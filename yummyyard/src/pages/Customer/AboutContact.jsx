@@ -1,3 +1,4 @@
+// About Us & Contact page for YummyYard restaurant
 import React, { useState } from 'react';
 import { 
   Box, 
@@ -23,10 +24,10 @@ import {
   Menu as MenuIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import Navbar from '../../components/Navbar'; // Import the Navbar component
+import Navbar from '../../components/Navbar'; // Navigation component
 
-// Placeholder image for the About Us section (replace with your actual image)
-import aboutUsImage from '../../assets/about-us-image.jpg'; // Adjust the path to your image
+// About section hero image - replace with actual restaurant image
+import aboutUsImage from '../../assets/about-us-image.jpg';
 
 // Styled components
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -117,14 +118,17 @@ const AboutUsImage = styled('img')(({ theme }) => ({
 
 const AboutContact = () => {
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md')); // Responsive design check
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
+  // Contact form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: ''
   });
   
+  // Handle form input changes
   const handleFormChange = (e) => {
     setFormData({
       ...formData,
@@ -132,6 +136,7 @@ const AboutContact = () => {
     });
   };
   
+  // Submit contact form to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -145,7 +150,7 @@ const AboutContact = () => {
       });
       
       if (response.ok) {
-        setFormData({ name: '', email: '', subject: '', message: '' });
+        setFormData({ name: '', email: '', subject: '', message: '' }); // Reset form
         alert('Message sent successfully!');
       } else {
         alert('Failed to send message. Please try again.');

@@ -1,3 +1,4 @@
+// Landing page for YummyYard restaurant - public homepage with featured dishes and info
 import React, { useEffect, useState } from 'react';
 import { 
   Box, Container, Grid, Typography, Button, Card, CardMedia, 
@@ -5,7 +6,7 @@ import {
   Chip, Paper, Grow, useMediaQuery, alpha, Drawer
 } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
-import Slider from 'react-slick';
+import Slider from 'react-slick'; // Carousel component for image sliders
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { 
@@ -21,18 +22,18 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-// Import images for the slider
+// Hero section background images for carousel
 import bgImage1 from '../../assets/sliderimage1.jpg';
 import bgImage2 from '../../assets/sliderimage2.jpg';
 import bgImage3 from '../../assets/sliderimage3.jpg';
 
-// Import restaurant logo for dishes (placeholder)
+// Restaurant branding logo used as placeholder for menu items
 import restaurantLogo from '../../assets/YummyYard_logo.png';
 
-// Import Navbar component
+// Shared navigation component
 import Navbar from '../../components/Navbar';
 
-import '@fontsource/poppins'; // Import Poppins font
+import '@fontsource/poppins'; // Google font for consistent typography
 
 // Styled Components for Reusability
 const StyledButton = styled(Button)(({ theme }) => ({

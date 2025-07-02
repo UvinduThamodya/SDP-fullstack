@@ -35,7 +35,7 @@ import Navbar from '../../components/Navbar';
 
 import '@fontsource/poppins'; // Ensure this package is installed
 
-// Styled Components for Reusability
+// Reusable styled button component with hover effects
 const StyledButton = styled(Button)(({ theme }) => ({
   backgroundColor: 'black',
   color: 'white',
@@ -44,20 +44,20 @@ const StyledButton = styled(Button)(({ theme }) => ({
   borderRadius: '30px',
   fontWeight: 'bold',
   textTransform: 'none',
-  transition: 'all 0.3s ease',
+  transition: 'all 0.3s ease', // Smooth animation transitions
   '&:hover': {
     backgroundColor: alpha('#3ACA82', 0.8),
-    transform: 'translateY(-3px)',
+    transform: 'translateY(-3px)', // Lift effect on hover
     boxShadow: '0 6px 12px rgba(58, 202, 130, 0.3)',
   },
 }));
 
-// Style for Runalto Font
+// Typography component with Poppins font family
 const RunaltoTypography = styled(Typography)({
-  fontFamily: 'Poppins, sans-serif', // Changed to Poppins
+  fontFamily: 'Poppins, sans-serif', // Using Poppins instead of Runalto
 });
 
-// Gradient Overlay for Images
+// Dark gradient overlay for hero images to improve text readability
 const GradientOverlay = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: 0,
@@ -68,7 +68,7 @@ const GradientOverlay = styled(Box)(({ theme }) => ({
   zIndex: 1,
 }));
 
-// Animation for Cards
+// Card component with hover animations for menu items
 const AnimatedCard = styled(Card)(({ theme }) => ({
   height: '100%',
   display: 'flex',
@@ -80,22 +80,22 @@ const AnimatedCard = styled(Card)(({ theme }) => ({
   transition: 'all 0.4s ease',
   '&:hover': {
     boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
-    transform: 'translateY(-8px)',
+    transform: 'translateY(-8px)', // Lift effect on hover
   }
 }));
 
-// Featured Dish Tag
+// Badge for highlighting featured dishes
 const FeatureTag = styled(Chip)(({ theme }) => ({
   position: 'absolute',
   top: 16,
   right: 16,
-  backgroundColor: '#3ACA82',
+  backgroundColor: '#3ACA82', // Brand green color
   color: 'black',
   fontWeight: 'bold',
   zIndex: 2,
 }));
 
-// Price Tag
+// Price display badge for menu items
 const PriceTag = styled(Box)(({ theme }) => ({
   position: 'absolute',
   bottom: 16,
@@ -145,9 +145,9 @@ const SectionTitle = styled(Box)(({ theme }) => ({
   }
 }));
 
-// Footer Styled Components
+// Footer section title styling with underline accent
 const FooterTitle = styled(Typography)(({ theme }) => ({
-  fontFamily: 'Poppins, sans-serif', // Changed to Poppins
+  fontFamily: 'Poppins, sans-serif', // Consistent font family
   fontWeight: 'bold',
   marginBottom: theme.spacing(3),
   position: 'relative',
@@ -159,43 +159,46 @@ const FooterTitle = styled(Typography)(({ theme }) => ({
     left: 0,
     width: 80,
     height: 3,
-    backgroundColor: '#3ACA82',
+    backgroundColor: '#3ACA82', // Brand green accent line
   }
 }));
 
+// Contact information item layout
 const ContactItem = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   marginBottom: theme.spacing(2),
 }));
 
+// Social media button styling with hover effects
 const SocialButton = styled(IconButton)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.1)',
   marginRight: theme.spacing(1),
   transition: 'all 0.3s ease',
   '&:hover': {
-    backgroundColor: '#3ACA82',
-    transform: 'translateY(-3px)',
+    backgroundColor: '#3ACA82', // Brand color on hover
+    transform: 'translateY(-3px)', // Subtle lift effect
   }
 }));
 
-// Testimonial Card
+// Customer testimonial card with glass morphism effect
 const TestimonialCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  backgroundColor: 'rgba(255, 255, 255, 0.05)', // Semi-transparent background
   borderRadius: '12px',
-  backdropFilter: 'blur(10px)',
+  backdropFilter: 'blur(10px)', // Glass blur effect
   border: '1px solid rgba(255, 255, 255, 0.1)',
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
   transition: 'transform 0.3s ease',
   '&:hover': {
-    transform: 'translateY(-5px)',
+    transform: 'translateY(-5px)', // Hover lift animation
     boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)',
   }
 }));
 
+// Decorative images positioned around the page
 const randomImages = [
   { src: require('../../assets/cooking1.png'), top: '10%', left: '5%' },
   { src: require('../../assets/cooking2.png'), top: '30%', left: '5%' },
@@ -205,24 +208,24 @@ const randomImages = [
 ];
 
 const Homepage = () => {
-  // Initialize useNavigate hook
+  // Navigation and responsive design hooks
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Mobile breakpoint
+  const isTablet = useMediaQuery(theme.breakpoints.down('md')); // Tablet breakpoint
   const [favorites, setFavorites] = useState([]);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
   
-  // State for animations
+  // Animation state for staggered content loading
   const [showSpecials, setShowSpecials] = useState(false);
   
   useEffect(() => {
-    // Show specials section with slight delay for animation
+    // Delay showing specials section for smooth animation effect
     const timer = setTimeout(() => {
       setShowSpecials(true);
     }, 500);
     
-    // Load Facebook SDK
+    // Initialize Facebook SDK for social media integration
     const loadFacebookSDK = () => {
       window.fbAsyncInit = function() {
         window.FB.init({
@@ -231,7 +234,7 @@ const Homepage = () => {
         });
       };
 
-      // Load the SDK asynchronously
+      // Async load Facebook SDK script
       (function(d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;

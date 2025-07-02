@@ -1,3 +1,4 @@
+// Customer menu page - browse food items, add to cart, and checkout
 import React, { useState, useEffect } from 'react';
 import { CircularProgress } from '@mui/material';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
@@ -27,8 +28,10 @@ import LocalBarIcon from '@mui/icons-material/LocalBar';
 import Slide from '@mui/material/Slide';
 import io from 'socket.io-client';
 
+// Stripe public key for payment processing
 const stripePromise = loadStripe('pk_test_51RBXHE2eTzT1rj33KqvHxzVBUeBpoDrtgtrs0rV8hvprNBZv4ny1YmaNH0mpB21AVCmf7sBeDmVvp1sYUn7YP7kX00GYfePn5k');
 
+// Helper function to format prices in Sri Lankan Rupees
 const formatCurrency = (price, currency = 'LKR', locale = 'en-LK') =>
   new Intl.NumberFormat(locale, { style: 'currency', currency }).format(price);
 
@@ -50,27 +53,30 @@ const SlideTransition = React.forwardRef(function Transition(props, ref) {
 });
 
 const Menu = () => {
+  // Core menu and cart state
   const [menuItems, setMenuItems] = useState([]);
   const [cart, setCart] = useState(() => {
-    // Initialize cart from local storage
+    // Load cart from localStorage on page refresh
     const savedCart = localStorage.getItem('cart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
-  const [availability, setAvailability] = useState('Accepting');
+  const [availability, setAvailability] = useState('Accepting'); // Restaurant availability status
   const [busyDialogOpen, setBusyDialogOpen] = useState(false);
 
-  // Save cart to local storage whenever it changes
+  // Persist cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
+  // Set up real-time availability monitoring via WebSocket
   useEffect(() => {
-    // Fetch initial availability
+    // Get current availability status
     fetch('http://localhost:5000/api/availability')
       .then(res => res.json())
       .then(data => setAvailability(data.availability));
-    // Listen for changes
+    
+    // Listen for real-time availability changes
     const socket = io('http://localhost:5000');
     socket.on('availabilityChanged', data => setAvailability(data.availability));
     return () => socket.disconnect();

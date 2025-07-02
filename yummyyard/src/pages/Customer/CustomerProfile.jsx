@@ -1,3 +1,4 @@
+// Customer profile page - view and edit customer account details
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -41,11 +42,11 @@ const CustomerProfile = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   
-  // Add loading and error states
+  // Loading states for API calls and UI interactions
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Get customer data from localStorage as initial default
+  // Initialize customer data from localStorage on component mount
   const [customer, setCustomer] = useState(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : {
@@ -56,23 +57,24 @@ const CustomerProfile = () => {
     };
   });
 
-  // State for edit mode
+  // Toggle between view and edit modes
   const [editMode, setEditMode] = useState(false);
   
-  // State for form values
+  // Form data for editing profile information
   const [formValues, setFormValues] = useState({...customer});
   
-  // State for notifications
+  // Notification system for showing success/error messages
   const [notification, setNotification] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  const [deleteRequest, setDeleteRequest] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // Account deletion states
+  const [deleteRequest, setDeleteRequest] = useState(false); // Admin delete request
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // User initiated delete
 
-  // Password change state
+  // Password change functionality state
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
@@ -85,12 +87,14 @@ const CustomerProfile = () => {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
 
+  // Fetch customer profile data from backend on component mount
   useEffect(() => {
     const fetchCustomerProfile = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
         
+        // Redirect to login if no auth token found
         if (!token) {
           navigate('/login');
           return;
@@ -151,13 +155,15 @@ const CustomerProfile = () => {
     checkDeleteRequests();
   }, [navigate]);
 
+  // Enable edit mode and populate form with current data
   const handleEditClick = () => {
     setEditMode(true);
-    setFormValues({...customer});
+    setFormValues({...customer}); // Copy current customer data to form
   };
 
+  // Save profile changes to backend
   const handleSaveClick = async () => {
-    // Email validation
+    // Basic email validation before submitting
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formValues.email)) {
       setNotification({
@@ -168,8 +174,8 @@ const CustomerProfile = () => {
       return;
     }
   
-    // Phone number validation
-    const phoneRegex = /^\d{10}$/; // Assuming phone number should be 10 digits
+    // Phone number validation - should be 10 digits
+    const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(formValues.phone)) {
       setNotification({
         open: true,
@@ -203,14 +209,14 @@ const CustomerProfile = () => {
       
       const data = await response.json();
       
-      // Update state with the returned data
+      // Update both state and localStorage with new data
       setCustomer(data.user || formValues);
       setEditMode(false);
       
-      // Cache the updated user data in localStorage
+      // Keep localStorage in sync with updated profile
       localStorage.setItem('user', JSON.stringify(data.user || formValues));
       
-      // Show success notification
+      // Show success notification to user
       setNotification({
         open: true,
         message: 'Profile updated successfully!',
@@ -228,11 +234,13 @@ const CustomerProfile = () => {
     }
   };
 
+  // Cancel edit mode and revert changes
   const handleCancelClick = () => {
     setEditMode(false);
-    setFormValues({...customer});
+    setFormValues({...customer}); // Reset form to original data
   };
 
+  // Handle form input changes during edit mode
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues({
@@ -241,16 +249,19 @@ const CustomerProfile = () => {
     });
   };
 
+  // Close notification snackbar
   const handleNotificationClose = () => {
     setNotification({...notification, open: false});
   };
   
+  // Logout user and clear all stored data
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/');
+    navigate('/'); // Redirect to homepage
   };
 
+  // Accept admin delete request and remove account
   const handleAcceptDelete = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -259,6 +270,7 @@ const CustomerProfile = () => {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
+        // Clear session data and redirect
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/');
@@ -268,6 +280,7 @@ const CustomerProfile = () => {
     }
   };
 
+  // Reject admin delete request
   const handleRejectDelete = async () => {
     try {
       const token = localStorage.getItem('token');

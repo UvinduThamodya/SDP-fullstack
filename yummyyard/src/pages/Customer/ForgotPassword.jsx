@@ -1,3 +1,4 @@
+// Password reset request page - customers can request password reset email
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '../../services/api';
@@ -16,32 +17,34 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Background from '../../assets/Background.jpg';
 
 const ForgotPassword = () => {
+  // Form state management
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
 
+  // Handle password reset form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset previous states
+    // Reset previous states before new request
     setIsSubmitting(true);
     setError('');
     setMessage('');
     
     try {
-      // Validate email format
+      // Basic email validation before API call
       if (!email || !email.includes('@')) {
         setError('Please enter a valid email address');
         setIsSubmitting(false);
         return;
       }
       
-      // Call the API
+      // Send password reset request to backend
       const response = await apiService.requestPasswordReset({ email });
       
-      // Success response
+      // Show success message
       setIsSuccess(true);
       setMessage(response.message || 'Password reset email sent successfully!');
     } catch (error) {
