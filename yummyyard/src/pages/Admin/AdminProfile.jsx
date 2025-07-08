@@ -95,6 +95,7 @@ const AdminProfile = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Load admin profile from localStorage
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -107,7 +108,7 @@ const AdminProfile = () => {
     
     try {
       const user = JSON.parse(userData);
-      // Verify this is an admin
+      // Verify admin role
       if (user.role !== 'Admin') {
         setError('Current user is not an admin.');
         setLoading(false);
@@ -123,27 +124,29 @@ const AdminProfile = () => {
     }
   }, []);
 
+  // Complete logout - clear all authentication data
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('staffId');
     localStorage.removeItem('adminId');
     localStorage.removeItem('user');
-localStorage.removeItem('staff');
-localStorage.removeItem('admin');
-localStorage.removeItem('token');
+    localStorage.removeItem('staff');
+    localStorage.removeItem('admin');
+    localStorage.removeItem('token');
     window.dispatchEvent(new Event('user-logout'));
     navigate('/selectrole');
   };
 
   const handleEdit = () => setEditMode(true);
 
+  // Form validation for profile updates
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditData({ ...editData, [name]: value });
 
-    // Validate phone number
+    // Validate phone number format
     if (name === 'phone') {
-      const phoneRegex = /^[0-9]{10}$/; // Example: 10-digit phone number
+      const phoneRegex = /^[0-9]{10}$/;
       if (!phoneRegex.test(value)) {
         setPhoneError('Phone number must be 10 digits.');
       } else {
@@ -151,9 +154,9 @@ localStorage.removeItem('token');
       }
     }
 
-    // Validate email address
+    // Validate email format
     if (name === 'email') {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
         setEmailError('Invalid email address.');
       } else {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/menu-items'; // Full URL with your backend's port
+const API_URL = 'http://localhost:5000/api/menu-items'; 
 const INVENTORY_API_URL = 'http://localhost:5000/api/inventory';
 
 const CLOUDINARY_UPLOAD_PRESET = "menuitem_upload_preset";

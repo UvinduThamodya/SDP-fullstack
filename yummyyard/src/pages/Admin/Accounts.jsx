@@ -81,18 +81,18 @@ const Accounts = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Fetch and format account data from multiple endpoints
   useEffect(() => {
     const fetchAccounts = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
         
-        // Fetch customers
+        // Fetch customers and staff separately
         const customersRes = await fetch('http://localhost:5000/api/admin/customers', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Fetch staff (employees)
         const staffRes = await fetch('http://localhost:5000/api/admin/staff', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -104,7 +104,7 @@ const Accounts = () => {
         const customers = await customersRes.json();
         const staff = await staffRes.json();
         
-        // Format customers data
+        // Format and combine data
         const formattedCustomers = customers.map(customer => ({
           id: customer.customer_id,
           name: customer.name,
@@ -114,16 +114,14 @@ const Accounts = () => {
           address: customer.address
         }));
         
-        // Format staff data
         const formattedStaff = staff.map(employee => ({
           id: employee.employee_id,
           name: employee.name,
           email: employee.email,
           phone: employee.phone,
-          role: employee.role // 'Admin' or 'Staff'
+          role: employee.role
         }));
         
-        // Combine all accounts
         setAccounts([...formattedStaff, ...formattedCustomers]);
       } catch (err) {
         console.error('Error fetching accounts:', err);
@@ -144,13 +142,14 @@ const Accounts = () => {
     setDeleteDialog({ open: true, account });
   };
 
+  // Handle account deletion with different logic for customers vs staff
   const handleDeleteConfirm = async () => {
     try {
       const token = localStorage.getItem('token');
       const { account } = deleteDialog;
       const endpoint = account.role === 'Customer' 
         ? `http://localhost:5000/api/customers/${account.id}`
-        :  `http://localhost:5000/api/admin/staff/${account.id}`; // Allow direct deletion for staff
+        :  `http://localhost:5000/api/admin/staff/${account.id}`;
       
       const response = await fetch(endpoint, {
         method: 'DELETE',
@@ -161,7 +160,7 @@ const Accounts = () => {
         throw new Error('Failed to delete account');
       }
       
-      // Remove the deleted account from the state
+      // Update state after successful deletion
       setAccounts(accounts.filter(acc => !(acc.id === account.id && acc.role === account.role)));
       setNotification({
         open: true,
@@ -180,12 +179,12 @@ const Accounts = () => {
     }
   };
 
+  // Send delete request for customers instead of immediate deletion
   const handleSendDeleteRequest = async () => {
     try {
       const token = localStorage.getItem('token');
       const { account } = deleteDialog;
       
-      // Send delete request instead of deleting
       const response = await fetch(`http://localhost:5000/api/admin/delete-request/${account.id}`, {
         method: 'POST',
         headers: { 

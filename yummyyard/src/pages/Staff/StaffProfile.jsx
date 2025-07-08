@@ -77,6 +77,7 @@ const Profile = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Load staff profile from localStorage
   useEffect(() => {
     const staffId = localStorage.getItem('staffId');
     if (!staffId) {
@@ -96,6 +97,7 @@ const Profile = () => {
       });
   }, []);
 
+  // Clean logout - remove all authentication data
   const handleLogout = () => {
     localStorage.removeItem('staffId');
     localStorage.removeItem('token');
@@ -113,15 +115,15 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
-    // Email validation
+    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(editData.email)) {
       setSnackbar({ open: true, message: 'Invalid email format.', severity: 'error' });
       return;
     }
 
-    // Phone number validation
-    const phoneRegex = /^\d{10}$/; // Assuming phone number should be 10 digits
+    // Phone number validation - 10 digits only
+    const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(editData.phone)) {
       setSnackbar({ open: true, message: 'Invalid phone number. It should be 10 digits.', severity: 'error' });
       return;

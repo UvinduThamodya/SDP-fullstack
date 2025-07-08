@@ -106,7 +106,7 @@ const StaffRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Email validation
+    // Email validation - basic format check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setAlert({
@@ -117,7 +117,7 @@ const StaffRegister = () => {
       return;
     }
 
-    // Phone number validation (10 digits)
+    // Phone validation - must be exactly 10 digits
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(formData.phone)) {
       setAlert({
@@ -128,7 +128,7 @@ const StaffRegister = () => {
       return;
     }
 
-    // Password length validation
+    // Password strength check
     if (formData.password.length < 7) {
       setAlert({
         open: true,
@@ -141,7 +141,7 @@ const StaffRegister = () => {
     setIsLoading(true);
   
     try {
-      // Use apiService.register() for staff registration
+      // Register staff member through API
       await apiService.registerStaff(formData);
   
       setAlert({
@@ -150,7 +150,7 @@ const StaffRegister = () => {
         severity: 'success',
       });
   
-      // Redirect to login after success
+      // Redirect after successful registration
       setTimeout(() => navigate('/accounts'), 3000);
     } catch (error) {
       console.error('Registration error:', error);

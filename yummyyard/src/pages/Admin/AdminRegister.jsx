@@ -3,6 +3,7 @@ import { Box, Container, Typography, TextField, Button, Paper } from '@mui/mater
 import { useNavigate } from 'react-router-dom';
 
 const AdminRegister = () => {
+  // Form state management
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,7 +35,8 @@ const AdminRegister = () => {
 
       if (response.ok) {
         setSuccess('Admin registered successfully!');
-        setTimeout(() => navigate('/login'), 2000); // Redirect to login after 2 seconds
+        // Redirect to login after successful registration
+        setTimeout(() => navigate('/login'), 2000);
       } else {
         const data = await response.json();
         setError(data.message || 'Failed to register admin.');

@@ -83,12 +83,13 @@ const StaffLogin = () => {
     try {
       const response = await apiService.loginStaff(credentials);
 
+      // Store authentication data
       localStorage.setItem('staffId', response.user.id);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       localStorage.setItem('staff', JSON.stringify(response.user));
 
-      // Redirect based on role
+      // Route based on user role
       if (response.user.role === 'Admin') {
         navigate('/admin-dashboard');
       } else {

@@ -87,7 +87,7 @@ const AdminLogin = () => {
     setError('');
     
     try {
-      // Use your existing staff login route with requireAdmin flag
+      // Use staff login endpoint with admin validation
       const response = await fetch('http://localhost:5000/api/staff/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,7 +105,7 @@ const AdminLogin = () => {
         throw new Error('Access denied: Not an admin');
       }
 
-      // Store admin data in localStorage
+      // Store admin authentication data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('adminId', data.user.id);

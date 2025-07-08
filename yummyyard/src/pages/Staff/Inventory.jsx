@@ -103,9 +103,11 @@ const theme = createTheme({
   },
 });
 
+// Allowed measurement units for ingredients
 const allowedUnits = ['kg', 'L', 'packets', 'pieces', 'bottles'];
 
 const Inventory = () => {
+  // Main inventory state
   const [ingredients, setIngredients] = useState([]);
   const [filteredIngredients, setFilteredIngredients] = useState([]);
   const [filter, setFilter] = useState('All');
@@ -128,7 +130,7 @@ const Inventory = () => {
   const [addErrors, setAddErrors] = useState({});
   const [editErrors, setEditErrors] = useState({});
 
-  // --- Menu Item Ingredient Management State ---
+  // Menu item ingredient management state
   const [menuItems, setMenuItems] = useState([]);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
   const [menuItemIngredients, setMenuItemIngredients] = useState([]);
@@ -202,12 +204,13 @@ const Inventory = () => {
   const handleOpenAddDialog = () => setOpenAddDialog(true);
   const handleCloseAddDialog = () => setOpenAddDialog(false);
 
+  // Prevent negative values for numeric inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     let val = value;
     let errors = { ...addErrors };
 
-    // Prevent negative values for numeric fields
+    // Validate numeric fields to prevent negative values
     if ((name === 'quantity' || name === 'unit_price' || name === 'threshold') && value !== '') {
       if (Number(value) < 0) {
         errors[name] = 'Value cannot be negative';
@@ -216,7 +219,7 @@ const Inventory = () => {
       } else {
         delete errors[name];
       }
-      // Optionally, prevent leading zeros
+      // Remove leading zeros
       val = value.replace(/^(-)?0+(\d)/, '$1$2');
     }
     setAddErrors(errors);
@@ -376,6 +379,7 @@ const Inventory = () => {
     }
   };
 
+  // Download inventory report as PDF
   const downloadInventoryReport = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch('http://localhost:5000/api/inventory/report/pdf', {
@@ -396,6 +400,7 @@ const Inventory = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  // Load data on component mount
   useEffect(() => {
     fetchInventory();
     fetchMenuItems();
@@ -434,6 +439,7 @@ const Inventory = () => {
     setIngredientForm({ inventory_id: '', quantity_required: '' });
   };
 
+  // Add ingredient to menu item with validation
   const handleAddMenuItemIngredient = async () => {
     const qty = parseFloat(ingredientForm.quantity_required);
     if (isNaN(qty) || qty < 0) {
