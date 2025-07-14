@@ -409,9 +409,8 @@ UPDATE menuitems
 SET name = 'Highland Chocolate'
 WHERE item_id = 43 ;
 
--- Final correct status ENUM that matches your backend code
-ALTER TABLE Orders
-MODIFY status ENUM('Pending', 'Accepted', 'Preparing', 'Ready to Pick up', 'Completed', 'Cancelled', 'Paid')
+ALTER TABLE Orders 
+MODIFY status ENUM('Pending', 'Preparing', 'Ready to Pick up', 'Completed', 'Cancelled', 'Paid') 
 DEFAULT 'Pending';
 
 SELECT
@@ -461,15 +460,6 @@ drop table  LoyaltyRewards;
 drop table PointsTransactions;
 drop table CustomerLoyalty;
 
-
-SELECT o.*, c.name AS customer_name, c.email, c.phone, c.address, 
-       p.method AS payment_method, p.payment_date
-       FROM Orders o
-       JOIN Customers c ON o.customer_id = c.customer_id
-       LEFT JOIN Payments p ON o.order_id = p.order_id
-       WHERE o.order_id = ?
-
-
              UPDATE MenuItems
 SET description = 'A classic Sri Lankan rice plate served with fish curry, three seasonal vegetable curries (such as dhal, beans, and brinjal moju), coconut sambol, papadam, and a mild gravy.'
 WHERE name = 'Rice And Curry Fish';
@@ -477,3 +467,263 @@ WHERE name = 'Rice And Curry Fish';
 UPDATE MenuItems
 SET description = 'A wholesome Sri Lankan meal featuring rice with boiled egg curry, three seasonal vegetable curries (like dhal, carrot, and beetroot), coconut sambol, papadam, and a mild gravy.'
 WHERE name = 'Rice And Curry Egg';
+
+-- Check current status values in your Orders table
+SELECT DISTINCT status FROM Orders;
+
+-- Check the current ENUM definition
+SHOW COLUMNS FROM Orders LIKE 'status';
+
+-- Ensure all existing orders have valid status values
+UPDATE Orders 
+SET status = 'Pending' 
+WHERE status NOT IN ('Pending', 'Accepted', 'Preparing', 'Ready to Pick up', 'Completed', 'Cancelled', 'Paid');
+
+-- Apply the final correct ENUM definition
+ALTER TABLE Orders
+MODIFY status ENUM('Pending', 'Accepted', 'Preparing', 'Ready to Pick up', 'Completed', 'Cancelled', 'Paid')
+DEFAULT 'Pending';
+
+-- dummy data entry
+
+-- Add more customers
+INSERT INTO Customers (name, email, phone, address, password)
+VALUES 
+('John Smith', 'john.smith@example.com', '0771234567', '123 Main St, Colombo', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG'),
+('Mary Johnson', 'mary.j@example.com', '0777654321', '45 Park Avenue, Kandy', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG'),
+('Raj Patel', 'raj.p@example.com', '0761122334', '78 Beach Road, Galle', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG'),
+('Sarah Williams', 'sarah.w@example.com', '0755544332', '90 Hill Street, Nuwara Eliya', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG'),
+('David Lee', 'david.l@example.com', '0768899001', '34 Temple Road, Jaffna', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG');
+
+-- Add more staff members
+INSERT INTO Employees (name, role, email, phone, password)
+VALUES 
+('Jane Doe', 'Staff', 'jane.doe@yummyyard.com', '0712345678', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG'),
+('Mike Wilson', 'Chef', 'mike.w@yummyyard.com', '0723456789', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG'),
+('Lisa Chen', 'Cashier', 'lisa.c@yummyyard.com', '0734567890', '$2a$10$z9U4JZ0x7V1yFQ9JmZ3fGuN8uA7E5Xc9kHf8eW6zA6D6zQ0Y3w5eG');
+
+-- Add completed orders for today (adjust date as needed)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+VALUES 
+(1, DATE_SUB(NOW(), INTERVAL 2 HOUR), 1250.00, 'Completed', '123 Main St, Colombo'),
+(2, DATE_SUB(NOW(), INTERVAL 3 HOUR), 890.00, 'Completed', '45 Park Avenue, Kandy'),
+(3, DATE_SUB(NOW(), INTERVAL 4 HOUR), 1450.00, 'Completed', '78 Beach Road, Galle'),
+(4, DATE_SUB(NOW(), INTERVAL 5 HOUR), 760.00, 'Completed', '90 Hill Street, Nuwara Eliya'),
+(5, DATE_SUB(NOW(), INTERVAL 6 HOUR), 1100.00, 'Completed', '34 Temple Road, Jaffna');
+
+-- Add pending and in-progress orders
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+VALUES 
+(1, DATE_SUB(NOW(), INTERVAL 30 MINUTE), 950.00, 'Pending', '123 Main St, Colombo'),
+(3, DATE_SUB(NOW(), INTERVAL 45 MINUTE), 1200.00, 'Accepted', '78 Beach Road, Galle'),
+(2, DATE_SUB(NOW(), INTERVAL 60 MINUTE), 850.00, 'Preparing', '45 Park Avenue, Kandy');
+
+-- Add order items for completed orders
+INSERT INTO OrderItems (order_id, item_id, quantity, subtotal)
+VALUES 
+-- For order 1
+(LAST_INSERT_ID()-7, 21, 1, 570.00),
+(LAST_INSERT_ID()-7, 31, 1, 680.00),
+
+-- For order 2
+(LAST_INSERT_ID()-6, 22, 1, 390.00),
+(LAST_INSERT_ID()-6, 35, 2, 220.00),
+(LAST_INSERT_ID()-6, 38, 1, 160.00),
+
+-- For order 3
+(LAST_INSERT_ID()-5, 31, 2, 1360.00),
+(LAST_INSERT_ID()-5, 37, 1, 160.00),
+
+-- For order 4
+(LAST_INSERT_ID()-4, 36, 2, 260.00),
+(LAST_INSERT_ID()-4, 35, 2, 220.00),
+(LAST_INSERT_ID()-4, 38, 1, 160.00),
+
+-- For order 5
+(LAST_INSERT_ID()-3, 21, 1, 570.00),
+(LAST_INSERT_ID()-3, 22, 1, 390.00),
+(LAST_INSERT_ID()-3, 38, 1, 160.00);
+
+-- Add order items for pending/in-progress orders
+INSERT INTO OrderItems (order_id, item_id, quantity, subtotal)
+VALUES 
+-- For pending order
+(LAST_INSERT_ID()-2, 31, 1, 680.00),
+(LAST_INSERT_ID()-2, 37, 1, 160.00),
+(LAST_INSERT_ID()-2, 38, 1, 160.00),
+
+-- For accepted order
+(LAST_INSERT_ID()-1, 21, 1, 570.00),
+(LAST_INSERT_ID()-1, 31, 1, 680.00),
+
+-- For preparing order
+(LAST_INSERT_ID(), 22, 1, 390.00),
+(LAST_INSERT_ID(), 35, 2, 220.00),
+(LAST_INSERT_ID(), 38, 1, 160.00);
+
+-- Add payments for completed orders
+INSERT INTO Payments (payment_id, order_id, amount, payment_date, method)
+VALUES 
+(CONCAT('PAY-', FLOOR(RAND() * 1000000)), LAST_INSERT_ID()-7, 1250.00, DATE_SUB(NOW(), INTERVAL 2 HOUR), 'Card'),
+(CONCAT('PAY-', FLOOR(RAND() * 1000000)), LAST_INSERT_ID()-6, 890.00, DATE_SUB(NOW(), INTERVAL 3 HOUR), 'Cash'),
+(CONCAT('PAY-', FLOOR(RAND() * 1000000)), LAST_INSERT_ID()-5, 1450.00, DATE_SUB(NOW(), INTERVAL 4 HOUR), 'Online'),
+(CONCAT('PAY-', FLOOR(RAND() * 1000000)), LAST_INSERT_ID()-4, 760.00, DATE_SUB(NOW(), INTERVAL 5 HOUR), 'Cash'),
+(CONCAT('PAY-', FLOOR(RAND() * 1000000)), LAST_INSERT_ID()-3, 1100.00, DATE_SUB(NOW(), INTERVAL 6 HOUR), 'Card');
+
+-- Add historical orders for sales trends (past 6 months)
+-- Month 1 (5 months ago)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+SELECT 
+  FLOOR(1 + RAND() * 5), -- Random customer ID between 1-5
+  DATE_SUB(CURDATE(), INTERVAL 5 MONTH) + INTERVAL FLOOR(RAND() * 30) DAY, -- Random day in month
+  500 + FLOOR(RAND() * 1000), -- Random amount between 500-1500
+  'Completed',
+  CASE FLOOR(1 + RAND() * 5)
+    WHEN 1 THEN '123 Main St, Colombo'
+    WHEN 2 THEN '45 Park Avenue, Kandy'
+    WHEN 3 THEN '78 Beach Road, Galle'
+    WHEN 4 THEN '90 Hill Street, Nuwara Eliya'
+    ELSE '34 Temple Road, Jaffna'
+  END
+FROM 
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION 
+   SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) AS t1,
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3) AS t2
+LIMIT 25; -- 25 orders for month 1
+
+-- Month 2 (4 months ago)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+SELECT 
+  FLOOR(1 + RAND() * 5),
+  DATE_SUB(CURDATE(), INTERVAL 4 MONTH) + INTERVAL FLOOR(RAND() * 30) DAY,
+  500 + FLOOR(RAND() * 1000),
+  'Completed',
+  CASE FLOOR(1 + RAND() * 5)
+    WHEN 1 THEN '123 Main St, Colombo'
+    WHEN 2 THEN '45 Park Avenue, Kandy'
+    WHEN 3 THEN '78 Beach Road, Galle'
+    WHEN 4 THEN '90 Hill Street, Nuwara Eliya'
+    ELSE '34 Temple Road, Jaffna'
+  END
+FROM 
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION 
+   SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) AS t1,
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) AS t2
+LIMIT 35; -- 35 orders for month 2 (growth)
+
+-- Month 3 (3 months ago)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+SELECT 
+  FLOOR(1 + RAND() * 5),
+  DATE_SUB(CURDATE(), INTERVAL 3 MONTH) + INTERVAL FLOOR(RAND() * 30) DAY,
+  500 + FLOOR(RAND() * 1000),
+  'Completed',
+  CASE FLOOR(1 + RAND() * 5)
+    WHEN 1 THEN '123 Main St, Colombo'
+    WHEN 2 THEN '45 Park Avenue, Kandy'
+    WHEN 3 THEN '78 Beach Road, Galle'
+    WHEN 4 THEN '90 Hill Street, Nuwara Eliya'
+    ELSE '34 Temple Road, Jaffna'
+  END
+FROM 
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION 
+   SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) AS t1,
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) AS t2
+LIMIT 45; -- 45 orders for month 3 (more growth)
+
+-- Month 4 (2 months ago)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+SELECT 
+  FLOOR(1 + RAND() * 5),
+  DATE_SUB(CURDATE(), INTERVAL 2 MONTH) + INTERVAL FLOOR(RAND() * 30) DAY,
+  500 + FLOOR(RAND() * 1000),
+  'Completed',
+  CASE FLOOR(1 + RAND() * 5)
+    WHEN 1 THEN '123 Main St, Colombo'
+    WHEN 2 THEN '45 Park Avenue, Kandy'
+    WHEN 3 THEN '78 Beach Road, Galle'
+    WHEN 4 THEN '90 Hill Street, Nuwara Eliya'
+    ELSE '34 Temple Road, Jaffna'
+  END
+FROM 
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION 
+   SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) AS t1,
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6) AS t2
+LIMIT 55; -- 55 orders for month 4 (continued growth)
+
+-- Month 5 (1 month ago)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+SELECT 
+  FLOOR(1 + RAND() * 5),
+  DATE_SUB(CURDATE(), INTERVAL 1 MONTH) + INTERVAL FLOOR(RAND() * 30) DAY,
+  500 + FLOOR(RAND() * 1000),
+  'Completed',
+  CASE FLOOR(1 + RAND() * 5)
+    WHEN 1 THEN '123 Main St, Colombo'
+    WHEN 2 THEN '45 Park Avenue, Kandy'
+    WHEN 3 THEN '78 Beach Road, Galle'
+    WHEN 4 THEN '90 Hill Street, Nuwara Eliya'
+    ELSE '34 Temple Road, Jaffna'
+  END
+FROM 
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION 
+   SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) AS t1,
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION 
+   SELECT 6 UNION SELECT 7) AS t2
+LIMIT 65; -- 65 orders for month 5 (even more growth)
+
+-- Current month (partial)
+INSERT INTO Orders (customer_id, order_date, total_amount, status, delivery_address)
+SELECT 
+  FLOOR(1 + RAND() * 5),
+  CURDATE() - INTERVAL FLOOR(RAND() * DAY(CURDATE())) DAY + INTERVAL FLOOR(RAND() * 24) HOUR,
+  500 + FLOOR(RAND() * 1000),
+  'Completed',
+  CASE FLOOR(1 + RAND() * 5)
+    WHEN 1 THEN '123 Main St, Colombo'
+    WHEN 2 THEN '45 Park Avenue, Kandy'
+    WHEN 3 THEN '78 Beach Road, Galle'
+    WHEN 4 THEN '90 Hill Street, Nuwara Eliya'
+    ELSE '34 Temple Road, Jaffna'
+  END
+FROM 
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) AS t1,
+  (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4) AS t2
+LIMIT 20; -- 20 orders for current month (partial)
+
+-- Add some stock orders
+INSERT INTO StockOrders (staff_id, total_amount, order_date)
+VALUES
+(2, 5000.00, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(2, 3500.00, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(2, 4200.00, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+(2, 6100.00, DATE_SUB(NOW(), INTERVAL 14 DAY)),
+(2, 2800.00, DATE_SUB(NOW(), INTERVAL 21 DAY));
+
+-- Add stock order items
+INSERT INTO StockOrderItems (stock_order_id, inventory_id, quantity, unit_price, total_price)
+VALUES
+-- For first stock order
+(LAST_INSERT_ID(), 1, 50, 50.00, 2500.00),
+(LAST_INSERT_ID(), 2, 25, 100.00, 2500.00),
+
+-- For second stock order
+(LAST_INSERT_ID()-1, 3, 100, 5.00, 500.00),
+(LAST_INSERT_ID()-1, 4, 30, 100.00, 3000.00),
+
+-- For third stock order
+(LAST_INSERT_ID()-2, 5, 20, 60.00, 1200.00),
+(LAST_INSERT_ID()-2, 6, 10, 300.00, 3000.00),
+
+-- For fourth stock order
+(LAST_INSERT_ID()-3, 7, 100, 20.00, 2000.00),
+(LAST_INSERT_ID()-3, 8, 20, 150.00, 3000.00),
+(LAST_INSERT_ID()-3, 9, 55, 20.00, 1100.00),
+
+-- For fifth stock order
+(LAST_INSERT_ID()-4, 10, 40, 40.00, 1600.00),
+(LAST_INSERT_ID()-4, 11, 30, 40.00, 1200.00);
+
+-- Update inventory levels to show some items near threshold
+UPDATE Inventory SET quantity = threshold * 1.2 WHERE inventory_id IN (1, 3, 5);
+UPDATE Inventory SET quantity = threshold * 0.8 WHERE inventory_id IN (2, 4);
